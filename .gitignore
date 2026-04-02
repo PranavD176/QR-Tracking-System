@@ -1,34 +1,40 @@
-# Gradle files
-.gradle/
-build/
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# Log/OS Files
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+.env
+venv/
+.env.*
 *.log
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
-
-# IntelliJ
+# ======================
+# Android / Kotlin
+# ======================
 *.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+
+# Android Studio
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+*.apk
+*.ap_
+*.dex
 
 # Keystore files
 *.jks
 *.keystore
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
-*.hprof
+# ======================
+# General
+# ======================
+node_modules/
+dist/
+*.log
