@@ -4,5 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.ksp) apply false
+    // Keep your alias version of Google Services as it matches your libs.versions.toml
     alias(libs.plugins.google.services) apply false
 }
