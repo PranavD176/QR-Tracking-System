@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.ganesh.qrtracker.MainActivity
+import com.ganesh.qrtracker.utils.TokenManager
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -18,8 +19,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     // to know WHERE to send the push notification.
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Save the token locally so we can send it to backend after login
-        saveTokenLocally(token)
+        // Save FCM token using TokenManager so AuthViewModel can read it
+        val tokenManager = TokenManager(applicationContext)
+        tokenManager.saveFcmToken(token)
     }
 
     // This function fires when a push notification arrives on this device.
