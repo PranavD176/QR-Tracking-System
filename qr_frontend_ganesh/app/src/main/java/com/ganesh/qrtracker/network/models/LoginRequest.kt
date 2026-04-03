@@ -1,4 +1,6 @@
 package com.ganesh.qrtracker.network.models
 
-class LoginRequest {
-}
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
