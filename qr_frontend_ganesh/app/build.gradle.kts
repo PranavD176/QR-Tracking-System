@@ -1,24 +1,27 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 android {
     namespace = "com.ganesh.qrtracker"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.ganesh.qrtracker"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -30,41 +33,54 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures {
-        compose = true
+    
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 
 dependencies {
-    // Networking (Fixes ApiService errors)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-// Lifecycle & ViewModel (Fixes AuthViewModel errors)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    // --- FIREBASE (Using BoM) ---
+    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
-// Navigation (Required for Checkpoint 1 flow)
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    // --- UI & PERMISSIONS ---
+    implementation("androidx.compose.material:material-icons-extended:1.6.7")
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
 
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-// Member 2: Networking & JSON
+    // --- CAMERAX & ML KIT ---
+    implementation("androidx.camera:camera-camera2:1.3.3")
+    implementation("androidx.camera:camera-lifecycle:1.3.3")
+    implementation("androidx.camera:camera-view:1.3.3")
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // --- NETWORKING ---
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // Member 2: ViewModel & LiveData
+    // --- ROOM DATABASE ---
+    implementation("androidx.room:room-runtime:2.7.1")
+    implementation("androidx.room:room-ktx:2.7.1")
+    ksp("androidx.room:room-compiler:2.7.1")
+
+    // --- LIFECYCLE & NAVIGATION ---
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-
-    // Member 1 & 2: Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
+    // --- SECURITY ---
+    implementation("androidx.security:security-crypto:1.1.0")
+
+    // --- CORE ANDROID ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -73,6 +89,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+
+    // --- TESTING ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
