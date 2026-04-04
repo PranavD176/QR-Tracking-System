@@ -1,14 +1,14 @@
 [versions]
 agp = "9.1.0"
-kotlin = "2.1.0"
-ksp    = "2.1.0-1.0.29"
-coreKtx = "1.15.0"
+kotlin = "2.2.10"
+ksp    = "2.2.10-2.0.2"
+coreKtx = "1.18.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
-composeBom = "2024.11.00"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.13.0"
+composeBom = "2024.09.00"
 googleServices = "4.4.2"
 
 [libraries]
