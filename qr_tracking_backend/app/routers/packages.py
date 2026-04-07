@@ -7,6 +7,27 @@ from app.schemas import PackageCreate
 
 router = APIRouter()
 
+@router.post("/packages")
+def create_package(data: PackageCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    package = Package(
+        owner_id=user["uid"],
+        description=data.description
+    )
+    db.add(package)
+    db.commit()
+    db.refresh(package)
+
+    return {
+        "success": True,
+        "data": {
+            "package_id": package.package_id,
+            "qr_payload": f"QR_TRACKING:{package.package_id}",
+            "description": package.description,
+            "status": package.status
+        },
+        "error": None
+    }
+
 @router.get("/packages")
 def get_packages(user=Depends(get_current_user), db: Session = Depends(get_db)):
     packages = db.query(Package).filter_by(owner_id=user["uid"]).all()

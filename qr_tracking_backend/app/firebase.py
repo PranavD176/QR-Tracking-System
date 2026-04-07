@@ -7,9 +7,9 @@ from fastapi import HTTPException
 try:
     cred = credentials.Certificate("firebase.json")
     firebase_admin.initialize_app(cred)
-    print("✅ Firebase Admin SDK initialized")
+    print(" Firebase Admin SDK initialized")
 except Exception as e:
-    print(f"❌ Firebase initialization failed: {e}")
+    print(f" Firebase initialization failed: {e}")
 
 def verify_token(id_token):
     """Verify Firebase ID token and return decoded token"""
