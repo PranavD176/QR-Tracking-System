@@ -1,27 +1,33 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.dependencies import get_current_user, get_db
+from app.models.alerts import Alert
 
-router = APIRouter(prefix="/alerts", tags=["Alerts"])
+router = APIRouter()
 
-@router.get("")
-def get_alerts():
+@router.get("/alerts")
+def get_alerts(user=Depends(get_current_user), db: Session = Depends(get_db)):
+
+    alerts = db.query(Alert).filter_by(recipient_id=user["uid"], status="sent").all()
+
     return {
         "success": True,
-        "data": [
-            {
-                "alert_id": "uuid-v4",
-                "package_id": "uuid-v4",
-                "package_description": "Physics textbook",
-                "scanned_by_name": "Priya Patel",
-                "location": "Library Room 3B",
-                "status": "sent",
-                "created_at": "2026-04-01T11:30:00Z"
-            }
-        ],
+        "data": alerts,
         "error": None
     }
 
-@router.put("/{alert_id}/acknowledge")
-def acknowledge_alert(alert_id: str):
+#Acknowledgement API - Marks an alert as acknowledged
+@router.put("/alerts/{alert_id}/acknowledge")
+def acknowledge(alert_id: str, user=Depends(get_current_user), db: Session = Depends(get_db)):
+
+    alert = db.query(Alert).filter_by(alert_id=alert_id).first()
+
+    if not alert:
+        return {"success": False, "data": None, "error": "Alert not found"}
+
+    alert.status = "acknowledged"
+    db.commit()
+
     return {
         "success": True,
         "data": {"alert_id": alert_id, "status": "acknowledged"},
