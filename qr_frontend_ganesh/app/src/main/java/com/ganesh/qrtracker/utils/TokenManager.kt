@@ -12,11 +12,9 @@ class TokenManager(private val context: Context) {
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
-    // EncryptedSharedPreferences — like regular SharedPreferences
-    // but everything inside is encrypted automatically
     private val prefs = EncryptedSharedPreferences.create(
         context,
-        "secure_prefs",         // File name on disk
+        "qrtracker_secure_prefs",
         masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM

@@ -1,70 +1,72 @@
 package com.ganesh.qrtracker.network
 
 import com.ganesh.qrtracker.utils.TokenManager
+import com.google.gson.GsonBuilder
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
+    // ── MOCK: replace with real IP before integration week ──────────────────
+    // Emulator  → "http://10.0.2.2:8000/"
+    // Device    → "http://<your-machine-ip>:8000/"
     private const val BASE_URL = "http://10.0.2.2:8000/"
 
-    // JWT Auth Interceptor — attaches token to every outgoing request
-    private fun authInterceptor(tokenManager: TokenManager): Interceptor {
-        return Interceptor { chain ->
-            val originalRequest = chain.request()
-            val token = tokenManager.getToken()
+    private var tokenManager: TokenManager? = null
 
-            val newRequest = if (token != null) {
-                originalRequest.newBuilder()
-                    .header("Authorization", "Bearer $token")
-                    .build()
-            } else {
-                originalRequest
-            }
-
-            chain.proceed(newRequest)
-        }
+    // Call this once from Application class before any API call
+    fun init(tm: TokenManager) {
+        tokenManager = tm
     }
 
-    // 401 Interceptor — reacts when server says token is expired/invalid
-    // Clears all saved auth data so the app knows to redirect to login
-    private fun unauthorizedInterceptor(tokenManager: TokenManager): Interceptor {
-        return Interceptor { chain ->
-            val request = chain.request()
-            val response = chain.proceed(request)
+    // ── JWT Interceptor ──────────────────────────────────────────────────────
+    private val authInterceptor = Interceptor { chain ->
+        val token = tokenManager?.getToken()
+        val request = chain.request().newBuilder().apply {
+            if (token != null) addHeader("Authorization", "Bearer $token")
+        }.build()
 
-            // If server returns 401, clear token immediately
-            // The ViewModel's error state will trigger the UI redirect
-            if (response.code == 401) {
-                tokenManager.clearAll()
-            }
+        val response = chain.proceed(request)
 
-            response  // Always return the response so ViewModel can handle it
+        // 401 → token expired or invalid → clear immediately
+        if (response.code == 401) {
+            tokenManager?.clearAll()
+            // Member 2 will observe isLoggedIn state and redirect to Login
         }
+
+        response
     }
 
-    // Logging interceptor — prints full request/response in Logcat
-    // Very helpful during development and integration week
+    // ── Logging (DEBUG builds only — restrict in release when backend is ready) ──
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    fun getInstance(tokenManager: TokenManager): ApiService {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(authInterceptor(tokenManager))         // 1. Attach token
-            .addInterceptor(unauthorizedInterceptor(tokenManager)) // 2. Handle 401
-            .addInterceptor(loggingInterceptor)                    // 3. Log everything
-            .build()
+    // ── OkHttp Client ────────────────────────────────────────────────────────
+    private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
+        .addInterceptor(loggingInterceptor)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    // ── Gson ─────────────────────────────────────────────────────────────────
+    private val gson = GsonBuilder()
+        .serializeNulls()
+        .create()
 
-        return retrofit.create(ApiService::class.java)
-    }
+    // ── Retrofit Instance ────────────────────────────────────────────────────
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .client(okHttpClient)
+        .addConverterFactory(GsonConverterFactory.create(gson))
+        .build()
+
+    // ── API Service ───────────────────────────────────────────────────────────
+    val apiService: ApiService = retrofit.create(ApiService::class.java)
 }
