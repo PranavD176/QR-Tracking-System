@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-class TokenManager(context: Context) {
+class TokenManager(private val context: Context) {
 
+    // MasterKey is used to encrypt/decrypt the storage
+    // This ensures JWT token is stored securely on device
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
@@ -18,22 +20,71 @@ class TokenManager(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    companion object {
-        private const val KEY_TOKEN = "jwt_token"
-        private const val KEY_ROLE  = "user_role"
-        private const val KEY_UID   = "user_id"
+    // ─── JWT TOKEN ───────────────────────────────────────────────────
+
+    fun saveToken(token: String) {
+        prefs.edit().putString(KEY_TOKEN, token).apply()
     }
 
-    fun saveToken(token: String) = prefs.edit().putString(KEY_TOKEN, token).apply()
-    fun getToken(): String?      = prefs.getString(KEY_TOKEN, null)
+    fun getToken(): String? {
+        return prefs.getString(KEY_TOKEN, null)
+    }
 
-    fun saveRole(role: String)   = prefs.edit().putString(KEY_ROLE, role).apply()
-    fun getRole(): String?       = prefs.getString(KEY_ROLE, null)
+    // ─── USER ROLE ───────────────────────────────────────────────────
 
-    fun saveUserId(uid: String)  = prefs.edit().putString(KEY_UID, uid).apply()
-    fun getUserId(): String?     = prefs.getString(KEY_UID, null)
+    fun saveRole(role: String) {
+        prefs.edit().putString(KEY_ROLE, role).apply()
+    }
 
-    fun isLoggedIn(): Boolean    = getToken() != null
+    fun getRole(): String? {
+        return prefs.getString(KEY_ROLE, null)
+    }
 
-    fun clearAll()               = prefs.edit().clear().apply()
+    fun isAdmin(): Boolean {
+        return getRole() == "admin"
+    }
+
+    // ─── USER ID ─────────────────────────────────────────────────────
+
+    fun saveUserId(userId: String) {
+        prefs.edit().putString(KEY_USER_ID, userId).apply()
+    }
+
+    fun getUserId(): String? {
+        return prefs.getString(KEY_USER_ID, null)
+    }
+
+    // ─── FCM TOKEN ───────────────────────────────────────────────────
+    // FCM token is stored in regular (non-encrypted) prefs
+    // because it's not sensitive — it's just a device identifier
+
+    fun saveFcmToken(token: String) {
+        context.getSharedPreferences("fcm_prefs", Context.MODE_PRIVATE)
+            .edit().putString(KEY_FCM_TOKEN, token).apply()
+    }
+
+    fun getFcmToken(): String? {
+        return context.getSharedPreferences("fcm_prefs", Context.MODE_PRIVATE)
+            .getString(KEY_FCM_TOKEN, null)
+    }
+
+    // ─── LOGOUT ──────────────────────────────────────────────────────
+    // Clears all saved auth data — called on logout
+
+    fun clearAll() {
+        prefs.edit().clear().apply()
+    }
+
+    // ─── HELPERS ─────────────────────────────────────────────────────
+
+    fun isLoggedIn(): Boolean {
+        return getToken() != null
+    }
+
+    companion object {
+        private const val KEY_TOKEN = "jwt_token"
+        private const val KEY_ROLE = "user_role"
+        private const val KEY_USER_ID = "user_id"
+        private const val KEY_FCM_TOKEN = "fcm_token"
+    }
 }
