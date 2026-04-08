@@ -7,3 +7,5 @@ psycopg2-binary
 python-dotenv
 firebase-admin
 pydantic
+python-jose[cryptography]
+passlib[bcrypt]
