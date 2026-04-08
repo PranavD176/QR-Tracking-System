@@ -1,9 +1,10 @@
 package com.ganesh.qrtracker.network.models
 
 data class PackageResponse(
-    val id: String,
+    val package_id: String,
     val description: String,
     val status: String,
-    val current_location: String,
+    val owner_id: String?,
+    val qr_payload: String?,
     val created_at: String
 )
