@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.ganesh.qrtracker"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ganesh.qrtracker"
