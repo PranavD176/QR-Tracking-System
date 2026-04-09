@@ -10,39 +10,75 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+// ══════════════════════════════════════════════════════════════════════════════
+//  Coral Pulse — Material3 Theme
+// ══════════════════════════════════════════════════════════════════════════════
+
 private val LightColorScheme = lightColorScheme(
-    primary          = Navy,
-    onPrimary        = White,
-    secondary        = Blue,
-    onSecondary      = White,
-    tertiary         = LightBlue,
-    background       = OffWhite,
-    onBackground     = DarkGray,
-    surface          = White,
-    onSurface        = DarkGray,
-    surfaceVariant   = LightGray,
-    onSurfaceVariant = Charcoal,
-    error            = MisplacedRed,
-    onError          = White,
+    // Brand
+    primary             = CoralPrimary,
+    onPrimary           = OnPrimary,
+    primaryContainer    = PrimaryContainer,
+    onPrimaryContainer  = OnPrimaryContainer,
+
+    // Secondary
+    secondary           = CoralSecondary,
+    onSecondary         = OnSecondary,
+    secondaryContainer  = SecondaryContainer,
+    onSecondaryContainer= OnSecondaryContainer,
+
+    // Tertiary
+    tertiary            = CoralTertiary,
+    tertiaryContainer   = TertiaryContainer,
+
+    // Background & Surface
+    background          = Surface,
+    onBackground        = OnBackground,
+    surface             = Surface,
+    onSurface           = OnSurface,
+    surfaceVariant      = SurfaceVariant,
+    onSurfaceVariant    = OnSurfaceVariant,
+    surfaceContainerLowest  = SurfaceContainerLowest,
+    surfaceContainerLow     = SurfaceContainerLow,
+    surfaceContainer        = SurfaceContainer,
+    surfaceContainerHigh    = SurfaceContainerHigh,
+    surfaceContainerHighest = SurfaceContainerHighest,
+    surfaceBright           = SurfaceBright,
+    surfaceDim              = SurfaceDim,
+
+    // Outline
+    outline             = Outline,
+    outlineVariant      = OutlineVariant,
+
+    // Inverse
+    inverseSurface      = InverseSurface,
+    inverseOnSurface    = InverseOnSurface,
+    inversePrimary      = InversePrimary,
+
+    // Error
+    error               = ErrorRed,
+    onError             = OnError,
+    errorContainer      = ErrorContainer,
+    onErrorContainer    = OnErrorContainer,
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary          = LightBlue,
-    onPrimary        = Navy,
-    secondary        = Blue,
-    onSecondary      = White,
-    tertiary         = Navy,
-    background       = Charcoal,
-    onBackground     = OffWhite,
-    surface          = DarkGray,
-    onSurface        = OffWhite,
-    error            = MisplacedRedBg,
-    onError          = MisplacedRed,
+    primary             = CoralPrimaryFixed,
+    onPrimary           = OnPrimaryContainer,
+    secondary           = SecondaryContainer,
+    onSecondary         = OnSecondaryContainer,
+    background          = InverseSurface,
+    onBackground        = InverseOnSurface,
+    surface             = Color(0xFF1A1C1C),
+    onSurface           = Color(0xFFE1E3E3),
+    error               = ErrorContainer,
+    onError             = OnErrorContainer,
 )
 
 @Composable
@@ -65,9 +101,10 @@ fun QRTrackerTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            // Use gradient start color for status bar — matches the editorial hero headers
+            window.statusBarColor = GradientStart.toArgb()
             WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightStatusBars = !darkTheme
+                .isAppearanceLightStatusBars = false  // white icons on coral status bar
         }
     }
 

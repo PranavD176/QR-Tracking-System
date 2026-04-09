@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#b31b25",
+                    "on-background": "#2d2f2f",
+                    "primary": "#a93000",
+                    "surface-container": "#e7e8e8",
+                    "on-primary-fixed": "#000000",
+                    "surface-variant": "#dbdddd",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-fixed": "#2e003c",
+                    "on-tertiary-container": "#53066a",
+                    "outline": "#767777",
+                    "tertiary-dim": "#76308c",
+                    "tertiary-container": "#e293f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "background": "#f6f6f6",
+                    "primary-fixed": "#ff784e",
+                    "on-error-container": "#570008",
+                    "on-primary": "#ffefeb",
+                    "surface": "#f6f6f6",
+                    "on-secondary": "#fff0e2",
+                    "surface-tint": "#a93000",
+                    "secondary": "#7f5200",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "on-error": "#ffefee",
+                    "primary-container": "#ff784e",
+                    "surface-bright": "#f6f6f6",
+                    "on-secondary-fixed-variant": "#704800",
+                    "on-primary-fixed-variant": "#571400",
+                    "secondary-container": "#ffc87f",
+                    "on-secondary-container": "#644000",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-dim": "#942900",
+                    "on-tertiary": "#ffeefd",
+                    "on-primary-container": "#470f00",
+                    "inverse-on-surface": "#9c9d9d",
+                    "on-surface": "#2d2f2f",
+                    "secondary-fixed-dim": "#ffb548",
+                    "tertiary": "#843d99",
+                    "outline-variant": "#acadad",
+                    "surface-dim": "#d3d5d5",
+                    "surface-container-highest": "#dbdddd",
+                    "on-surface-variant": "#5a5c5c",
+                    "error-container": "#fb5151",
+                    "secondary-fixed": "#ffc87f",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed": "#e293f6",
+                    "surface-container-high": "#e1e3e3",
+                    "inverse-primary": "#fb612f",
+                    "error-dim": "#9f0519",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "inverse-surface": "#0c0f0f",
+                    "surface-container-low": "#f0f1f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #F05A28, #F5A623);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-gradient-brand {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f6f6f6;
+        }
+        h1, h2, h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen">
+<header class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl docked full-width top-0 z-50 flex justify-between items-center w-full px-6 py-4 sticky">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-variant">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="Portrait of a friendly young man with short hair smiling in soft natural light, clean professional aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiocU72ll4h-8IP1B9Mr7FZOgpxX8qMiDIDgpGq5ohTReqL7ZZabwQkV6g_tbMUbhrAIYWC6RmCQFLzd7Hjbap__2-HTtGx2toK_N5IJdDljRFKN1TvjAh_wMht01smDeJOMZs-tgq-TH0U1ACntcRvUuFMnSi7RBLD4Vr5hvt_QZ2ccmz_DLahx_Z4_7bgyr97NCltScY_hluuz8DFaecluXMOAxSYkpXKzn29J43rN8SqRDyYXL2ax4R4BmMN3E9q57ogDQdtA"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Welcome back</span>
+<h1 class="text-xl font-bold bg-gradient-to-r from-[#F05A28] to-[#F5A623] bg-clip-text text-transparent">Hello, Alex</h1>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-on-surface">notifications</span>
+</button>
+</header>
+<main class="px-6 pb-32">
+<div class="mt-6 mb-8">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-lowest border-none py-4 pl-12 pr-4 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.02)] focus:ring-2 focus:ring-primary/20 text-body-md placeholder:text-on-surface-variant/50" placeholder="Track package, enter ID..." type="text"/>
+</div>
+</div>
+<section class="mb-8">
+<div class="flex justify-between items-end mb-6">
+<h2 class="text-2xl font-bold tracking-tight">Active Pulse</h2>
+<button class="text-sm font-semibold text-primary">View All</button>
+</div>
+<div class="space-y-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-lg font-bold leading-none mb-1">MacBook Pro 16"</h3>
+<p class="text-sm text-on-surface-variant">ID: QRT-8829-XL</p>
+</div>
+<div class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            ACTIVE
+                        </div>
+</div>
+<div class="relative w-full h-1 bg-surface-container-highest rounded-full mb-6 overflow-hidden">
+<div class="absolute top-0 left-0 h-full w-[72%] bg-gradient-brand"></div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">laptop_mac</span>
+</div>
+<div class="flex flex-col">
+<span class="text-xs text-on-surface-variant">Last checkpoint</span>
+<span class="text-sm font-semibold">Distribution Center, SF</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-lg font-bold leading-none mb-1">Leather Briefcase</h3>
+<p class="text-sm text-on-surface-variant">ID: QRT-4410-BK</p>
+</div>
+<div class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            MISPLACED
+                        </div>
+</div>
+<div class="relative w-full h-1 bg-surface-container-highest rounded-full mb-6">
+<div class="absolute top-0 left-0 h-full w-[45%] bg-red-400"></div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">work</span>
+</div>
+<div class="flex flex-col">
+<span class="text-xs text-on-surface-variant">Required Action</span>
+<span class="text-sm font-semibold text-red-600">Contact Support</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low/50 border-2 border-dashed border-surface-container-highest p-6 rounded-xl">
+<div class="flex justify-between items-start mb-4 opacity-60">
+<div>
+<h3 class="text-lg font-bold leading-none mb-1">Ergonomic Mouse</h3>
+<p class="text-sm text-on-surface-variant">ID: QRT-1192-MS</p>
+</div>
+<div class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold">
+                            COMPLETED
+                        </div>
+</div>
+<div class="flex items-center gap-4 opacity-60">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">mouse</span>
+</div>
+<div class="flex flex-col">
+<span class="text-xs text-on-surface-variant">Delivered on</span>
+<span class="text-sm font-semibold">Oct 24, 2023</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-3xl mb-2 text-primary">local_shipping</span>
+<span class="text-2xl font-bold">12</span>
+<p class="text-xs text-on-surface-variant font-medium">In Transit</p>
+</div>
+<div class="bg-white p-5 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-3xl mb-2 text-secondary">inventory</span>
+<span class="text-2xl font-bold">48</span>
+<p class="text-xs text-on-surface-variant font-medium">Delivered</p>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#DBDDDD] dark:bg-gray-800 rounded-t-[3rem] shadow-[0px_-12px_32px_rgba(26,26,26,0.06)] px-4 pb-6 pt-2 flex justify-around items-center">
+<a class="flex flex-col items-center justify-center text-[#F05A28] font-bold scale-110 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[0.75rem] font-semibold mt-1">Home</span>
+</a>
+<div class="relative -top-8">
+<button class="bg-gradient-brand w-16 h-16 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all duration-300 ease-out border-4 border-background">
+<span class="material-symbols-outlined text-white text-3xl" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
+</button>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[0.75rem] font-bold text-[#F05A28]">Scan</span>
+</div>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-[0.75rem] font-semibold mt-1">Packages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[0.75rem] font-semibold mt-1">Alerts</span>
+</a>
+</nav>
+</body></html>

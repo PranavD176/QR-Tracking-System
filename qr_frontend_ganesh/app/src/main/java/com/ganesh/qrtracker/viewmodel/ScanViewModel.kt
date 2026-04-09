@@ -22,7 +22,7 @@ class ScanViewModel(
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    private val apiService = RetrofitClient.getInstance(tokenManager)
+    private val apiService = RetrofitClient.apiService
 
     private val _scanState = MutableStateFlow<ScanState>(ScanState.Idle)
     val scanState: StateFlow<ScanState> = _scanState

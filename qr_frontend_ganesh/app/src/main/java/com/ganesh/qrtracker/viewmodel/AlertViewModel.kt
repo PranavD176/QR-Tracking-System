@@ -35,7 +35,7 @@ class AlertViewModel(
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    private val apiService = RetrofitClient.getInstance(tokenManager)
+    private val apiService = RetrofitClient.apiService
 
     // ─── ALERT LIST STATE ────────────────────────────────────────────
 
@@ -54,8 +54,6 @@ class AlertViewModel(
 
     // ─── FETCH MY ALERTS ─────────────────────────────────────────────
 
-    // Called when Alert Feed screen loads
-    // Returns only alerts for the logged-in user
     fun fetchAlerts(status: String? = "sent") {
         viewModelScope.launch {
             _alertListState.value = AlertListState.Loading
@@ -68,12 +66,8 @@ class AlertViewModel(
                     _alertListState.value = AlertListState.Success(alerts)
 
                 } else {
-                    if (response.code() == 401) {
-                        _alertListState.value = AlertListState.Error("Session expired. Please login again.")
-                    } else {
-                        val errorMsg = response.body()?.error ?: "Failed to fetch alerts"
-                        _alertListState.value = AlertListState.Error(errorMsg)
-                    }
+                    val errorMsg = response.body()?.error ?: "Failed to fetch alerts"
+                    _alertListState.value = AlertListState.Error(errorMsg)
                 }
 
             } catch (e: Exception) {
@@ -84,8 +78,6 @@ class AlertViewModel(
 
     // ─── ACKNOWLEDGE ALERT ───────────────────────────────────────────
 
-    // Called when user taps "Acknowledge" button on an alert
-    // After success, refresh the alert list automatically
     fun acknowledgeAlert(alertId: String) {
         viewModelScope.launch {
             _acknowledgeState.value = AcknowledgeState.Loading
@@ -95,16 +87,11 @@ class AlertViewModel(
 
                 if (response.isSuccessful && response.body()?.success == true) {
                     _acknowledgeState.value = AcknowledgeState.Success(alertId)
-                    // Automatically refresh the list after acknowledging
                     fetchAlerts()
 
                 } else {
-                    if (response.code() == 401) {
-                        _acknowledgeState.value = AcknowledgeState.Error("Session expired. Please login again.")
-                    } else {
-                        val errorMsg = response.body()?.error ?: "Failed to acknowledge alert"
-                        _acknowledgeState.value = AcknowledgeState.Error(errorMsg)
-                    }
+                    val errorMsg = response.body()?.error ?: "Failed to acknowledge alert"
+                    _acknowledgeState.value = AcknowledgeState.Error(errorMsg)
                 }
 
             } catch (e: Exception) {
@@ -115,8 +102,6 @@ class AlertViewModel(
 
     // ─── FETCH ADMIN ALERTS ──────────────────────────────────────────
 
-    // Called only when role = admin
-    // Returns ALL system-wide unacknowledged alerts
     fun fetchAdminAlerts(status: String? = "sent") {
         viewModelScope.launch {
             _adminAlertState.value = AdminAlertState.Loading
@@ -129,16 +114,8 @@ class AlertViewModel(
                     _adminAlertState.value = AdminAlertState.Success(alerts)
 
                 } else {
-                    // 403 means user is not admin — should never happen if
-                    // UI correctly hides this screen from non-admin users
-                    if (response.code() == 403) {
-                        _adminAlertState.value = AdminAlertState.Error("Access denied. Admin only.")
-                    } else if (response.code() == 401) {
-                        _adminAlertState.value = AdminAlertState.Error("Session expired. Please login again.")
-                    } else {
-                        val errorMsg = response.body()?.error ?: "Failed to fetch admin alerts"
-                        _adminAlertState.value = AdminAlertState.Error(errorMsg)
-                    }
+                    val errorMsg = response.body()?.error ?: "Failed to fetch admin alerts"
+                    _adminAlertState.value = AdminAlertState.Error(errorMsg)
                 }
 
             } catch (e: Exception) {
@@ -146,8 +123,6 @@ class AlertViewModel(
             }
         }
     }
-
-    // ─── RESET STATES ────────────────────────────────────────────────
 
     fun resetAcknowledgeState() {
         _acknowledgeState.value = AcknowledgeState.Idle

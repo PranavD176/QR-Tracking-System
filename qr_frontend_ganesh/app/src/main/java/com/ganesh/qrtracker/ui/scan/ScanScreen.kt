@@ -7,27 +7,39 @@ import android.provider.Settings
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.ganesh.qrtracker.ui.navigation.Routes
+import com.ganesh.qrtracker.ui.theme.*
 import com.ganesh.qrtracker.utils.QRParser
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -36,7 +48,6 @@ import com.google.accompanist.permissions.shouldShowRationale
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import kotlinx.coroutines.delay
 import java.util.concurrent.Executors
 
 // ── State holder ─────────────────────────────────────────────────────────────
@@ -120,77 +131,140 @@ fun ScanScreen(navController: NavController) {
                     // ── Scan frame overlay ───────────────────────────────────
                     ScanOverlay()
 
-                    // ── Top bar ──────────────────────────────────────────────
+                    // ══════════════════════════════════════════════════════════
+                    //  Top Controls — frosted glass circles
+                    // ══════════════════════════════════════════════════════════
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(padding)
-                            .padding(16.dp),
+                            .padding(20.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.White
-                            )
+                        // Back button
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(GlassBlack),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    Icons.Default.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         }
-                        IconButton(onClick = {
-                            uiState = uiState.copy(isTorchOn = !uiState.isTorchOn)
-                        }) {
-                            Icon(
-                                imageVector = if (uiState.isTorchOn)
-                                    Icons.Default.FlashOff else Icons.Default.FlashOn,
-                                contentDescription = "Toggle torch",
-                                tint = Color.White
-                            )
+                        // Torch button
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(GlassBlack),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(onClick = {
+                                uiState = uiState.copy(isTorchOn = !uiState.isTorchOn)
+                            }) {
+                                Icon(
+                                    imageVector = if (uiState.isTorchOn)
+                                        Icons.Default.FlashOff else Icons.Default.FlashOn,
+                                    contentDescription = "Toggle torch",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         }
                     }
 
-                    // ── Bottom panel — location input ────────────────────────
+                    // ══════════════════════════════════════════════════════════
+                    //  Bottom Panel — Frosted Glass
+                    // ══════════════════════════════════════════════════════════
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .background(
-                                Color.Black.copy(alpha = 0.7f),
-                                RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                            )
-                            .padding(24.dp),
+                            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                            .background(GlassWhite)
+                            .padding(28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text  = "Point camera at a QR code",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value         = uiState.locationInput,
+                        // Scanning indicator
+                        if (uiState.isProcessing) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Animated ping dot
+                                val infiniteTransition = rememberInfiniteTransition(label = "scanPing")
+                                val scale by infiniteTransition.animateFloat(
+                                    initialValue = 0.8f, targetValue = 1.5f,
+                                    animationSpec = infiniteRepeatable(
+                                        tween(600), RepeatMode.Reverse
+                                    ), label = "pingScale"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size((8 * scale).dp)
+                                        .clip(CircleShape)
+                                        .background(EmeraldActive)
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    text = "SCANNING...",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 2.sp
+                                    ),
+                                    color = EmeraldActive
+                                )
+                            }
+                            Spacer(Modifier.height(16.dp))
+                        } else {
+                            EditorialLabel(
+                                text = "Position QR code within frame",
+                                color = OnSurfaceVariant
+                            )
+                            Spacer(Modifier.height(16.dp))
+                        }
+
+                        // Location input
+                        EditorialTextField(
+                            value = uiState.locationInput,
                             onValueChange = {
                                 if (it.length <= 300)
                                     uiState = uiState.copy(locationInput = it)
                             },
-                            label         = { Text("Location", color = Color.White) },
-                            placeholder   = { Text("e.g. Library Room 3B", color = Color.Gray) },
-                            singleLine    = true,
-                            modifier      = Modifier.fillMaxWidth(),
-                            shape         = RoundedCornerShape(12.dp),
-                            colors        = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor     = Color.White,
-                                unfocusedTextColor   = Color.White,
-                                focusedBorderColor   = Color.White,
-                                unfocusedBorderColor = Color.Gray
-                            )
+                            label = "Current Location",
+                            placeholder = "e.g. Library Room 3B",
+                            leadingIcon = Icons.Outlined.LocationOn,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions.Default
                         )
-                        Spacer(Modifier.height(8.dp))
-                        if (uiState.isProcessing) {
-                            CircularProgressIndicator(
-                                color    = Color.White,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
+                        Spacer(Modifier.height(16.dp))
+
+                        // Manual entry button
+                        GradientButton(
+                            text = "Capture Manual ID",
+                            icon = Icons.Outlined.ArrowForward,
+                            onClick = { /* TODO: Manual entry */ }
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        Text(
+                            text = "HOLD STEADY • AUTO-DETECT ENABLED",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.5.sp,
+                                fontSize = 9.sp
+                            ),
+                            color = OnSurfaceVariant.copy(alpha = 0.5f)
+                        )
                     }
                 }
             }
@@ -295,7 +369,7 @@ private fun processImageProxy(
     }
 }
 
-// ── Scan frame overlay ────────────────────────────────────────────────────────
+// ── Scan Frame Overlay with Corner Indicators ─────────────────────────────────
 @Composable
 private fun ScanOverlay() {
     Box(
@@ -304,12 +378,11 @@ private fun ScanOverlay() {
     ) {
         Box(
             modifier = Modifier
-                .size(250.dp)
+                .size(260.dp)
                 .background(Color.Transparent)
         ) {
-            // Corner indicators
-            val cornerColor = Color.White
-            val cornerSize  = 40.dp
+            val cornerColor = GradientStart
+            val cornerSize  = 48.dp
             val strokeWidth = 4.dp
 
             // Top-left
@@ -332,6 +405,34 @@ private fun ScanOverlay() {
                 Divider(modifier = Modifier.width(cornerSize).padding(bottom = strokeWidth).align(Alignment.BottomEnd), color = cornerColor, thickness = strokeWidth)
                 Divider(modifier = Modifier.height(cornerSize).padding(end = strokeWidth).align(Alignment.BottomEnd), color = cornerColor, thickness = strokeWidth)
             }
+
+            // Laser pulse animation
+            val infiniteTransition = rememberInfiniteTransition(label = "laser")
+            val laserOffset by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    tween(2000, easing = LinearEasing),
+                    RepeatMode.Reverse
+                ),
+                label = "laserSweep"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .offset(y = (260 * laserOffset).dp)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                GradientStart.copy(alpha = 0.8f),
+                                GradientEnd.copy(alpha = 0.8f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
         }
     }
 }
@@ -340,7 +441,10 @@ private fun ScanOverlay() {
 @Composable
 private fun PermissionRationaleScreen(onRequest: () -> Unit) {
     Column(
-        modifier            = Modifier.fillMaxSize().padding(32.dp),
+        modifier            = Modifier
+            .fillMaxSize()
+            .background(Surface)
+            .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -348,17 +452,21 @@ private fun PermissionRationaleScreen(onRequest: () -> Unit) {
             text       = "Camera Permission Required",
             style      = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center
+            textAlign  = TextAlign.Center,
+            color      = OnSurface
         )
         Spacer(Modifier.height(16.dp))
         Text(
             text      = "This app needs camera access to scan QR codes on packages.",
             style     = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant
+            color     = OnSurfaceVariant
         )
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onRequest) { Text("Grant Permission") }
+        GradientButton(
+            text = "Grant Permission",
+            onClick = onRequest
+        )
     }
 }
 
@@ -366,7 +474,10 @@ private fun PermissionRationaleScreen(onRequest: () -> Unit) {
 @Composable
 private fun PermissionDeniedScreen(onOpenSettings: () -> Unit) {
     Column(
-        modifier            = Modifier.fillMaxSize().padding(32.dp),
+        modifier            = Modifier
+            .fillMaxSize()
+            .background(Surface)
+            .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -374,16 +485,20 @@ private fun PermissionDeniedScreen(onOpenSettings: () -> Unit) {
             text       = "Camera Access Denied",
             style      = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center
+            textAlign  = TextAlign.Center,
+            color      = OnSurface
         )
         Spacer(Modifier.height(16.dp))
         Text(
             text      = "Camera permission was permanently denied. Please enable it from Settings to use the scanner.",
             style     = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant
+            color     = OnSurfaceVariant
         )
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onOpenSettings) { Text("Open Settings") }
+        GradientButton(
+            text = "Open Settings",
+            onClick = onOpenSettings
+        )
     }
 }
