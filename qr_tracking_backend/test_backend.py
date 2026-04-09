@@ -46,8 +46,8 @@ class BackendTester:
     def test_user_registration(self):
         """Test user registration endpoint"""
         test_user = {
-            "firebase_uid": "test_uid_12345",
             "email": "test@example.com",
+            "password": "TestPassword123",
             "full_name": "Test User"
         }
         
@@ -66,8 +66,8 @@ class BackendTester:
     def test_duplicate_registration(self):
         """Test duplicate user registration (should fail)"""
         test_user = {
-            "firebase_uid": "test_uid_12345",
-            "email": "test@example.com", 
+            "email": "test@example.com",
+            "password": "TestPassword123",
             "full_name": "Test User"
         }
         
@@ -82,17 +82,20 @@ class BackendTester:
             self.log_test("Duplicate Registration", False, f"Error: {str(e)}")
             return False
     
-    def test_login_with_invalid_token(self):
-        """Test login with invalid token"""
+    def test_login_with_invalid_credentials(self):
+        """Test login with wrong password — should return success=False"""
         try:
-            response = self.session.post(f"{self.base_url}/api/auth/login", 
-                                        json={"token": "invalid_token"})
-            success = response.status_code != 200  # Should fail
-            self.log_test("Invalid Token Login", success,
-                        f"Expected failure, got: {response.status_code}")
+            response = self.session.post(
+                f"{self.base_url}/api/auth/login",
+                json={"email": "nonexistent@example.com", "password": "wrongpassword"}
+            )
+            data = response.json()
+            success = response.status_code == 200 and data.get("success") == False
+            self.log_test("Invalid Credentials Login", success,
+                        f"Expected success=False, got: {data}")
             return success
         except Exception as e:
-            self.log_test("Invalid Token Login", True, "Correctly failed with exception")
+            self.log_test("Invalid Credentials Login", True, "Correctly failed with exception")
             return True
     
     def test_package_creation(self):
@@ -172,7 +175,7 @@ class BackendTester:
         # Authentication tests
         self.test_user_registration()
         self.test_duplicate_registration()
-        self.test_login_with_invalid_token()
+        self.test_login_with_invalid_credentials()
         
         # Authorization tests (should all fail without auth)
         self.test_package_creation()

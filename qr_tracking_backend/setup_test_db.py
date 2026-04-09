@@ -8,6 +8,7 @@ import os
 import sys
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from passlib.context import CryptContext
 
 # Add the app directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -17,6 +18,8 @@ from app.models.user import User
 from app.models.package import Package
 from app.models.scan import ScanHistory
 from app.models.alerts import Alert
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def setup_test_database():
     """Set up SQLite database for testing"""
@@ -40,21 +43,21 @@ def setup_test_database():
         # Create test users
         test_users = [
             User(
-                firebase_uid="test_user_1",
                 email="user1@test.com",
                 full_name="Test User One",
+                hashed_password=pwd_context.hash("Password123"),
                 role="user"
             ),
             User(
-                firebase_uid="test_user_2", 
                 email="user2@test.com",
                 full_name="Test User Two",
+                hashed_password=pwd_context.hash("Password123"),
                 role="user"
             ),
             User(
-                firebase_uid="test_admin_1",
                 email="admin@test.com",
                 full_name="Test Admin",
+                hashed_password=pwd_context.hash("AdminPass123"),
                 role="admin"
             )
         ]
