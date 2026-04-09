@@ -13,7 +13,7 @@ from passlib.context import CryptContext
 # Add the app directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.database import Base
+from app.database import Base, engine, DATABASE_URL, SessionLocal
 from app.models.user import User
 from app.models.package import Package
 from app.models.scan import ScanHistory
@@ -22,21 +22,14 @@ from app.models.alerts import Alert
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def setup_test_database():
-    """Set up SQLite database for testing"""
-    print("Setting up test database...")
+    """Set up database with test data from .env"""
+    print(f"Setting up test database at: {DATABASE_URL}")
     
-    # Use SQLite for testing
-    DATABASE_URL = "sqlite:///./test_qr_tracking.db"
-    
-    # Create engine
-    engine = create_engine(DATABASE_URL, echo=True)
-    
-    # Create all tables
+    # Create all tables using the engine from app.database
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully!")
     
     # Create session
-    SessionLocal = sessionmaker(bind=engine)
     db = SessionLocal()
     
     try:
@@ -143,7 +136,7 @@ def setup_test_database():
         print(f"Alerts: {db.query(Alert).count()}")
         
         print("\nTest database setup completed successfully!")
-        print(f"Database file: {DATABASE_URL.replace('sqlite:///', '')}")
+        print(f"Database URL: {DATABASE_URL}")
         
     except Exception as e:
         print(f"Error setting up database: {e}")
