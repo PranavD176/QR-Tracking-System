@@ -2,10 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services")
-    id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")  // Required for FCM messaging
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
 }
 
 android {
@@ -48,11 +46,11 @@ android {
 
 dependencies {
 
-    // --- FIREBASE (Using BoM) ---
+    // --- FIREBASE (FCM only — auth and analytics removed) ---
+    // firebase-auth and firebase-analytics removed: auth is now JWT-based via our backend.
+    // firebase-messaging is kept for push notification delivery.
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
-    implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-messaging")
-    implementation("com.google.firebase:firebase-analytics")
 
     // --- UI & PERMISSIONS ---
     implementation("androidx.compose.material:material-icons-extended:1.6.7")
@@ -73,11 +71,6 @@ dependencies {
     implementation("androidx.room:room-runtime:2.7.1")
     implementation("androidx.room:room-ktx:2.7.1")
     ksp("androidx.room:room-compiler:2.7.1")
-
-    // Room Database
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
     // --- LIFECYCLE & NAVIGATION ---
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
