@@ -45,7 +45,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
         if owner and owner.fcm_token:
             send_push_notification(
                 owner.fcm_token,
-                "Package Alert 🚨",
+                "Package Alert ",
                 f"Your package was scanned at {data.location_description}"
             )
 
