@@ -8,14 +8,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -24,10 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ganesh.qrtracker.ui.navigation.Routes
-import com.ganesh.qrtracker.ui.theme.ValidGreen
-import com.ganesh.qrtracker.ui.theme.ValidGreenBg
-import com.ganesh.qrtracker.ui.theme.MisplacedRed
-import com.ganesh.qrtracker.ui.theme.MisplacedRedBg
+import com.ganesh.qrtracker.ui.theme.*
 
 @Composable
 fun ScanResultScreen(
@@ -40,15 +38,7 @@ fun ScanResultScreen(
     // ── Block back navigation — result screen is not re-entrant ─────────────
     BackHandler { /* consumed — user must use buttons below */ }
 
-    val isValid      = result == "valid"
-    val bgColor      = if (isValid) ValidGreenBg  else MisplacedRedBg
-    val accentColor  = if (isValid) ValidGreen    else MisplacedRed
-    val icon         = if (isValid) Icons.Default.CheckCircle else Icons.Default.Warning
-    val headline     = if (isValid) "Package Verified" else "Misplaced Package"
-    val subtext      = if (isValid)
-        "This package belongs to you."
-    else
-        "Alert sent to $ownerName"
+    val isValid = result == "valid"
 
     // ── Icon pulse animation ─────────────────────────────────────────────────
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -66,172 +56,266 @@ fun ScanResultScreen(
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
-    AnimatedVisibility(
-        visible = visible,
-        enter   = fadeIn(tween(400)) + slideInVertically(
-            initialOffsetY = { it / 4 },
-            animationSpec  = tween(400)
-        )
-    ) {
-        Box(
-            modifier          = Modifier
-                .fillMaxSize()
-                .background(bgColor),
-            contentAlignment  = Alignment.Center
+    Scaffold(
+        containerColor = Surface,
+        topBar = {
+            GlassTopBar(
+                actions = {
+                    IconButton(
+                        onClick = { /* TODO */ },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceContainer)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            tint = OnSurface,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            BottomNavBar(
+                items = listOf(
+                    NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
+                    NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
+                ),
+                currentRoute = "",
+                onItemClick = { route ->
+                    navController.navigate(route) {
+                        popUpTo(route) { inclusive = true }
+                    }
+                },
+                fabIcon = Icons.Default.QrCodeScanner,
+                onFabClick = {
+                    navController.navigate(Routes.SCANNER) {
+                        popUpTo(Routes.SCANNER) { inclusive = true }
+                    }
+                }
+            )
+        }
+    ) { padding ->
+
+        AnimatedVisibility(
+            visible = visible,
+            enter   = fadeIn(tween(400)) + slideInVertically(
+                initialOffsetY = { it / 4 },
+                animationSpec  = tween(400)
+            )
         ) {
             Column(
-                modifier            = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(Modifier.height(24.dp))
 
-                // ── Status icon ──────────────────────────────────────────────
+                // ══════════════════════════════════════════════════════════════
+                //  Success / Error Status Card
+                // ══════════════════════════════════════════════════════════════
                 Box(
-                    modifier         = Modifier
-                        .size(100.dp)
-                        .scale(scale)
-                        .background(accentColor.copy(alpha = 0.12f), CircleShape),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            if (isValid) SuccessGradient
+                            else androidx.compose.ui.graphics.Brush.linearGradient(
+                                listOf(MisplacedRedBg, Color(0xFFFDD))
+                            )
+                        )
+                        .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector        = icon,
-                        contentDescription = headline,
-                        tint               = accentColor,
-                        modifier           = Modifier.size(60.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // Pulsing icon
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .scale(scale)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isValid) Icons.Outlined.CheckCircle else Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = if (isValid) EmeraldActive else StatusRedText,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                        Spacer(Modifier.height(20.dp))
+
+                        Text(
+                            text = if (isValid) "Package Verified" else "Misplaced Package",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = if (isValid) ValidGreen else StatusRedText,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = if (isValid)
+                                "Security validation successful"
+                            else
+                                "Alert sent to $ownerName",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = if (isValid) ValidGreen.copy(alpha = 0.7f) else StatusRedText.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
 
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(24.dp))
 
-                // ── Headline ─────────────────────────────────────────────────
-                Text(
-                    text       = headline,
-                    fontSize   = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = accentColor,
-                    textAlign  = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                // ── Subtext ──────────────────────────────────────────────────
-                Text(
-                    text      = subtext,
-                    style     = MaterialTheme.typography.bodyLarge,
-                    color     = accentColor.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(28.dp))
-
-                // ── Package info card ────────────────────────────────────────
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape    = RoundedCornerShape(16.dp),
-                    colors   = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.7f)
-                    ),
-                    elevation = CardDefaults.cardElevation(0.dp)
+                // ══════════════════════════════════════════════════════════════
+                //  Package Info Card
+                // ══════════════════════════════════════════════════════════════
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(SurfaceContainerLowest)
+                        .padding(24.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    // Tracking number row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ResultRow(label = "Package",  value = packageDesc)
-                        ResultRow(label = "Owner",    value = ownerName)
-                        ResultRow(label = "Status",   value = if (isValid) "✓ Valid" else "⚠ Misplaced")
-                        if (!isValid && alertSent) {
-                            ResultRow(label = "Alert", value = "Sent to owner")
+                        Column {
+                            EditorialLabel(text = "Package")
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = packageDesc,
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = OnSurface
+                            )
+                        }
+                        StatusChip(
+                            status = if (isValid) "active" else "misplaced"
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                    // Tonal divider (no-line → background shift)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(SurfaceContainerHigh)
+                    )
+                    Spacer(Modifier.height(16.dp))
+
+                    // Owner row
+                    ResultInfoRow(label = "Owner", value = ownerName)
+                    Spacer(Modifier.height(10.dp))
+                    ResultInfoRow(
+                        label = "Status",
+                        value = if (isValid) "✓ Valid" else "⚠ Misplaced"
+                    )
+                    if (!isValid && alertSent) {
+                        Spacer(Modifier.height(10.dp))
+                        ResultInfoRow(label = "Alert", value = "Sent to owner")
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    // QR thumbnail row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            EditorialLabel(text = "Last Scan")
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = "Just now",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = OnSurface
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(SurfaceContainerLow),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.QrCode2,
+                                contentDescription = null,
+                                tint = OnSurfaceVariant,
+                                modifier = Modifier.size(28.dp)
+                            )
                         }
                     }
                 }
 
-                Spacer(Modifier.height(36.dp))
+                Spacer(Modifier.height(28.dp))
 
-                // ── Scan Another button ──────────────────────────────────────
-                Button(
+                // ══════════════════════════════════════════════════════════════
+                //  Action Buttons
+                // ══════════════════════════════════════════════════════════════
+                GradientButton(
+                    text = "Scan Another",
+                    icon = Icons.Default.QrCodeScanner,
                     onClick = {
                         navController.navigate(Routes.SCANNER) {
                             popUpTo(Routes.SCANNER) { inclusive = true }
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape  = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = accentColor
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.QrCodeScanner,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text  = "Scan Another",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White
-                    )
-                }
-
+                    }
+                )
                 Spacer(Modifier.height(12.dp))
-
-                // ── Go Home button ───────────────────────────────────────────
-                OutlinedButton(
+                SecondaryActionButton(
+                    text = "Go Home",
+                    icon = Icons.Default.Home,
                     onClick = {
                         navController.navigate(Routes.PACKAGE_LIST) {
                             popUpTo(Routes.PACKAGE_LIST) { inclusive = true }
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape  = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = accentColor
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.Home,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text  = "Go Home",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+                    }
+                )
+
+                Spacer(Modifier.height(100.dp)) // Bottom nav clearance
             }
         }
     }
 }
 
-// ── Reusable row inside result card ───────────────────────────────────────────
+// ── Info Row ──────────────────────────────────────────────────────────────────
 @Composable
-private fun ResultRow(label: String, value: String) {
+private fun ResultInfoRow(label: String, value: String) {
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text      = label,
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = Color.Gray,
-            modifier  = Modifier.weight(0.35f)
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = OnSurfaceVariant
         )
         Text(
-            text       = value,
-            style      = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color      = Color.Black,
-            modifier   = Modifier.weight(0.65f),
-            textAlign  = TextAlign.End
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
+            color = OnSurface
         )
     }
 }

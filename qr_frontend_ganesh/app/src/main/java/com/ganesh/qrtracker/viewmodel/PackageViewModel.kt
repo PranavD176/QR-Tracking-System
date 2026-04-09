@@ -39,7 +39,7 @@ class PackageViewModel(
     private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    private val apiService = RetrofitClient.getInstance(tokenManager)
+    private val apiService = RetrofitClient.apiService
 
     // ─── PACKAGE LIST STATE ──────────────────────────────────────────
 

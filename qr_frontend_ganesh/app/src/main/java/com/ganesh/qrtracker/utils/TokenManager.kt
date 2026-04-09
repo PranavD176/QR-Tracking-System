@@ -12,13 +12,28 @@ class TokenManager(private val context: Context) {
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
-    private val prefs = EncryptedSharedPreferences.create(
-        context,
-        "qrtracker_secure_prefs",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    private val prefs = try {
+        EncryptedSharedPreferences.create(
+            context,
+            "qrtracker_secure_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Exception) {
+        // If decryption fails (corrupted data or key mismatch), clear and recreate
+        try {
+            context.deleteSharedPreferences("qrtracker_secure_prefs")
+        } catch (ignored: Exception) {
+        }
+        EncryptedSharedPreferences.create(
+            context,
+            "qrtracker_secure_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     // ─── JWT TOKEN ───────────────────────────────────────────────────
 

@@ -1,29 +1,36 @@
 package com.ganesh.qrtracker.ui.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.AlternateEmail
+import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ganesh.qrtracker.ui.navigation.Routes
 import com.ganesh.qrtracker.ui.theme.*
@@ -44,6 +51,7 @@ fun LoginScreen(navController: NavController) {
     var uiState by remember { mutableStateOf(LoginUiState()) }
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -55,153 +63,331 @@ fun LoginScreen(navController: NavController) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Surface
     ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp),
-            verticalArrangement   = Arrangement.Center,
-            horizontalAlignment   = Alignment.CenterHorizontally
+                .verticalScroll(scrollState)
         ) {
 
-            // ── Header ───────────────────────────────────────────────────────
-            Text(
-                text  = "QR Tracker",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text  = "Sign in to your account",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(36.dp))
-
-            // ── Email field ──────────────────────────────────────────────────
-            OutlinedTextField(
-                value         = uiState.email,
-                onValueChange = { uiState = uiState.copy(email = it.trim()) },
-                label         = { Text("Email") },
-                leadingIcon   = { Icon(Icons.Default.Email, contentDescription = null) },
-                singleLine    = true,
-                isError       = uiState.error != null,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction    = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                shape    = RoundedCornerShape(12.dp)
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // ── Password field ───────────────────────────────────────────────
-            OutlinedTextField(
-                value         = uiState.password,
-                onValueChange = { uiState = uiState.copy(password = it) },
-                label         = { Text("Password") },
-                leadingIcon   = { Icon(Icons.Default.Lock, contentDescription = null) },
-                trailingIcon  = {
-                    IconButton(onClick = {
-                        uiState = uiState.copy(isPasswordVisible = !uiState.isPasswordVisible)
-                    }) {
-                        Icon(
-                            imageVector = if (uiState.isPasswordVisible)
-                                Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (uiState.isPasswordVisible)
-                                "Hide password" else "Show password"
-                        )
-                    }
-                },
-                visualTransformation = if (uiState.isPasswordVisible)
-                    VisualTransformation.None else PasswordVisualTransformation(),
-                singleLine    = true,
-                isError       = uiState.error != null,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction    = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                shape    = RoundedCornerShape(12.dp)
-            )
-            Spacer(Modifier.height(24.dp))
-
-            // ── Login button ─────────────────────────────────────────────────
-            Button(
-                onClick = {
-                    // ── Validation ───────────────────────────────────────────
-                    when {
-                        uiState.email.isBlank() ->
-                            uiState = uiState.copy(error = "Email cannot be empty")
-                        !android.util.Patterns.EMAIL_ADDRESS
-                            .matcher(uiState.email).matches() ->
-                            uiState = uiState.copy(error = "Enter a valid email address")
-                        uiState.password.isBlank() ->
-                            uiState = uiState.copy(error = "Password cannot be empty")
-                        else -> {
-                            // ── MOCK: remove when Member 2 adds ViewModel ────
-                            // TODO: replace with viewModel.login(email, password)
-                            navController.navigate(Routes.PACKAGE_LIST) {
-                                popUpTo(Routes.LOGIN) { inclusive = true }
-                            }
-                        }
-                    }
-                },
-                enabled  = !uiState.isLoading,
+            // ══════════════════════════════════════════════════════════════════
+            //  Hero Header — Signature Gradient with Kinetic Pulse elements
+            // ══════════════════════════════════════════════════════════════════
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                shape  = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                    .fillMaxHeight(0.38f)
+                    .defaultMinSize(minHeight = 280.dp)
+                    .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+                    .background(SignatureGradient),
+                contentAlignment = Alignment.BottomStart
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        color  = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(22.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
+                // Decorative blur circles
+                Box(
+                    modifier = Modifier
+                        .size(256.dp)
+                        .offset(x = (-40).dp, y = (-80).dp)
+                        .blur(72.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.1f))
+                        .align(Alignment.TopEnd)
+                )
+                Box(
+                    modifier = Modifier
+                        .size(160.dp)
+                        .offset(x = (-20).dp, y = 40.dp)
+                        .blur(48.dp)
+                        .clip(CircleShape)
+                        .background(GradientEnd.copy(alpha = 0.2f))
+                        .align(Alignment.BottomStart)
+                )
+
+                // Content
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 32.dp, vertical = 40.dp)
+                ) {
+                    // App icon + name
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.QrCode2,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = "QR Tracker",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 30.sp
+                            ),
+                            color = Color.White
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
                     Text(
-                        text  = "Login",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        text = "Logistics redefined\nthrough the Kinetic Pulse.",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            lineHeight = 24.sp
+                        ),
+                        color = Color.White.copy(alpha = 0.9f)
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
 
-            // ── Navigate to Register ─────────────────────────────────────────
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+            // ══════════════════════════════════════════════════════════════════
+            //  Content Canvas — overlaps hero
+            // ══════════════════════════════════════════════════════════════════
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = (-24).dp)
+                    .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(Surface)
+                    .padding(horizontal = 32.dp, vertical = 36.dp)
             ) {
+                // Welcome text
                 Text(
-                    text  = "Don't have an account? ",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Welcome back",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = OnSurface
                 )
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    text  = "Register",
+                    text = "Sign in to track your movement",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier   = Modifier.clickable {
-                        navController.navigate(Routes.REGISTER)
+                    color = OnSurfaceVariant
+                )
+                Spacer(Modifier.height(32.dp))
+
+                // ── Email field ──────────────────────────────────────────────
+                EditorialTextField(
+                    value = uiState.email,
+                    onValueChange = { uiState = uiState.copy(email = it.trim()) },
+                    label = "Email Address",
+                    placeholder = "alex@example.com",
+                    trailingIcon = {
+                        Icon(
+                            Icons.Outlined.AlternateEmail,
+                            contentDescription = null,
+                            tint = OutlineVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    isError = uiState.error != null
+                )
+                Spacer(Modifier.height(20.dp))
+
+                // ── Password field ───────────────────────────────────────────
+                // Label row with "Forgot?" link
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, bottom = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "PASSWORD",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp
+                        ),
+                        color = OnSurfaceVariant
+                    )
+                    Text(
+                        text = "FORGOT?",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = CoralPrimaryFixed,
+                        modifier = Modifier.clickable { /* TODO: Forgot password */ }
+                    )
+                }
+                // Password input (without label since we render it above)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SurfaceContainerLowest)
+                        .border(
+                            1.dp,
+                            OutlineVariant.copy(alpha = 0.2f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.foundation.text.BasicTextField(
+                            value = uiState.password,
+                            onValueChange = { uiState = uiState.copy(password = it) },
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                color = OnSurface
+                            ),
+                            singleLine = true,
+                            visualTransformation = if (uiState.isPasswordVisible)
+                                VisualTransformation.None
+                            else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = { focusManager.clearFocus() }
+                            ),
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (uiState.password.isEmpty()) {
+                                        Text(
+                                            "••••••••",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = OnSurfaceVariant.copy(alpha = 0.4f)
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        IconButton(
+                            onClick = {
+                                uiState = uiState.copy(
+                                    isPasswordVisible = !uiState.isPasswordVisible
+                                )
+                            },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.LockOpen,
+                                contentDescription = if (uiState.isPasswordVisible)
+                                    "Hide password" else "Show password",
+                                tint = OutlineVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
+                }
+
+                Spacer(Modifier.height(28.dp))
+
+                // ── Sign In button ───────────────────────────────────────────
+                GradientButton(
+                    text = "Sign In",
+                    isLoading = uiState.isLoading,
+                    onClick = {
+                        when {
+                            uiState.email.isBlank() ->
+                                uiState = uiState.copy(error = "Email cannot be empty")
+                            !android.util.Patterns.EMAIL_ADDRESS
+                                .matcher(uiState.email).matches() ->
+                                uiState = uiState.copy(error = "Enter a valid email address")
+                            uiState.password.isBlank() ->
+                                uiState = uiState.copy(error = "Password cannot be empty")
+                            else -> {
+                                // ── MOCK: remove when Member 2 adds ViewModel ────
+                                // TODO: replace with viewModel.login(email, password)
+                                navController.navigate(Routes.PACKAGE_LIST) {
+                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                }
+                            }
+                        }
+                    }
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // ── Register link ────────────────────────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Don't have an account? ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = OnSurfaceVariant
+                    )
+                    Text(
+                        text = "Register",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = CoralPrimaryFixed,
+                        modifier = Modifier.clickable {
+                            navController.navigate(Routes.REGISTER)
+                        }
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                // ── Social login grid ────────────────────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SocialButton("Google", Modifier.weight(1f))
+                    SocialButton("Apple", Modifier.weight(1f))
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                // ── Version footer ───────────────────────────────────────────
+                Text(
+                    text = "VERSION 2.4.0 • KINETIC ENGINE V3",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        fontSize = 9.sp
+                    ),
+                    color = OutlineVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
         }
+    }
+}
+
+// ── Social login button ──────────────────────────────────────────────────────
+@Composable
+private fun SocialButton(label: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(SurfaceContainerLow)
+            .clickable { /* TODO: Social login */ }
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = OnSurface
+        )
     }
 }

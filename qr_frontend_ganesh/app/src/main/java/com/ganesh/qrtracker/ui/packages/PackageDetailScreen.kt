@@ -1,178 +1,366 @@
 package com.ganesh.qrtracker.ui.packages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.ganesh.qrtracker.network.models.ScanHistoryResponse
+import com.ganesh.qrtracker.ui.navigation.Routes
+import com.ganesh.qrtracker.ui.theme.*
 import com.ganesh.qrtracker.utils.TokenManager
 import com.ganesh.qrtracker.viewmodel.PackageViewModel
 import com.ganesh.qrtracker.viewmodel.ScanHistoryState
 
 @Composable
 fun PackageDetailScreen(
-    packageId: String,
-    packageDescription: String,
-    tokenManager: TokenManager,
-    onSessionExpired: () -> Unit,
-    onBack: () -> Unit
+    navController: NavController,
+    packageId: String
 ) {
-    val viewModel = remember { PackageViewModel(tokenManager) }
-    val scanHistoryState by viewModel.scanHistoryState.collectAsState()
+    val scrollState = rememberScrollState()
+    // Mock data — Member 2 will replace with ViewModel state
+    val mockDescription = "MacBook Pro 16\""
+    val mockTrackingId = "QRT-8829-XL"
+    val mockStatus = "active"
 
-    // Fetch scan history when screen loads
-    LaunchedEffect(packageId) {
-        viewModel.fetchScanHistory(packageId)
-    }
+    // Mock scan history
+    val mockScans = listOf(
+        MockScanEntry("Distribution Center, San Francisco", "Alex Johnson", "valid", "Oct 23, 2023 11:42 AM"),
+        MockScanEntry("Warehouse B, Oakland", "Maria Garcia", "valid", "Oct 22, 2023 09:15 AM"),
+        MockScanEntry("Airport Terminal, SFO", "System Scanner", "misplaced", "Oct 21, 2023 05:30 PM"),
+    )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Back button
-        TextButton(onClick = onBack) {
-            Text("← Back")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Package name header
-        Text(
-            text = packageDescription,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-
-        Text(
-            text = "Scan History",
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        when (val state = scanHistoryState) {
-
-            is ScanHistoryState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            is ScanHistoryState.Success -> {
-                if (state.scans.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No scans recorded for this package yet.",
-                            color = Color.Gray,
-                            fontSize = 14.sp
+    Scaffold(
+        containerColor = Surface,
+        topBar = {
+            GlassTopBar(
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = OnSurface
                         )
                     }
-                } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(state.scans) { scan ->
-                            ScanHistoryCard(scan = scan)
-                        }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { /* TODO */ },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceContainer)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
+                            tint = OnSurface,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
+                }
+            )
+        },
+        bottomBar = {
+            BottomNavBar(
+                items = listOf(
+                    NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
+                    NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
+                ),
+                currentRoute = "",
+                onItemClick = { route -> navController.navigate(route) },
+                fabIcon = Icons.Default.QrCodeScanner,
+                onFabClick = { navController.navigate(Routes.SCANNER) }
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(scrollState)
+        ) {
+
+            // ══════════════════════════════════════════════════════════════════
+            //  Gradient Hero Section
+            // ══════════════════════════════════════════════════════════════════
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+                    .background(SignatureGradient)
+                    .padding(horizontal = 24.dp, vertical = 32.dp)
+            ) {
+                Column {
+                    // Status pill
+                    StatusChip(status = mockStatus)
+                    Spacer(Modifier.height(12.dp))
+
+                    // Package name
+                    Text(
+                        text = mockDescription,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 30.sp
+                        ),
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Express Shipping",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
                 }
             }
 
-            is ScanHistoryState.Error -> {
-                if (state.message.contains("Session expired")) {
-                    onSessionExpired()
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Spacer(Modifier.height(24.dp))
+
+            // ══════════════════════════════════════════════════════════════════
+            //  Bento Grid — Info Cards
+            // ══════════════════════════════════════════════════════════════════
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+
+                // ── Tracking ID Card ─────────────────────────────────────────
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceContainerLowest)
+                        .padding(20.dp)
+                ) {
+                    Column {
+                        EditorialLabel(text = "Tracking Number")
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = state.message,
-                                color = Color.Red,
-                                fontSize = 14.sp,
-                                modifier = Modifier.padding(bottom = 12.dp)
+                                text = mockTrackingId,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = OnSurface
                             )
-                            Button(onClick = {
-                                viewModel.fetchScanHistory(packageId)
-                            }) {
-                                Text("Retry")
+                            IconButton(
+                                onClick = { /* TODO: Copy to clipboard */ },
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(SurfaceContainerHigh)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.ContentCopy,
+                                    contentDescription = "Copy",
+                                    tint = OnSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                     }
                 }
+                Spacer(Modifier.height(12.dp))
+
+                // ── Metadata Row ─────────────────────────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    MetadataCard(
+                        label = "Created",
+                        value = "Oct 20, '23",
+                        modifier = Modifier.weight(1f)
+                    )
+                    MetadataCard(
+                        label = "Weight",
+                        value = "2.4 kg",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+
+                // ── QR Code Card ─────────────────────────────────────────────
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceContainerLowest)
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        EditorialLabel(text = "QR Identifier")
+                        Spacer(Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(SurfaceContainerLow),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.QrCode2,
+                                contentDescription = null,
+                                tint = OnSurfaceVariant,
+                                modifier = Modifier.size(64.dp)
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "QR_TRACKING:$packageId",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = OnSurfaceVariant
+                        )
+                    }
+                }
             }
 
-            else -> {}
+            Spacer(Modifier.height(28.dp))
+
+            // ══════════════════════════════════════════════════════════════════
+            //  Movement Pulse Timeline
+            // ══════════════════════════════════════════════════════════════════
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Text(
+                    text = "Movement Pulse",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+
+                mockScans.forEachIndexed { index, scan ->
+                    Row(Modifier.fillMaxWidth()) {
+                        // Timeline indicator
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.width(40.dp)
+                        ) {
+                            val dotColor = if (scan.result == "valid") EmeraldActive else StatusRedText
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .clip(CircleShape)
+                                    .background(dotColor)
+                            )
+                            if (index < mockScans.size - 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(2.dp)
+                                        .height(80.dp)
+                                        .background(SurfaceContainerHigh)
+                                )
+                            }
+                        }
+
+                        // Scan card
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(SurfaceContainerLowest)
+                                .padding(16.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = scan.location,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.SemiBold
+                                        ),
+                                        color = OnSurface
+                                    )
+                                    Text(
+                                        text = if (scan.result == "valid") "✓" else "⚠",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (scan.result == "valid") EmeraldActive else StatusRedText
+                                        )
+                                    )
+                                }
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = "by ${scan.scannerName}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = OnSurfaceVariant
+                                )
+                                Text(
+                                    text = scan.timestamp,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = OnSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                    if (index < mockScans.size - 1) Spacer(Modifier.height(12.dp))
+                }
+            }
+
+            Spacer(Modifier.height(100.dp)) // Bottom nav clearance
         }
     }
 }
 
+// ── Supporting Data & Composables ────────────────────────────────────────────
+
+private data class MockScanEntry(
+    val location: String,
+    val scannerName: String,
+    val result: String,
+    val timestamp: String
+)
+
 @Composable
-fun ScanHistoryCard(scan: ScanHistoryResponse) {
-    // Color code by result — green for valid, red for misplaced
-    val cardColor = if (scan.result == "valid") Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
-    val resultColor = if (scan.result == "valid") Color(0xFF388E3C) else Color(0xFFC62828)
-    val resultLabel = if (scan.result == "valid") "✅ Valid" else "🚨 Misplaced"
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(3.dp)
+private fun MetadataCard(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(SurfaceContainerLowest)
+            .padding(16.dp)
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = scan.scanner_name,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp
-                )
-                Text(
-                    text = resultLabel,
-                    color = resultColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "📍 ${scan.location_description}",
-                fontSize = 13.sp,
-                color = Color.DarkGray
-            )
-
-            Text(
-                text = "🕒 ${scan.scanned_at}",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
-        }
+        EditorialLabel(text = label)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = OnSurface
+        )
     }
 }

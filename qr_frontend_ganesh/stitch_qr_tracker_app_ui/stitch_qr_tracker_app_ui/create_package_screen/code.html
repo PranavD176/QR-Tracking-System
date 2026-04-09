@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#b31b25",
+                    "on-background": "#2d2f2f",
+                    "primary": "#a93000",
+                    "surface-container": "#e7e8e8",
+                    "on-primary-fixed": "#000000",
+                    "surface-variant": "#dbdddd",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-fixed": "#2e003c",
+                    "on-tertiary-container": "#53066a",
+                    "outline": "#767777",
+                    "tertiary-dim": "#76308c",
+                    "tertiary-container": "#e293f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "background": "#f6f6f6",
+                    "primary-fixed": "#ff784e",
+                    "on-error-container": "#570008",
+                    "on-primary": "#ffefeb",
+                    "surface": "#f6f6f6",
+                    "on-secondary": "#fff0e2",
+                    "surface-tint": "#a93000",
+                    "secondary": "#7f5200",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "on-error": "#ffefee",
+                    "primary-container": "#ff784e",
+                    "surface-bright": "#f6f6f6",
+                    "on-secondary-fixed-variant": "#704800",
+                    "on-primary-fixed-variant": "#571400",
+                    "secondary-container": "#ffc87f",
+                    "on-secondary-container": "#644000",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-dim": "#942900",
+                    "on-tertiary": "#ffeefd",
+                    "on-primary-container": "#470f00",
+                    "inverse-on-surface": "#9c9d9d",
+                    "on-surface": "#2d2f2f",
+                    "secondary-fixed-dim": "#ffb548",
+                    "tertiary": "#843d99",
+                    "outline-variant": "#acadad",
+                    "surface-dim": "#d3d5d5",
+                    "surface-container-highest": "#dbdddd",
+                    "on-surface-variant": "#5a5c5c",
+                    "error-container": "#fb5151",
+                    "secondary-fixed": "#ffc87f",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed": "#e293f6",
+                    "surface-container-high": "#e1e3e3",
+                    "inverse-primary": "#fb612f",
+                    "error-dim": "#9f0519",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "inverse-surface": "#0c0f0f",
+                    "surface-container-low": "#f0f1f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-coral-gradient {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-[844px] w-[390px] mx-auto overflow-x-hidden relative">
+<!-- Top Navigation Shell -->
+<header class="bg-white/80 backdrop-blur-xl fixed top-0 z-50 flex justify-between items-center w-[390px] px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface" data-icon="arrow_back">arrow_back</span>
+<span class="text-xl font-bold bg-gradient-to-r from-[#F05A28] to-[#F5A623] bg-clip-text text-transparent font-headline">QR Tracker</span>
+</div>
+<span class="material-symbols-outlined text-gray-500" data-icon="notifications">notifications</span>
+</header>
+<main class="pt-20 pb-32 px-6">
+<!-- Editorial Header Section -->
+<section class="mb-10 pt-4">
+<h1 class="text-[2.75rem] font-bold font-headline leading-tight tracking-tight text-on-surface mb-2">
+                New <br/>Package
+            </h1>
+<p class="text-on-surface-variant text-body-md max-w-[280px]">
+                Create a kinetic pulse for your shipment. Generate a unique QR identifier instantly.
+            </p>
+</section>
+<!-- Main Form Container -->
+<div class="space-y-8">
+<!-- Gradient Header Decorative Card -->
+<div class="bg-coral-gradient h-32 w-full rounded-lg relative overflow-hidden flex items-center justify-center">
+<div class="absolute inset-0 opacity-20" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCFk96eeE-5avUE21s_i-ortMIqGXc1px-Pr-EdrJnBTOjbosdr_auN7Jb1d4Mndd1vLXjJmD9GBh5Qmpk7MaEM6Ny-VkCzZ2sHBg9yUnfyq1dcJZJLhVisq4K5_r71e3WIjRQrrqX5x_87E1tEMJ6uwfJJ3KEsgslDB1bXcpCdCdcrcmdVWHOME1cGyEcl9B2UiFc4zSGA6BAoV5XRD0vXk23OKYMcVnjOdxXjWIeyb3xFu9EY9XpFKvQIydDKflZXDP-1GwEInQ');"></div>
+<div class="relative z-10 flex flex-col items-center">
+<span class="material-symbols-outlined text-white text-4xl mb-1" data-icon="package_2">package_2</span>
+<span class="text-white/90 text-[0.75rem] font-bold tracking-widest uppercase font-label">Ready for Transit</span>
+</div>
+<!-- Bleeding design element -->
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+</div>
+<!-- Input Section -->
+<div class="space-y-6">
+<div class="relative group">
+<label class="absolute -top-2.5 left-6 bg-surface px-2 text-[0.7rem] font-bold text-primary tracking-widest uppercase z-10">Package Description</label>
+<textarea class="w-full bg-surface-container-low border-none ring-1 ring-outline-variant/20 rounded-lg p-6 focus:ring-2 focus:ring-primary/40 transition-all outline-none text-on-surface placeholder:text-on-surface-variant/40 resize-none" placeholder="What's inside the kinetic pulse? e.g. 'Fragile: Vintage Ceramic Set'" rows="4"></textarea>
+</div>
+</div>
+<!-- Large Action Button (50dp rounded) -->
+<button class="bg-coral-gradient w-full h-[50px] rounded-full flex items-center justify-center gap-3 inner-glow active:scale-95 transition-transform duration-200">
+<span class="text-white font-bold font-headline tracking-wide">Create Package</span>
+<span class="material-symbols-outlined text-white" data-icon="add_box">add_box</span>
+</button>
+</div>
+<!-- Success State Overlay (Green Confirmation) -->
+<!-- Hidden by default in a real app, visible here for the task -->
+<div class="mt-12 bg-emerald-50 rounded-lg p-8 ring-1 ring-emerald-200/50 shadow-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-emerald-100 rounded-bl-full opacity-40"></div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-4 shadow-emerald-200 shadow-xl">
+<span class="material-symbols-outlined text-white text-3xl" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h3 class="text-emerald-900 font-headline text-headline-sm mb-2">Package Created</h3>
+<p class="text-emerald-700/80 text-body-md mb-8">Identifier is active and tracking</p>
+<!-- QR Code Container -->
+<div class="bg-white p-4 rounded-lg shadow-sm mb-6">
+<img alt="Package QR Code" class="w-32 h-32" data-alt="a minimalist and modern QR code centered on a white card with rounded edges, crisp green lines representing digital tracking ID" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUdJVt2ehnSQ9K9g2FZp_GdVh1gS42RQC7BWQkbgjYkaCfdJLNMpcWjt0NrlOyqT8l2E9gSi-L8KF_bWck-SV_Ys3HWwTqXz5XtIIRGXPw89ygVKC8K45BLkkVi-DNXB_UqyGUH2ph_TVfFmVeIZRm7jk82jTO2v9hKme6o8dNfvd8mg3ILAyCLvEB-MipdYfJ_ct6raKmKPmLSosoNc5LNg0pm8o9UFRyGcOagAvHKzCL18rncnJxEB43Xqd-sYhCStwy674D5w"/>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-emerald-900 font-bold font-headline tracking-widest text-[0.75rem] uppercase">ID: PK-9920-XJ</span>
+<div class="flex gap-4 mt-6">
+<button class="flex items-center gap-2 text-emerald-700 font-semibold text-sm">
+<span class="material-symbols-outlined text-lg" data-icon="share">share</span>
+                            Share
+                        </button>
+<button class="flex items-center gap-2 text-emerald-700 font-semibold text-sm">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+                            Save
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-[390px] z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-[#DBDDDD] dark:bg-gray-800 rounded-t-[3rem] shadow-[0px_-12px_32px_rgba(26,26,26,0.06)]">
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="text-[0.75rem] font-semibold font-label">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F05A28] font-bold scale-110" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="qr_code_scanner" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
+<span class="text-[0.75rem] font-semibold font-label">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="inventory_2">inventory_2</span>
+<span class="text-[0.75rem] font-semibold font-label">Packages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="notifications">notifications</span>
+<span class="text-[0.75rem] font-semibold font-label">Alerts</span>
+</a>
+</nav>
+</body></html>

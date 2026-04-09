@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=390, height=844, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#b31b25",
+                    "on-background": "#2d2f2f",
+                    "primary": "#a93000",
+                    "surface-container": "#e7e8e8",
+                    "on-primary-fixed": "#000000",
+                    "surface-variant": "#dbdddd",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-fixed": "#2e003c",
+                    "on-tertiary-container": "#53066a",
+                    "outline": "#767777",
+                    "tertiary-dim": "#76308c",
+                    "tertiary-container": "#e293f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "background": "#f6f6f6",
+                    "primary-fixed": "#ff784e",
+                    "on-error-container": "#570008",
+                    "on-primary": "#ffefeb",
+                    "surface": "#f6f6f6",
+                    "on-secondary": "#fff0e2",
+                    "surface-tint": "#a93000",
+                    "secondary": "#7f5200",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "on-error": "#ffefee",
+                    "primary-container": "#ff784e",
+                    "surface-bright": "#f6f6f6",
+                    "on-secondary-fixed-variant": "#704800",
+                    "on-primary-fixed-variant": "#571400",
+                    "secondary-container": "#ffc87f",
+                    "on-secondary-container": "#644000",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-dim": "#942900",
+                    "on-tertiary": "#ffeefd",
+                    "on-primary-container": "#470f00",
+                    "inverse-on-surface": "#9c9d9d",
+                    "on-surface": "#2d2f2f",
+                    "secondary-fixed-dim": "#ffb548",
+                    "tertiary": "#843d99",
+                    "outline-variant": "#acadad",
+                    "surface-dim": "#d3d5d5",
+                    "surface-container-highest": "#dbdddd",
+                    "on-surface-variant": "#5a5c5c",
+                    "error-container": "#fb5151",
+                    "secondary-fixed": "#ffc87f",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed": "#e293f6",
+                    "surface-container-high": "#e1e3e3",
+                    "inverse-primary": "#fb612f",
+                    "error-dim": "#9f0519",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "inverse-surface": "#0c0f0f",
+                    "surface-container-low": "#f0f1f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface flex flex-col min-h-screen">
+<!-- Hero Header Section -->
+<header class="relative w-full h-[45%] flex flex-col justify-end signature-gradient rounded-b-xl overflow-hidden">
+<!-- Abstract Kinetic Pulse Background Elements -->
+<div class="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+<div class="absolute bottom-10 left-[-5%] w-40 h-40 rounded-full bg-[#F5A623]/20 blur-2xl"></div>
+<div class="px-8 pb-12 z-10">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-white/20 backdrop-blur-md rounded-xl">
+<span class="material-symbols-outlined text-white text-3xl" style="font-variation-settings: 'FILL' 1;">qr_code_2</span>
+</div>
+<h1 class="font-headline text-3xl font-extrabold text-white tracking-tight">QR Tracker</h1>
+</div>
+<p class="text-white/90 text-lg font-medium leading-tight max-w-[240px]">
+                Logistics redefined through the Kinetic Pulse.
+            </p>
+</div>
+<!-- Decorative Bleed Image Overlay -->
+<div class="absolute right-0 bottom-0 translate-y-1/4 translate-x-4 opacity-20">
+<img class="w-48 h-48 rotate-12" data-alt="stylized 3D box icon with glossy texture and motion lines representing fast logistics and movement" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdoacl7unQklN0fjNEf1NOsYfV-HTh9KEnegWobbzY7pBpsqGBpIxixfQM9WX7dYnCgRyhAVyp2nw6K0UhvgKjcfwlcdoc_yi4CvYNFwOEzwyrGSsWEQKXPUqmU3Yvff8Z__08PT9yQHAvuRXAR3tMMmYCAPwNng04G2MrQL9uClqP3nKJtKVzN2jaAUlufhuNpam2Evks0N9-pOYf8WVU82RaE-JJnQ5cQu8SJTFv9_cVGdAE3Ht_UVrNjNgEVlcfnrM-JmHI4w"/>
+</div>
+</header>
+<!-- Content Canvas -->
+<main class="flex-1 px-8 pt-10 pb-12 bg-surface -mt-6 rounded-t-xl z-20">
+<div class="space-y-8">
+<div class="space-y-2">
+<h2 class="font-headline text-2xl font-bold tracking-tight text-on-surface">Welcome back</h2>
+<p class="text-on-surface-variant font-body">Sign in to track your movement</p>
+</div>
+<!-- Form Section -->
+<form class="space-y-6">
+<!-- Input Group: Email -->
+<div class="space-y-2">
+<label class="block text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant px-1">Email Address</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 focus:border-primary-fixed transition-all placeholder:text-on-surface-variant/40" placeholder="alex@example.com" type="email"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant">
+<span class="material-symbols-outlined text-xl">alternate_email</span>
+</div>
+</div>
+</div>
+<!-- Input Group: Password -->
+<div class="space-y-2">
+<div class="flex justify-between items-center px-1">
+<label class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant">Password</label>
+<a class="text-[0.65rem] font-bold text-primary-fixed uppercase tracking-wider" href="#">Forgot?</a>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary-fixed/30 focus:border-primary-fixed transition-all placeholder:text-on-surface-variant/40" placeholder="••••••••" type="password"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant">
+<span class="material-symbols-outlined text-xl">lock_open</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-4">
+<button class="w-full signature-gradient inner-glow text-white font-headline font-bold py-5 rounded-full shadow-lg shadow-primary-fixed/20 active:scale-[0.98] transition-transform" type="submit">
+                        Sign In
+                    </button>
+</div>
+</form>
+<!-- Secondary Actions -->
+<div class="text-center pt-4">
+<p class="text-on-surface-variant text-sm font-medium">
+                    Don't have an account? 
+                    <a class="text-primary-fixed font-bold hover:underline decoration-2 underline-offset-4" href="#">Register</a>
+</p>
+</div>
+<!-- Social/Alternative Login (Bento-lite Style) -->
+<div class="grid grid-cols-2 gap-4 pt-4">
+<button class="flex items-center justify-center gap-2 bg-surface-container-low py-4 rounded-lg hover:bg-surface-container-high transition-colors">
+<img class="w-5 h-5" data-alt="Google logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_L6TjvvwMfRYVw3qa8Vlr1VAzPC4VDBJlxiIjBtUjlRifgV5copj9N42gMe8G-4Aj6fgKixdDTOp_ESKkPK6HwH4qGouZC9qReoV6P3d3iTDw8zX3MrRDABw_4B2fIsdjeTGkFrIGIq9Q6E02d329wDyL1WPa9Dh0MBwHo11OCvQicHof1dYoiQmEfe5qtR00GJLzVW-VcI7WPnNJNmdCiHgaNaYHyf0y4NDGx0X6Rejb0GdniixyfBoCrPkPKSKtENGaGACoJg"/>
+<span class="text-xs font-bold text-on-surface">Google</span>
+</button>
+<button class="flex items-center justify-center gap-2 bg-surface-container-low py-4 rounded-lg hover:bg-surface-container-high transition-colors">
+<img class="w-5 h-5" data-alt="Apple logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRC12QcjiHFO5caRfK3ZFBVVy3T1EQBhqs2K9zVcLUXS2echsTuMeENHa2E7pDY6T0Kx4R7ju2resxR-exLCqfywO--QpxCPuZU7XnOm7rwYLQ86HE7cuLw9V_KIrkISljiVoQH44M9hLI0gD15qOoyukQUFrwrpBWFEMK-JkTdIJ4647H-zDkaxTnhYYKEzEVP7F-UPUClpgYn5OYmpP8rja1mQrLRadK6PWlLQJv0FidXkRjgD1NWEZzSlSHBn9qG1kB7a3gow"/>
+<span class="text-xs font-bold text-on-surface">Apple</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Simple Footnote -->
+<footer class="pb-8 px-8 text-center">
+<p class="text-[0.6rem] text-outline-variant uppercase tracking-widest font-bold">
+            Version 2.4.0 • Kinetic Engine v3
+        </p>
+</footer>
+<!-- No BottomNavBar for Login Screen as per "The Destination Rule" -->
+</body></html>

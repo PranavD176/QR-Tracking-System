@@ -8,6 +8,8 @@ import androidx.navigation.compose.rememberNavController
 import com.ganesh.qrtracker.ui.navigation.NavGraph
 import com.ganesh.qrtracker.ui.theme.QRTrackerTheme
 
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
