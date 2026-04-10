@@ -8,7 +8,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocalShipping
@@ -27,8 +31,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ganesh.qrtracker.ui.navigation.Routes
 import com.ganesh.qrtracker.ui.theme.*
+import com.ganesh.qrtracker.utils.TokenManager
 
 // ── Mock data class — Member 2 replaces with real model ──────────────────────
 data class PackageItem(
@@ -71,8 +78,9 @@ private val mockPackages = listOf(
 // ── State holder ─────────────────────────────────────────────────────────────
 data class PackageListUiState(
     val packages     : List<PackageItem> = mockPackages,
-    val userName     : String            = "Alex",
+    val userName     : String            = "Ganesh",
     val searchQuery  : String            = "",
+    val showAll      : Boolean           = false,
     val inTransit    : Int               = 12,
     val delivered    : Int               = 48,
     val isLoading    : Boolean           = false,
@@ -86,7 +94,23 @@ data class PackageListUiState(
 fun PackageListScreen(navController: NavController) {
 
     var uiState           by remember { mutableStateOf(PackageListUiState()) }
+    var showProfileMenu   by remember { mutableStateOf(false) }
+    val context           = LocalContext.current
+    val tokenManager      = remember { TokenManager(context.applicationContext) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val displayedPackages = remember(uiState.packages, uiState.searchQuery, uiState.showAll) {
+        uiState.packages
+            .filter {
+                if (uiState.showAll) true else it.status.equals("active", ignoreCase = true)
+            }
+            .filter {
+                val query = uiState.searchQuery.trim()
+                if (query.isEmpty()) true
+                else it.trackingId.contains(query, ignoreCase = true) ||
+                    it.description.contains(query, ignoreCase = true)
+            }
+    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -128,18 +152,18 @@ fun PackageListScreen(navController: NavController) {
             BottomNavBar(
                 items = listOf(
                     NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
                     NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
                     NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
                 ),
                 currentRoute = Routes.PACKAGE_LIST,
                 onItemClick = { route ->
                     if (route != Routes.PACKAGE_LIST) {
-                        navController.navigate(route)
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
                     }
-                },
-                fabIcon = Icons.Default.QrCodeScanner,
-                fabRoute = Routes.SCANNER,
-                onFabClick = { navController.navigate(Routes.SCANNER) }
+                }
             )
         }
     ) { padding ->
@@ -164,18 +188,38 @@ fun PackageListScreen(navController: NavController) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Avatar placeholder
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(SurfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = uiState.userName.first().toString(),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = OnSurfaceVariant
-                            )
+                        Box {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(SurfaceVariant)
+                                    .clickable { showProfileMenu = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = uiState.userName.first().toString(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = OnSurfaceVariant
+                                )
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showProfileMenu,
+                                onDismissRequest = { showProfileMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Sign Out") },
+                                    onClick = {
+                                        showProfileMenu = false
+                                        tokenManager.clearAll()
+                                        navController.navigate(Routes.LOGIN) {
+                                            popUpTo(0) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                )
+                            }
                         }
                         Spacer(Modifier.width(12.dp))
                         Column {
@@ -197,7 +241,7 @@ fun PackageListScreen(navController: NavController) {
                         }
                     }
                     IconButton(
-                        onClick = { /* TODO: notifications */ },
+                        onClick = { navController.navigate(Routes.ALERTS) { launchSingleTop = true } },
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
@@ -206,7 +250,8 @@ fun PackageListScreen(navController: NavController) {
                         Icon(
                             Icons.Outlined.Notifications,
                             contentDescription = "Notifications",
-                            tint = OnSurface
+                            tint = OnSurface,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -237,10 +282,28 @@ fun PackageListScreen(navController: NavController) {
                             modifier = Modifier.size(22.dp)
                         )
                         Spacer(Modifier.width(12.dp))
-                        Text(
-                            text = if (uiState.searchQuery.isEmpty()) "Track package, enter ID..." else uiState.searchQuery,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (uiState.searchQuery.isEmpty()) OnSurfaceVariant.copy(alpha = 0.5f) else OnSurface
+                        BasicTextField(
+                            value = uiState.searchQuery,
+                            onValueChange = {
+                                uiState = uiState.copy(searchQuery = it)
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions.Default,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = OnSurface),
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (uiState.searchQuery.isEmpty()) {
+                                        Text(
+                                            text = "Track package, enter ID...",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = OnSurfaceVariant.copy(alpha = 0.5f)
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
                         )
                     }
                 }
@@ -263,12 +326,14 @@ fun PackageListScreen(navController: NavController) {
                         style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
-                        text = "View All",
+                        text = if (uiState.showAll) "View Active" else "View All",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
                         color = CoralPrimary,
-                        modifier = Modifier.clickable { /* TODO */ }
+                        modifier = Modifier.clickable {
+                            uiState = uiState.copy(showAll = !uiState.showAll)
+                        }
                     )
                 }
             }
@@ -276,7 +341,7 @@ fun PackageListScreen(navController: NavController) {
             // ══════════════════════════════════════════════════════════════════
             //  Package Cards
             // ══════════════════════════════════════════════════════════════════
-            items(uiState.packages, key = { it.packageId }) { pkg ->
+            items(displayedPackages, key = { it.packageId }) { pkg ->
                 PackageCard(
                     pkg = pkg,
                     onClick = {

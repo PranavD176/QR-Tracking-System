@@ -82,19 +82,14 @@ fun ScanResultScreen(
             BottomNavBar(
                 items = listOf(
                     NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
                     NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
                     NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
                 ),
-                currentRoute = "",
+                currentRoute = Routes.SCANNER,
                 onItemClick = { route ->
                     navController.navigate(route) {
-                        popUpTo(route) { inclusive = true }
-                    }
-                },
-                fabIcon = Icons.Default.QrCodeScanner,
-                onFabClick = {
-                    navController.navigate(Routes.SCANNER) {
-                        popUpTo(Routes.SCANNER) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )

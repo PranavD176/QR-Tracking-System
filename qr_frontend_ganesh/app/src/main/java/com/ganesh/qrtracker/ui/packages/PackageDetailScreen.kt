@@ -84,13 +84,16 @@ fun PackageDetailScreen(
             BottomNavBar(
                 items = listOf(
                     NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
                     NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
                     NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
                 ),
-                currentRoute = "",
-                onItemClick = { route -> navController.navigate(route) },
-                fabIcon = Icons.Default.QrCodeScanner,
-                onFabClick = { navController.navigate(Routes.SCANNER) }
+                currentRoute = Routes.PACKAGE_LIST,
+                onItemClick = { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
     ) { padding ->
