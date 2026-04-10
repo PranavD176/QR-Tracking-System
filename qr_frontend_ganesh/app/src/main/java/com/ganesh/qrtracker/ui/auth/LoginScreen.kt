@@ -28,12 +28,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ganesh.qrtracker.ui.navigation.Routes
 import com.ganesh.qrtracker.ui.theme.*
+import com.ganesh.qrtracker.utils.TokenManager
+import com.ganesh.qrtracker.viewmodel.AuthState
+import com.ganesh.qrtracker.viewmodel.AuthViewModel
 
 // ── State holder — Member 2 will replace with ViewModel state ────────────────
 data class LoginUiState(
@@ -47,11 +51,41 @@ data class LoginUiState(
 @Composable
 fun LoginScreen(navController: NavController) {
 
-    // ── Local state (temporary until Member 2 adds ViewModel) ────────────────
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val viewModel = remember { AuthViewModel(tokenManager) }
+    val authState by viewModel.authState.collectAsState()
+
+    // ── Local state + ViewModel bridge ───────────────────────────────────────
     var uiState by remember { mutableStateOf(LoginUiState()) }
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthState.Loading -> {
+                uiState = uiState.copy(isLoading = true)
+            }
+            is AuthState.Success -> {
+                uiState = uiState.copy(isLoading = false)
+                navController.navigate(Routes.PACKAGE_LIST) {
+                    popUpTo(Routes.LOGIN) { inclusive = true }
+                    launchSingleTop = true
+                }
+                viewModel.resetState()
+            }
+            is AuthState.Error -> {
+                uiState = uiState.copy(isLoading = false, error = state.message)
+                viewModel.resetState()
+            }
+            AuthState.Idle -> {
+                if (uiState.isLoading) {
+                    uiState = uiState.copy(isLoading = false)
+                }
+            }
+        }
+    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -305,11 +339,7 @@ fun LoginScreen(navController: NavController) {
                             uiState.password.isBlank() ->
                                 uiState = uiState.copy(error = "Password cannot be empty")
                             else -> {
-                                // ── MOCK: remove when Member 2 adds ViewModel ────
-                                // TODO: replace with viewModel.login(email, password)
-                                navController.navigate(Routes.PACKAGE_LIST) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
-                                }
+                                viewModel.login(uiState.email.trim(), uiState.password)
                             }
                         }
                     }

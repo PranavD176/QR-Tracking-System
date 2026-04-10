@@ -32,12 +32,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.ganesh.qrtracker.ui.navigation.Routes
 import com.ganesh.qrtracker.ui.theme.*
+import com.ganesh.qrtracker.utils.TokenManager
+import com.ganesh.qrtracker.viewmodel.AuthState
+import com.ganesh.qrtracker.viewmodel.AuthViewModel
 
 // ── State holder — Member 2 will replace with ViewModel state ────────────────
 data class RegisterUiState(
@@ -56,10 +60,40 @@ data class RegisterUiState(
 @Composable
 fun RegisterScreen(navController: NavController) {
 
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val viewModel = remember { AuthViewModel(tokenManager) }
+    val authState by viewModel.authState.collectAsState()
+
     var uiState       by remember { mutableStateOf(RegisterUiState()) }
     val focusManager  = LocalFocusManager.current
     val scrollState   = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthState.Loading -> {
+                uiState = uiState.copy(isLoading = true)
+            }
+            is AuthState.Success -> {
+                uiState = uiState.copy(isLoading = false)
+                navController.navigate(Routes.PACKAGE_LIST) {
+                    popUpTo(Routes.LOGIN) { inclusive = true }
+                    launchSingleTop = true
+                }
+                viewModel.resetState()
+            }
+            is AuthState.Error -> {
+                uiState = uiState.copy(isLoading = false, error = state.message)
+                viewModel.resetState()
+            }
+            AuthState.Idle -> {
+                if (uiState.isLoading) {
+                    uiState = uiState.copy(isLoading = false)
+                }
+            }
+        }
+    }
 
     // ── Back press → show discard dialog ────────────────────────────────────
     BackHandler {
@@ -355,11 +389,12 @@ fun RegisterScreen(navController: NavController) {
                             !uiState.acceptedTerms ->
                                 uiState = uiState.copy(error = "Please accept the Terms of Service")
                             else -> {
-                                // ── MOCK: remove when Member 2 adds ViewModel ────
-                                // TODO: replace with viewModel.register(fullName, email, password)
-                                navController.navigate(Routes.PACKAGE_LIST) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
-                                }
+                                viewModel.register(
+                                    email = uiState.email.trim(),
+                                    password = uiState.password,
+                                    fullName = uiState.fullName.trim(),
+                                    role = "user"
+                                )
                             }
                         }
                     }
