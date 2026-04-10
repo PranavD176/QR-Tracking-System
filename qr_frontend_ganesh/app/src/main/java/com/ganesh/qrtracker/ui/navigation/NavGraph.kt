@@ -29,10 +29,17 @@ fun NavGraph(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context.applicationContext) }
+    val resolvedStartDestination = if (
+        startDestination == Routes.LOGIN && tokenManager.isLoggedIn()
+    ) {
+        Routes.PACKAGE_LIST
+    } else {
+        startDestination
+    }
 
     NavHost(
         navController    = navController,
-        startDestination = startDestination,
+        startDestination = resolvedStartDestination,
         modifier         = modifier
     ) {
 

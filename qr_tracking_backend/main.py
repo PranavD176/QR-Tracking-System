@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, admin, alerts, packages, scan
+from app.models import checkpoint 
 
 app = FastAPI(title="QR Tracking System API", version="1.0.0")
 

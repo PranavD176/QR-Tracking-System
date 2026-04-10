@@ -80,7 +80,11 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 val fcmToken = tokenManager.getFcmToken() ?: return@launch
-                apiService.registerDeviceToken(DeviceTokenRequest(fcmToken))
+                val response = apiService.registerDeviceToken(DeviceTokenRequest(fcmToken))
+                if (!response.isSuccessful || response.body()?.success != true) {
+                    // Best effort only; user should not be blocked by token-sync failures.
+                    return@launch
+                }
             } catch (e: Exception) {
                 // Background task failed
             }
