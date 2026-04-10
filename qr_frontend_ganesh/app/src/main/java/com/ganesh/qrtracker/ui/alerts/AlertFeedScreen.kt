@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.ganesh.qrtracker.network.models.AlertResponse
 import com.ganesh.qrtracker.ui.navigation.Routes
 import com.ganesh.qrtracker.ui.theme.*
@@ -29,6 +30,7 @@ import com.ganesh.qrtracker.viewmodel.AlertViewModel
 
 @Composable
 fun AlertFeedScreen(
+    navController: NavController,
     tokenManager: TokenManager,
     onSessionExpired: () -> Unit   // Called when 401 received — navigate to login
 ) {
@@ -49,7 +51,25 @@ fun AlertFeedScreen(
     }
 
     Scaffold(
-        containerColor = Surface
+        containerColor = Surface,
+        bottomBar = {
+            BottomNavBar(
+                items = listOf(
+                    NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
+                    NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
+                    NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
+                ),
+                currentRoute = Routes.ALERTS,
+                onItemClick = { route ->
+                    if (route != Routes.ALERTS) {
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
+        }
     ) { padding ->
 
         Column(

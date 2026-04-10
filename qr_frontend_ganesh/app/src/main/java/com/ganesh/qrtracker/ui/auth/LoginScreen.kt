@@ -343,14 +343,8 @@ fun LoginScreen(navController: NavController) {
 
                 Spacer(Modifier.height(24.dp))
 
-                // ── Social login grid ────────────────────────────────────────
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    SocialButton("Google", Modifier.weight(1f))
-                    SocialButton("Apple", Modifier.weight(1f))
-                }
+                // ── Social login ─────────────────────────────────────────────
+                SocialButton("Google", Modifier.fillMaxWidth())
 
                 Spacer(Modifier.height(32.dp))
 

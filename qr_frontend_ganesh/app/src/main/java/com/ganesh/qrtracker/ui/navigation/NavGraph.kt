@@ -1,7 +1,9 @@
 package com.ganesh.qrtracker.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,11 +12,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ganesh.qrtracker.ui.auth.LoginScreen
 import com.ganesh.qrtracker.ui.auth.RegisterScreen
+import com.ganesh.qrtracker.ui.alerts.AdminAlertScreen
+import com.ganesh.qrtracker.ui.alerts.AlertFeedScreen
 import com.ganesh.qrtracker.ui.packages.CreatePackageScreen
 import com.ganesh.qrtracker.ui.packages.PackageDetailScreen
 import com.ganesh.qrtracker.ui.packages.PackageListScreen
 import com.ganesh.qrtracker.ui.scan.ScanResultScreen
 import com.ganesh.qrtracker.ui.scan.ScanScreen
+import com.ganesh.qrtracker.utils.TokenManager
 
 @Composable
 fun NavGraph(
@@ -22,6 +27,9 @@ fun NavGraph(
     startDestination: String = Routes.LOGIN,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+
     NavHost(
         navController    = navController,
         startDestination = startDestination,
@@ -87,14 +95,38 @@ fun NavGraph(
             )
         }
 
-        // ── Alerts (Member 2) ─────────────────────────────────────────────────
-        // composable(Routes.ALERTS) {
-        //     AlertFeedScreen(navController = navController)
-        // }
+        // ── Alerts ─────────────────────────────────────────────────────────────
+        composable(Routes.ALERTS) {
+            AlertFeedScreen(
+                navController = navController,
+                tokenManager = tokenManager,
+                onSessionExpired = {
+                    tokenManager.clearAll()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
 
-        // ── Admin Alerts (Member 2) ───────────────────────────────────────────
-        // composable(Routes.ADMIN_ALERTS) {
-        //     AdminAlertsScreen(navController = navController)
-        // }
+        // ── Admin Alerts ───────────────────────────────────────────────────────
+        composable(Routes.ADMIN_ALERTS) {
+            AdminAlertScreen(
+                tokenManager = tokenManager,
+                onSessionExpired = {
+                    tokenManager.clearAll()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onAccessDenied = {
+                    navController.navigate(Routes.PACKAGE_LIST) {
+                        popUpTo(Routes.ADMIN_ALERTS) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
