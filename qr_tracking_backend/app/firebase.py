@@ -1,8 +1,17 @@
 from jose import jwt, JWTError
 from fastapi import HTTPException
 import os
+from datetime import datetime, timedelta
 
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "super-secret-key-for-testing")
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=1440) # 24 hours
+    to_encode.update({"exp": expire, "aud": "authenticated"})
+    # Always cast secret to string properly
+    encoded_jwt = jwt.encode(to_encode, str(SUPABASE_JWT_SECRET), algorithm="HS256")
+    return encoded_jwt
 
 def verify_token(id_token):
     try:
@@ -16,6 +25,47 @@ def verify_token(id_token):
     except JWTError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
-def send_push_notification(fcm_token, title, body):
-    # Keep FCM or replace with another provider later
-    pass
+import firebase_admin
+from firebase_admin import credentials, messaging
+
+# Initialize Firebase Admin for FCM Push Notifications
+# This uses the modern HTTP v1 API which is required since Legacy is dead.
+try:
+    # Look for the JSON file in the same directory or project root
+    cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "qr-based-tracking--system-6da0041c1786.json")
+    if os.path.exists(cred_path):
+        cred = credentials.Certificate(cred_path)
+        # Avoid initializing the app multiple times in FastAPI reloads
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred)
+    else:
+        print(f"Warning: Firebase credentials file not found at {cred_path}. Push notifications will not send.")
+except Exception as e:
+    print(f"Failed to initialize Firebase Admin: {e}")
+
+def send_push_notification(fcm_token: str, title: str, body: str) -> bool:
+    """
+    Sends a push notification to an Android device using the modern Firebase Admin SDK.
+    """
+    if not firebase_admin._apps:
+        print("Warning: Push notification skipped. Firebase not initialized.")
+        return False
+        
+    try:
+        # Create the modern FCM v1 message payload
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            token=fcm_token,
+        )
+        
+        # Send the message
+        response = messaging.send(message)
+        print(f"Push notification sent successfully! Message ID: {response}")
+        return True
+        
+    except Exception as e:
+        print(f"FCM Request Exception (HTTP v1): {str(e)}")
+        return False
