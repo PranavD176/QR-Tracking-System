@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from app.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.schemas import UserCreate, LoginRequest
-from app.firebase import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.firebase import create_access_token
 
 router = APIRouter()
 
@@ -48,20 +48,10 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    token = create_access_token({
-        "uid": new_user.user_id,
-        "role": new_user.role,
-        "email": new_user.email,
-    })
-
     return {
         "success": True,
         "data": {
-            "token": token,
-            "token_type": "bearer",
-            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             "user_id": new_user.user_id,
-            "role": new_user.role,
             "email": new_user.email,
             "full_name": new_user.full_name,
         },
@@ -95,8 +85,6 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
         "success": True,
         "data": {
             "token": token,
-            "token_type": "bearer",
-            "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             "user_id": user.user_id,
             "role": user.role,
             "email": user.email,
@@ -136,7 +124,6 @@ def register_device_token(
 
     return {
         "success": True,
-        "data": {"updated": True, "message": "Device token registered"},
-        "updated": True,
+        "data": {"message": "Device token registered"},
         "error": None,
     }

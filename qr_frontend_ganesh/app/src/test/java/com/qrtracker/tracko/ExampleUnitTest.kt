@@ -1,4 +1,4 @@
-package com.ganesh.qrtracker
+package com.qrtracker.tracko
 
 import org.junit.Test
 

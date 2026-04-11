@@ -75,6 +75,25 @@ val StatusRedText       = Color(0xFFB91C1C)
 val SuccessGradientStart = Color(0xFFE8F5E9)
 val SuccessGradientEnd   = Color(0xFFC8E6C9)
 
+// ── Checkpoint Status (Admin operational states) ─────────────────────────────
+val ReceivedGreen       = Color(0xFF22C55E)
+val ReceivedGreenBg     = Color(0xFFF0FDF4)
+val ReceivedGreenBorder = Color(0xFFDCFCE7)
+val MisplacedOrange     = Color(0xFFEA580C)
+val MisplacedOrangeBg   = Color(0xFFFFF7ED)
+val MisplacedOrangeBorder = Color(0xFFFED7AA)
+val DuplicateGray       = Color(0xFF78716C)
+val DuplicateGrayBg     = Color(0xFFF5F5F4)
+val DuplicateGrayBorder = Color(0xFFE7E5E4)
+
+// ── Alert Severity ───────────────────────────────────────────────────────────
+val HighSeverityBg      = Color(0xFFFB5151)   // same as ErrorContainer
+val HighSeverityText    = Color(0xFF570008)
+val MediumSeverityBg    = Color(0xFFFFC87F)   // same as SecondaryContainer
+val MediumSeverityText  = Color(0xFF644000)
+val LowSeverityBg       = Color(0xFFE1E3E3)
+val LowSeverityText     = Color(0xFF5A5C5C)
+
 // ── Legacy (kept for backward-compat, NOT used by new screens) ───────────────
 val Navy        = Color(0xFF1F3864)
 val Blue        = Color(0xFF2E75B6)

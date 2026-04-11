@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be_Vietnam_Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#fff0e2",
+                    "primary": "#a93000",
+                    "tertiary-dim": "#76308c",
+                    "surface-bright": "#f6f6f6",
+                    "surface-container-high": "#e1e3e3",
+                    "surface-tint": "#a93000",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "on-primary-fixed-variant": "#571400",
+                    "surface-container-highest": "#dbdddd",
+                    "secondary-fixed-dim": "#ffb548",
+                    "on-tertiary-container": "#53066a",
+                    "surface-container": "#e7e8e8",
+                    "primary-container": "#ff784e",
+                    "on-tertiary": "#ffeefd",
+                    "primary-fixed-dim": "#fb612f",
+                    "on-primary": "#ffefeb",
+                    "secondary": "#7f5200",
+                    "error-dim": "#9f0519",
+                    "outline": "#767777",
+                    "primary-dim": "#942900",
+                    "surface-container-lowest": "#ffffff",
+                    "on-background": "#2d2f2f",
+                    "secondary-container": "#ffc87f",
+                    "on-primary-fixed": "#000000",
+                    "on-error": "#ffefee",
+                    "on-secondary-fixed-variant": "#704800",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "surface-container-low": "#f0f1f1",
+                    "tertiary": "#843d99",
+                    "tertiary-fixed": "#e293f6",
+                    "surface": "#f6f6f6",
+                    "primary-fixed": "#ff784e",
+                    "surface-dim": "#d3d5d5",
+                    "outline-variant": "#acadad",
+                    "background": "#f6f6f6",
+                    "error-container": "#fb5151",
+                    "secondary-dim": "#6f4700",
+                    "error": "#b31b25",
+                    "inverse-on-surface": "#9c9d9d",
+                    "inverse-primary": "#fb612f",
+                    "surface-variant": "#dbdddd",
+                    "on-tertiary-fixed": "#2e003c",
+                    "on-surface-variant": "#5a5c5c",
+                    "on-primary-container": "#470f00",
+                    "on-surface": "#2d2f2f",
+                    "on-secondary-container": "#644000",
+                    "inverse-surface": "#0c0f0f",
+                    "tertiary-container": "#e293f6",
+                    "on-error-container": "#570008",
+                    "secondary-fixed": "#ffc87f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface min-h-screen pb-24">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 glass-header shadow-sm flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-stone-100 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline font-bold text-lg text-orange-600 tracking-tight">App Notifications</h1>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-surface-container-low px-4 py-2 rounded-full text-label-md font-semibold text-primary hover:bg-stone-100 transition-colors active:scale-95">
+                Mark all as read
+            </button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border-2 border-white">
+<img alt="Admin Avatar" class="w-full h-full object-cover" data-alt="Close up professional portrait of a warehouse administrator in high-visibility gear against a clean tech background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeNMCNzlXcTu_K4519m3mZlLH5VINxRPZtXcqpfl5fp8w_9NmXGL9hQWszSW2WHRbXsqTo-aQwo8XrWyJuE1fFnerk7tI27De5Zry1tqeNq7Hink9mSJLoYKErvKvjKZVTBeqqCZjCHlwtSasngFXFiQuyrwqZtq1hOF2HIVEVo34WxlSKkXXlijLvMkEqp2rci26e9LU9MruZdBlKvBQRizkkRTzWRNGgYx-2hDv5hb87uflCl_78KqECcA5ITsW0Qmf4VItSmw"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Hero Summary Bento Section -->
+<section class="grid grid-cols-2 gap-4 mb-10">
+<div class="col-span-2 bg-gradient-to-br from-primary to-primary-container p-8 rounded-xl text-on-primary relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-label-md uppercase tracking-widest opacity-80 mb-2">Security Status</p>
+<h2 class="font-headline text-3xl font-bold mb-4">High-Alert <br/>Protocols Active</h2>
+<div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full">
+<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+<span class="text-sm font-semibold">Live System Monitoring</span>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-white/10 text-[120px]" data-icon="security">security</span>
+</div>
+</section>
+<!-- Notifications List -->
+<div class="space-y-6">
+<h3 class="font-headline text-on-surface-variant text-sm font-bold uppercase tracking-widest px-2">System Updates</h3>
+<!-- Notification Item: System Maintenance (Unread) -->
+<div class="group relative bg-surface-container-lowest p-6 rounded-lg transition-all duration-300 hover:shadow-lg">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-primary rounded-r-full"></div>
+<div class="flex gap-5">
+<div class="w-14 h-14 shrink-0 rounded-full bg-orange-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="engineering">engineering</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary-container/20 px-2 py-0.5 rounded">Maintenance</span>
+<span class="text-xs text-on-surface-variant font-medium">Scheduled</span>
+</div>
+<h4 class="font-headline font-bold text-lg text-on-surface mb-1">System Maintenance</h4>
+<p class="text-body-md text-on-surface-variant leading-relaxed">Infrastructure maintenance scheduled for 02:00 AM. Cloud syncing may be temporarily delayed.</p>
+<div class="mt-4 flex items-center gap-2 text-xs font-semibold text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+                            Today, 02:00 AM
+                        </div>
+</div>
+</div>
+</div>
+<!-- Notification Item: Security Update -->
+<div class="group bg-surface-container-low p-6 rounded-lg transition-all duration-300 hover:bg-surface-container-high">
+<div class="flex gap-5">
+<div class="w-14 h-14 shrink-0 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl" data-icon="lock">lock</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded">Security</span>
+<span class="text-xs text-on-surface-variant font-medium">2h ago</span>
+</div>
+<h4 class="font-headline font-bold text-lg text-on-surface mb-1">Security Update</h4>
+<p class="text-body-md text-on-surface-variant leading-relaxed">New validation protocol for high-value items is now mandatory. Biometric auth required for Tier-1 assets.</p>
+</div>
+</div>
+</div>
+<!-- Notification Item: New Hub Policy -->
+<div class="group bg-surface-container-low p-6 rounded-lg transition-all duration-300 hover:bg-surface-container-high">
+<div class="flex gap-5">
+<div class="w-14 h-14 shrink-0 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl" data-icon="policy">policy</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded">Policy</span>
+<span class="text-xs text-on-surface-variant font-medium">Yesterday</span>
+</div>
+<h4 class="font-headline font-bold text-lg text-on-surface mb-1">New Hub Policy</h4>
+<p class="text-body-md text-on-surface-variant leading-relaxed">Updated scanning procedures for international shipments. Ensure QR clarity before palletizing.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative "Pulse" Background Element -->
+<div class="mt-16 text-center">
+<div class="inline-flex flex-col items-center opacity-30">
+<div class="w-1 bg-gradient-to-b from-primary to-transparent h-16 rounded-full mb-4"></div>
+<p class="font-label text-[10px] uppercase tracking-[0.3em]">End of Notifications</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[2rem] bg-white shadow-[0px_-8px_24px_rgba(0,0,0,0.04)] border-t border-stone-100 flex justify-around items-center h-20 px-4 pb-2">
+<div class="flex flex-col items-center justify-center text-stone-400 px-5 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span>
+<span class="font-label text-[10px] font-semibold uppercase tracking-wider mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-orange-50 text-orange-600 rounded-full px-5 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-label text-[10px] font-semibold uppercase tracking-wider mt-1">Alerts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 px-5 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label text-[10px] font-semibold uppercase tracking-wider mt-1">Packages</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 px-5 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label text-[10px] font-semibold uppercase tracking-wider mt-1">Profile</span>
+</div>
+</nav>
+</body></html>

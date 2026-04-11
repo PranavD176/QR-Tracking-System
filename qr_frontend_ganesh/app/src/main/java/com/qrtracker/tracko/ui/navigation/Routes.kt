@@ -5,6 +5,7 @@ object Routes {
     // ── Auth ────────────────────────────────────────────────────────────────
     const val LOGIN    = "login"
     const val REGISTER = "register"
+    const val USER_PROFILE = "user_profile"
 
     // ── Main ────────────────────────────────────────────────────────────────
     const val HOME     = "home"
@@ -19,8 +20,16 @@ object Routes {
     const val SCAN_RESULT = "scan_result/{result}/{packageDesc}/{ownerName}/{alertSent}"
 
     // ── Alerts ──────────────────────────────────────────────────────────────
-    const val ALERTS       = "alerts"
-    const val ADMIN_ALERTS = "admin_alerts"
+    const val ALERTS       = "alerts"           // User-facing alert feed
+    const val ADMIN_ALERTS = "admin_alerts"      // Operational admin alerts (bottom nav)
+    const val APP_ALERTS   = "app_alerts"        // System notifications (bell icon)
+    const val USER_ALERTS  = "user_alerts"       // User alert screen
+
+    // ── Admin Checkpoint ────────────────────────────────────────────────────
+    const val ADMIN_CHECKPOINT = "admin_checkpoint"
+    const val ADMIN_PACKAGES   = "admin_packages"
+    const val ADMIN_CREATE_PACKAGE = "admin_create_package"
+    const val ADMIN_PROFILE    = "admin_profile"
 
     // ── Helper functions to build routes with arguments ──────────────────────
     fun packageDetail(packageId: String)  = "package_detail/$packageId"

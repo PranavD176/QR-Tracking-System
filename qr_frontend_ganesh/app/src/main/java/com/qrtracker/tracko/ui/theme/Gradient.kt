@@ -46,3 +46,4 @@ fun Modifier.editorialShadow(): Modifier =
 /** Glass surface colors — for frosted-glass overlays. */
 val GlassWhite = SurfaceContainerLowest.copy(alpha = 0.8f)
 val GlassBlack = Color.Black.copy(alpha = 0.3f)
+

@@ -1,52 +1,68 @@
 package com.qrtracker.tracko.ui.alerts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.qrtracker.tracko.network.models.AlertResponse
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.utils.TokenManager
-import com.qrtracker.tracko.viewmodel.AlertListState
-import com.qrtracker.tracko.viewmodel.AlertViewModel
+import com.qrtracker.tracko.ui.theme.GlassWhite
+import com.qrtracker.tracko.ui.theme.HorizontalBrandGradient
+
+// ── User Alert Data ──────────────────────────────────────────────────────────
+enum class UserAlertType { PARCEL_ARRIVED, DELIVERY_DELAYED, OUT_FOR_DELIVERY, DELIVERED, SECURITY }
+
+data class UserAlert(
+    val id: String,
+    val title: String,
+    val description: String,
+    val type: UserAlertType,
+    val timeAgo: String,
+    val statusLabel: String,
+    val isUnread: Boolean = false
+)
+
+private val mockUserAlerts = listOf(
+    UserAlert("1", "Package Arrived", "Your parcel QX-9902 is at the local hub.", UserAlertType.PARCEL_ARRIVED, "2m ago", "RECEIVED", true),
+    UserAlert("2", "Delivery Delayed", "Weather conditions have impacted the delivery of PK-8829.", UserAlertType.DELIVERY_DELAYED, "1h ago", "ON HOLD"),
+    UserAlert("3", "Out for Delivery", "Alex is on the way with your package QR-7712.", UserAlertType.OUT_FOR_DELIVERY, "3h ago", "ACTIVE"),
+    UserAlert("4", "Delivered", "Package PK-4456 was left at your front door.", UserAlertType.DELIVERED, "Yesterday", "COMPLETED"),
+    UserAlert("5", "Security Update", "Please update your password for better account protection.", UserAlertType.SECURITY, "2 days ago", "SECURITY"),
+)
 
 @Composable
-fun AlertFeedScreen(
-    navController: NavController,
-    tokenManager: TokenManager,
-    onSessionExpired: () -> Unit   // Called when 401 received — navigate to login
-) {
-    val viewModel = remember { AlertViewModel(tokenManager) }
-    val alertListState by viewModel.alertListState.collectAsState()
-    val acknowledgeState by viewModel.acknowledgeState.collectAsState()
+fun AlertFeedScreen(navController: NavController) {
+    var selectedFilter by remember { mutableStateOf("All") }
+    val filters = listOf("All", "Parcel", "Delivery", "System")
+    var alerts by remember { mutableStateOf(mockUserAlerts) }
 
-    // Fetch alerts when screen first loads
-    LaunchedEffect(Unit) {
-        viewModel.fetchAlerts()
-    }
-
-    // If acknowledge succeeds, reset that state
-    LaunchedEffect(acknowledgeState) {
-        if (acknowledgeState is com.qrtracker.tracko.viewmodel.AcknowledgeState.Success) {
-            viewModel.resetAcknowledgeState()
+    val filteredAlerts = remember(selectedFilter, alerts) {
+        when (selectedFilter) {
+            "All" -> alerts
+            "Parcel" -> alerts.filter { it.type == UserAlertType.PARCEL_ARRIVED || it.type == UserAlertType.DELIVERED }
+            "Delivery" -> alerts.filter { it.type == UserAlertType.DELIVERY_DELAYED || it.type == UserAlertType.OUT_FOR_DELIVERY }
+            "System" -> alerts.filter { it.type == UserAlertType.SECURITY }
+            else -> alerts
         }
     }
 
@@ -55,7 +71,7 @@ fun AlertFeedScreen(
         bottomBar = {
             BottomNavBar(
                 items = listOf(
-                    NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Home", Icons.Default.Home, Routes.HOME),
                     NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
                     NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
                     NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
@@ -63,247 +79,117 @@ fun AlertFeedScreen(
                 currentRoute = Routes.ALERTS,
                 onItemClick = { route ->
                     if (route != Routes.ALERTS) {
-                        navController.navigate(route) {
-                            launchSingleTop = true
-                        }
+                        navController.navigate(route) { launchSingleTop = true }
                     }
                 }
             )
         }
     ) { padding ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(bottom = 32.dp)
         ) {
-            // ── Glass Top Bar ────────────────────────────────────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(GlassWhite)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "My Alerts",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        brush = HorizontalBrandGradient
-                    )
-                )
-                IconButton(
-                    onClick = { /* TODO */ },
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(SurfaceContainer)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(GlassWhite).padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(
-                        Icons.Outlined.Notifications,
-                        contentDescription = "Notifications",
-                        tint = OnSurface,
-                        modifier = Modifier.size(20.dp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Default.ArrowBack, "Back", tint = OnSurface)
+                        }
+                        Text(
+                            "Alerts",
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, fontSize = 20.sp),
+                            color = GradientStart
+                        )
+                    }
+                    Text(
+                        "Mark all as read",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = GradientStart,
+                        modifier = Modifier.clickable { alerts = alerts.map { it.copy(isUnread = false) } }
                     )
                 }
             }
 
-            when (val state = alertListState) {
-
-                is AlertListState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+            item {
+                Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        CircularProgressIndicator(color = CoralPrimary)
-                    }
-                }
-
-                is AlertListState.Success -> {
-                    if (state.alerts.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .clip(CircleShape)
-                                        .background(EmeraldActiveBg),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.Check,
-                                        contentDescription = null,
-                                        tint = EmeraldActive,
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                }
-                                Spacer(Modifier.height(16.dp))
-                                Text(
-                                    text = "All Clear!",
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = OnSurface
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = "No active alerts. All packages are safe.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = OnSurfaceVariant
-                                )
-                            }
-                        }
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            items(state.alerts) { alert ->
-                                AlertCard(
-                                    alert = alert,
-                                    onAcknowledge = { viewModel.acknowledgeAlert(alert.alert_id) }
-                                )
-                            }
+                        filters.forEach { filter ->
+                            val isSelected = filter == selectedFilter
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedFilter = filter },
+                                label = { Text(filter) }
+                            )
                         }
                     }
                 }
+            }
 
-                is AlertListState.Error -> {
-                    if (state.message.contains("Session expired")) {
-                        onSessionExpired()
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = state.message,
-                                    color = ErrorRed,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(bottom = 16.dp)
-                                )
-                                GradientButton(
-                                    text = "Retry",
-                                    onClick = { viewModel.fetchAlerts() },
-                                    modifier = Modifier.width(160.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                else -> {}
+            items(filteredAlerts) { alert ->
+                UserAlertCard(alert = alert)
             }
         }
     }
 }
 
 @Composable
-fun AlertCard(
-    alert: AlertResponse,
-    onAcknowledge: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(SurfaceContainerLowest)
-            .padding(20.dp)
-    ) {
-        // Header row
+private fun UserAlertCard(alert: UserAlert) {
+    val isCompleted = alert.type == UserAlertType.DELIVERED
+
+    val icon: ImageVector = when (alert.type) {
+        UserAlertType.PARCEL_ARRIVED -> Icons.Filled.LocalShipping
+        UserAlertType.DELIVERY_DELAYED -> Icons.Filled.Warning
+        UserAlertType.OUT_FOR_DELIVERY -> Icons.Filled.DirectionsRun
+        UserAlertType.DELIVERED -> Icons.Filled.Inventory2
+        UserAlertType.SECURITY -> Icons.Filled.Shield
+    }
+
+    val iconBg: Color = when (alert.type) {
+        UserAlertType.PARCEL_ARRIVED -> ReceivedGreenBg
+        UserAlertType.DELIVERY_DELAYED -> MisplacedOrangeBg
+        UserAlertType.OUT_FOR_DELIVERY -> PaleBlue
+        UserAlertType.DELIVERED -> SurfaceContainerHigh
+        UserAlertType.SECURITY -> SurfaceContainer
+    }
+
+    val iconTint: Color = when (alert.type) {
+        UserAlertType.PARCEL_ARRIVED -> ReceivedGreen
+        UserAlertType.DELIVERY_DELAYED -> MisplacedOrange
+        UserAlertType.OUT_FOR_DELIVERY -> Blue
+        UserAlertType.DELIVERED -> OnSurfaceVariant
+        UserAlertType.SECURITY -> DuplicateGray
+    }
+
+    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 5.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
+                .background(if (isCompleted) SurfaceContainerLowest.copy(alpha = 0.6f) else SurfaceContainerLowest)
+                .padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(StatusRedChip),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.Warning,
-                        contentDescription = null,
-                        tint = StatusRedText,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = alert.package_description,
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = OnSurface
-                    )
-                    Text(
-                        text = "Misplaced Alert",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = StatusRedText
-                    )
-                }
+            Box(
+                modifier = Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(iconBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = iconTint, modifier = Modifier.size(22.dp))
             }
-            StatusChip(status = "misplaced")
-        }
-
-        Spacer(Modifier.height(14.dp))
-
-        // Details
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(SurfaceContainerHigh)
-        )
-        Spacer(Modifier.height(14.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                EditorialLabel(text = "Scanned By")
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = alert.scanned_by_name,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = OnSurface
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                EditorialLabel(text = "Location")
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = alert.location,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = OnSurface
-                )
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(alert.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = OnSurface)
+                    Text(alert.timeAgo, style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariant)
+                }
+                Text(alert.description, style = MaterialTheme.typography.bodyMedium, color = OnSurfaceVariant)
             }
         }
-
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = alert.created_at,
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-            color = OnSurfaceVariant.copy(alpha = 0.6f)
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        // Acknowledge button
-        GradientButton(
-            text = "Acknowledge",
-            onClick = onAcknowledge,
-            modifier = Modifier.height(44.dp)
-        )
     }
 }
+
