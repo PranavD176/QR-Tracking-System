@@ -1,8 +1,17 @@
 from jose import jwt, JWTError
 from fastapi import HTTPException
 import os
+from datetime import datetime, timedelta
 
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "super-secret-key-for-testing")
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=1440) # 24 hours
+    to_encode.update({"exp": expire, "aud": "authenticated"})
+    # Always cast secret to string properly
+    encoded_jwt = jwt.encode(to_encode, str(SUPABASE_JWT_SECRET), algorithm="HS256")
+    return encoded_jwt
 
 def verify_token(id_token):
     try:
