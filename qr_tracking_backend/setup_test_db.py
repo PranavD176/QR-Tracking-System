@@ -25,7 +25,8 @@ def setup_test_database():
     """Set up database with test data from .env"""
     print(f"Setting up test database at: {DATABASE_URL}")
     
-    # Create all tables using the engine from app.database
+    # Drop all tables and recreate them to ensure a clean state
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully!")
     
