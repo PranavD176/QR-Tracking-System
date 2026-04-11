@@ -11,7 +11,7 @@
         android:required="false" />
 
     <application
-        android:name=".QRTrackerApplication"
+        android:name="com.qrtracker.tracko.QRTrackerApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -19,9 +19,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.QrTracker">
         <activity
-            android:name=".MainActivity"
+            android:name="com.qrtracker.tracko.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.QrTracker">
@@ -32,7 +33,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".firebase.MyFirebaseMessagingService"
+            android:name="com.qrtracker.tracko.firebase.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

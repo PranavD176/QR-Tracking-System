@@ -2,16 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services)
     alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.ganesh.qrtracker"
+    namespace = "com.qrtracker.tracko"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.ganesh.qrtracker"
+        applicationId = "com.qrtracker.tracko"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -47,8 +47,10 @@ android {
 dependencies {
 
     // --- FIREBASE (Using BoM) ---
-    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+//    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
     // --- UI & PERMISSIONS ---
     implementation("androidx.compose.material:material-icons-extended:1.6.7")
