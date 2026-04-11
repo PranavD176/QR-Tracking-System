@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#fff0e2",
+                        "primary": "#a93000",
+                        "tertiary-dim": "#76308c",
+                        "surface-bright": "#f6f6f6",
+                        "surface-container-high": "#e1e3e3",
+                        "surface-tint": "#a93000",
+                        "on-tertiary-fixed-variant": "#5d1573",
+                        "on-primary-fixed-variant": "#571400",
+                        "surface-container-highest": "#dbdddd",
+                        "secondary-fixed-dim": "#ffb548",
+                        "on-tertiary-container": "#53066a",
+                        "surface-container": "#e7e8e8",
+                        "primary-container": "#ff784e",
+                        "on-tertiary": "#ffeefd",
+                        "primary-fixed-dim": "#fb612f",
+                        "on-primary": "#ffefeb",
+                        "secondary": "#7f5200",
+                        "error-dim": "#9f0519",
+                        "outline": "#767777",
+                        "primary-dim": "#942900",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#2d2f2f",
+                        "secondary-container": "#ffc87f",
+                        "on-primary-fixed": "#000000",
+                        "on-error": "#ffefee",
+                        "on-secondary-fixed-variant": "#704800",
+                        "on-secondary-fixed": "#4a2e00",
+                        "tertiary-fixed-dim": "#d386e7",
+                        "surface-container-low": "#f0f1f1",
+                        "tertiary": "#843d99",
+                        "tertiary-fixed": "#e293f6",
+                        "surface": "#f6f6f6",
+                        "primary-fixed": "#ff784e",
+                        "surface-dim": "#d3d5d5",
+                        "outline-variant": "#acadad",
+                        "background": "#f6f6f6",
+                        "error-container": "#fb5151",
+                        "secondary-dim": "#6f4700",
+                        "error": "#b31b25",
+                        "inverse-on-surface": "#9c9d9d",
+                        "inverse-primary": "#fb612f",
+                        "surface-variant": "#dbdddd",
+                        "on-tertiary-fixed": "#2e003c",
+                        "on-surface-variant": "#5a5c5c",
+                        "on-primary-container": "#470f00",
+                        "on-surface": "#2d2f2f",
+                        "on-secondary-container": "#644000",
+                        "inverse-surface": "#0c0f0f",
+                        "tertiary-container": "#e293f6",
+                        "on-error-container": "#570008",
+                        "secondary-fixed": "#ffc87f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Be Vietnam Pro"],
+                        "label": ["Be Vietnam Pro"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body selection:bg-primary-container/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="Admin Avatar" class="w-full h-full object-cover" data-alt="Professional headshot of a smiling man in his 30s with short hair, wearing a clean industrial uniform in a modern warehouse setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN3alVp4xoUGchIRRt09br-MMoHLG4IyvwSEJ88o_4EY22UkLLvMxhZxwUfhGe_LCSAFIuwT70OB0ravqutjJEOLA9QSa_PyeVOpEdgd8o432NBNZBCW8OjdWZj01up82dCEXKPl5tdcmVuhJL2U8ktWsKMwytm9PEnpGdJnSEcMuBeEv9cKe6H_2YD1NoA00qP1VSUNZk5uzpnah89pnRVHCXdfu92HFeYKqPvS2ybOY6wGu3fSJwd36looz31z2HIDa796b-gQ"/>
+</div>
+<div>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-orange-600 dark:text-orange-500">Warehouse Control</h1>
+<p class="text-[10px] uppercase tracking-widest font-bold text-stone-500">Alex Chen (Supervisor) • Berlin-BER Hub</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full border border-green-200">Active Shift</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-stone-500" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-8">
+<!-- Bento Grid for Scanner & Stats -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Scanner Section (Left Column) -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm flex flex-col gap-6 overflow-hidden relative">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline font-bold text-xl tracking-tight">Admin Checkpoint</h2>
+<p class="text-on-surface-variant text-sm">Station: SCAN-04-B</p>
+</div>
+<span class="material-symbols-outlined text-stone-300 text-4xl" data-icon="qr_code_scanner">qr_code_scanner</span>
+</div>
+<!-- Scanner Preview -->
+<div class="aspect-[4/3] bg-stone-900 rounded-lg relative group overflow-hidden border-4 border-surface-container">
+<img alt="Scanner preview" class="w-full h-full object-cover opacity-40" data-alt="A dark industrial high-tech scanner station with glowing laser guides and professional logistics equipment in a minimalist setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGikx8zT2ttuwfPDLdpyo9al9j4KIbufh4wYbL8TOLFnABaPPkI4zE05L8BRh1bHehPmTmzZ2PG6T5d3F7mlK6cv_VjP1fqo4StEYx5EGPqzKAeYhgoiV8IktTL6nJNoXIH0qmWHKOcHpHdt9kaRC53Df2OL5jy-wAxFqqzWwZOuSV60Lu6JEBnlc7_u9CpptpnS9mHmj2q_FsMEokmxxtpKSXHyn4ddInMP9a0AXH84PCSRFWFOq28SeR7Bt45ubTxE8eBhkmeg"/>
+<div class="absolute inset-0 flex flex-col items-center justify-center gap-4">
+<div class="w-48 h-48 border-2 border-dashed border-white/20 rounded-2xl flex items-center justify-center">
+<div class="w-full h-1 bg-white/10 animate-pulse"></div>
+</div>
+<p class="text-white/50 text-sm font-medium">Scanner Inactive</p>
+</div>
+<!-- Pulse Overlay -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-full px-6">
+<button class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" data-icon="videocam">videocam</span>
+                                Start Scan
+                            </button>
+</div>
+</div>
+<!-- Manual Entry -->
+<div class="flex gap-2">
+<div class="relative flex-grow">
+<input class="w-full bg-surface-container-low border-none rounded-full px-6 py-4 text-on-surface placeholder:text-stone-400 focus:ring-2 focus:ring-primary/20 transition-all outline-none" placeholder="Enter Parcel ID manually..." type="text"/>
+</div>
+<button class="bg-surface-container-highest text-on-surface font-bold px-8 py-4 rounded-full hover:bg-stone-200 transition-colors active:scale-95">
+                            Submit
+                        </button>
+</div>
+</div>
+</div>
+<!-- Stats & Result (Right Column) -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<!-- Result Card (State: Received) -->
+<div class="bg-gradient-to-br from-green-50 to-white rounded-xl p-8 border border-green-100 shadow-sm relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-32 h-32 bg-green-500/5 rounded-full blur-3xl group-hover:bg-green-500/10 transition-colors"></div>
+<div class="flex items-center gap-4 mb-6">
+<div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-green-600">Scan Successful</p>
+<h3 class="text-2xl font-headline font-bold text-stone-800">PK-8829-XL</h3>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between items-center py-3 border-b border-green-100">
+<span class="text-stone-500 text-sm">Status</span>
+<span class="px-3 py-1 bg-green-500 text-white text-[10px] font-bold rounded-full">Received at Checkpoint</span>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-green-100">
+<span class="text-stone-500 text-sm">Timestamp</span>
+<span class="text-stone-800 font-semibold text-sm">14:22 | Oct 24</span>
+</div>
+<div class="flex justify-between items-center py-3">
+<span class="text-stone-500 text-sm">Origin</span>
+<span class="text-stone-800 font-semibold text-sm">Hamburg Distribution</span>
+</div>
+</div>
+<button class="w-full py-4 bg-stone-900 text-white rounded-full font-bold hover:bg-stone-800 active:scale-95 transition-all shadow-lg shadow-stone-900/10">
+                        Confirm Received
+                    </button>
+</div>
+<!-- Stats Strip -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border-b-4 border-stone-200">
+<p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Total</p>
+<p class="text-3xl font-headline font-extrabold text-stone-800">124</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border-b-4 border-green-500/30">
+<p class="text-[10px] font-bold uppercase tracking-widest text-green-600 mb-1">Received</p>
+<p class="text-3xl font-headline font-extrabold text-green-600">110</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border-b-4 border-orange-500/30">
+<p class="text-[10px] font-bold uppercase tracking-widest text-orange-600 mb-1">Misplaced</p>
+<p class="text-3xl font-headline font-extrabold text-orange-600">8</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border-b-4 border-stone-500/30">
+<p class="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-1">Duplicate</p>
+<p class="text-3xl font-headline font-extrabold text-stone-500">6</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Scans Table-less Layout -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-xl tracking-tight">Recent Scans</h2>
+<div class="flex items-center gap-2 text-stone-400">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+<p class="text-[10px] font-medium italic">Duplicate is internal and does not create a customer tracking update.</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<!-- Header -->
+<div class="grid grid-cols-12 px-6 py-4 bg-stone-50 border-b border-stone-100">
+<div class="col-span-4 text-[10px] font-bold uppercase tracking-widest text-stone-400">Parcel ID</div>
+<div class="col-span-3 text-[10px] font-bold uppercase tracking-widest text-stone-400">Timestamp</div>
+<div class="col-span-3 text-[10px] font-bold uppercase tracking-widest text-stone-400">Status</div>
+<div class="col-span-2 text-right text-[10px] font-bold uppercase tracking-widest text-stone-400">Action</div>
+</div>
+<!-- Rows -->
+<div class="divide-y divide-stone-50">
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-stone-50 transition-colors">
+<div class="col-span-4 font-bold text-stone-800">PK-9021-RT</div>
+<div class="col-span-3 text-sm text-stone-500">14:45 | Today</div>
+<div class="col-span-3">
+<span class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-full border border-green-100">Received</span>
+</div>
+<div class="col-span-2 text-right">
+<button class="text-stone-400 hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+</div>
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-stone-50 transition-colors">
+<div class="col-span-4 font-bold text-stone-800">PK-7712-MK</div>
+<div class="col-span-3 text-sm text-stone-500">14:38 | Today</div>
+<div class="col-span-3">
+<span class="px-3 py-1 bg-orange-50 text-orange-600 text-[10px] font-bold rounded-full border border-orange-100">Misplaced</span>
+</div>
+<div class="col-span-2 text-right">
+<button class="text-stone-400 hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+</div>
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-stone-50 transition-colors">
+<div class="col-span-4 font-bold text-stone-800">PK-4456-LL</div>
+<div class="col-span-3 text-sm text-stone-500">14:30 | Today</div>
+<div class="col-span-3">
+<span class="px-3 py-1 bg-stone-100 text-stone-600 text-[10px] font-bold rounded-full border border-stone-200">Duplicate</span>
+</div>
+<div class="col-span-2 text-right">
+<button class="text-stone-400 hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+</div>
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-stone-50 transition-colors">
+<div class="col-span-4 font-bold text-stone-800">PK-2290-AA</div>
+<div class="col-span-3 text-sm text-stone-500">14:15 | Today</div>
+<div class="col-span-3">
+<span class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-full border border-green-100">Received</span>
+</div>
+<div class="col-span-2 text-right">
+<button class="text-stone-400 hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+</div>
+<div class="grid grid-cols-12 px-6 py-5 items-center hover:bg-stone-50 transition-colors">
+<div class="col-span-4 font-bold text-stone-800">PK-1105-ZZ</div>
+<div class="col-span-3 text-sm text-stone-500">14:02 | Today</div>
+<div class="col-span-3">
+<span class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-full border border-green-100">Received</span>
+</div>
+<div class="col-span-2 text-right">
+<button class="text-stone-400 hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-white dark:bg-stone-900 rounded-t-[2rem] shadow-[0px_-8px_24px_rgba(0,0,0,0.04)] border-t border-stone-100 dark:border-stone-800 flex justify-around items-center h-20 px-4 pb-2 w-full">
+<a class="flex flex-col items-center justify-center bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 rounded-full px-5 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="font-['Be_Vietnam_Pro'] text-[10px] font-semibold uppercase tracking-wider">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="font-['Be_Vietnam_Pro'] text-[10px] font-semibold uppercase tracking-wider">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Be_Vietnam_Pro'] text-[10px] font-semibold uppercase tracking-wider">Packages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-5 py-2 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Be_Vietnam_Pro'] text-[10px] font-semibold uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+</body></html>
