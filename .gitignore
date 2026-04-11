@@ -45,3 +45,4 @@ dist/
 
 qr_tracking_backend/qr-based-tracking--system-6da0041c1786.json
 *.json
+qr_frontend_ganesh/app/google-services.json
