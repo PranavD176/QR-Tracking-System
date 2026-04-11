@@ -9,25 +9,6 @@
       "client_info": {
         "mobilesdk_app_id": "1:524824560873:android:6b833b12ee6542ba539c78",
         "android_client_info": {
-          "package_name": "com.ganesh.qrtracker"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAVKZwSSHqhKWj66z0Y54x55FJ0NmuGDu0"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:524824560873:android:6b833b12ee6542ba539c78",
-        "android_client_info": {
           "package_name": "com.qrtracker.tracko"
         }
       },
