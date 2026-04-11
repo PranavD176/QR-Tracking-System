@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -28,16 +27,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.utils.TokenManager
-import com.qrtracker.tracko.viewmodel.AuthState
-import com.qrtracker.tracko.viewmodel.AuthViewModel
 
 // ── State holder — Member 2 will replace with ViewModel state ────────────────
 data class LoginUiState(
@@ -51,41 +46,11 @@ data class LoginUiState(
 @Composable
 fun LoginScreen(navController: NavController) {
 
-    val context = LocalContext.current
-    val tokenManager = remember { TokenManager(context.applicationContext) }
-    val viewModel = remember { AuthViewModel(tokenManager) }
-    val authState by viewModel.authState.collectAsState()
-
-    // ── Local state + ViewModel bridge ───────────────────────────────────────
+    // ── Local state (temporary until Member 2 adds ViewModel) ────────────────
     var uiState by remember { mutableStateOf(LoginUiState()) }
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
-
-    LaunchedEffect(authState) {
-        when (val state = authState) {
-            is AuthState.Loading -> {
-                uiState = uiState.copy(isLoading = true)
-            }
-            is AuthState.Success -> {
-                uiState = uiState.copy(isLoading = false)
-                navController.navigate(Routes.PACKAGE_LIST) {
-                    popUpTo(Routes.LOGIN) { inclusive = true }
-                    launchSingleTop = true
-                }
-                viewModel.resetState()
-            }
-            is AuthState.Error -> {
-                uiState = uiState.copy(isLoading = false, error = state.message)
-                viewModel.resetState()
-            }
-            AuthState.Idle -> {
-                if (uiState.isLoading) {
-                    uiState = uiState.copy(isLoading = false)
-                }
-            }
-        }
-    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -339,7 +304,23 @@ fun LoginScreen(navController: NavController) {
                             uiState.password.isBlank() ->
                                 uiState = uiState.copy(error = "Password cannot be empty")
                             else -> {
-                                viewModel.login(uiState.email.trim(), uiState.password)
+                                // ── Hardcoded Credentials ────
+                                val enteredEmail = uiState.email.trim()
+                                val enteredPass = uiState.password
+                                
+                                if (enteredEmail == "u@g.c" && enteredPass == "1") {
+                                    // User login -> Home / Package List
+                                    navController.navigate(Routes.HOME) {
+                                        popUpTo(Routes.LOGIN) { inclusive = true }
+                                    }
+                                } else if (enteredEmail == "a@g.c" && enteredPass == "1") {
+                                    // Admin login -> Admin Checkpoint
+                                    navController.navigate(Routes.ADMIN_CHECKPOINT) {
+                                        popUpTo(Routes.LOGIN) { inclusive = true }
+                                    }
+                                } else {
+                                    uiState = uiState.copy(error = "Invalid credentials. Try testing accounts.")
+                                }
                             }
                         }
                     }
@@ -373,9 +354,6 @@ fun LoginScreen(navController: NavController) {
 
                 Spacer(Modifier.height(24.dp))
 
-                // ── Social login ─────────────────────────────────────────────
-                SocialButton("Google", Modifier.fillMaxWidth())
-
                 Spacer(Modifier.height(32.dp))
 
                 // ── Version footer ───────────────────────────────────────────
@@ -392,26 +370,5 @@ fun LoginScreen(navController: NavController) {
                 )
             }
         }
-    }
-}
-
-// ── Social login button ──────────────────────────────────────────────────────
-@Composable
-private fun SocialButton(label: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceContainerLow)
-            .clickable { /* TODO: Social login */ }
-            .padding(vertical = 14.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            color = OnSurface
-        )
     }
 }

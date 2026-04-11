@@ -41,9 +41,6 @@ import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.QRParser
-import com.qrtracker.tracko.utils.TokenManager
-import com.qrtracker.tracko.viewmodel.ScanState
-import com.qrtracker.tracko.viewmodel.ScanViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -69,40 +66,7 @@ fun ScanScreen(navController: NavController) {
     var lastScanTime      by remember { mutableLongStateOf(0L) }
     val cameraPermission  = rememberPermissionState(Manifest.permission.CAMERA)
     val context           = LocalContext.current
-    val tokenManager      = remember { TokenManager(context.applicationContext) }
-    val viewModel         = remember { ScanViewModel(tokenManager) }
-    val scanState         by viewModel.scanState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(scanState) {
-        when (val state = scanState) {
-            is ScanState.Loading -> {
-                uiState = uiState.copy(isProcessing = true)
-            }
-            is ScanState.Success -> {
-                val response = state.scanResponse
-                navController.navigate(
-                    Routes.scanResult(
-                        result = response.result,
-                        packageDesc = response.package_description,
-                        ownerName = response.owner_name,
-                        alertSent = response.alert_sent
-                    )
-                )
-                uiState = uiState.copy(isProcessing = false)
-                viewModel.resetScanState()
-            }
-            is ScanState.Error -> {
-                uiState = uiState.copy(isProcessing = false, error = state.message)
-                viewModel.resetScanState()
-            }
-            ScanState.Idle -> {
-                if (uiState.isProcessing) {
-                    uiState = uiState.copy(isProcessing = false)
-                }
-            }
-        }
-    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -147,7 +111,20 @@ fun ScanScreen(navController: NavController) {
                             }
 
                             uiState = uiState.copy(isProcessing = true)
-                            viewModel.submitScan(packageId, uiState.locationInput.trim())
+
+                            // ── MOCK: remove when Member 2 adds ViewModel ────
+                            // TODO: replace with viewModel.scan(packageId, locationInput)
+                            // Mock navigates to result screen with dummy data
+                            navController.navigate(
+                                Routes.scanResult(
+                                    result      = "valid",
+                                    packageDesc = "Mock Package",
+                                    ownerName   = "Test User",
+                                    alertSent   = false
+                                )
+                            )
+
+                            uiState = uiState.copy(isProcessing = false)
                         }
                     )
 
@@ -321,6 +298,7 @@ private fun CameraPreview(
     isTorchOn   : Boolean,
     onQRDetected: (String) -> Unit
 ) {
+    val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor       = remember { Executors.newSingleThreadExecutor() }
     var camera         by remember { mutableStateOf<Camera?>(null) }

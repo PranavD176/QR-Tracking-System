@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -32,9 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.utils.TokenManager
-import com.qrtracker.tracko.viewmodel.CreatePackageState
-import com.qrtracker.tracko.viewmodel.PackageViewModel
 
 // ── State holder ─────────────────────────────────────────────────────────────
 data class CreatePackageUiState(
@@ -47,49 +43,16 @@ data class CreatePackageUiState(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePackageScreen(navController: NavController) {
-
-    val context = LocalContext.current
-    val tokenManager = remember { TokenManager(context.applicationContext) }
-    val viewModel = remember { PackageViewModel(tokenManager) }
-    val createPackageState by viewModel.createPackageState.collectAsState()
+fun CreatePackageScreen(
+    navController: NavController,
+    isAdminFlow: Boolean = false
+) {
 
     var uiState           by remember { mutableStateOf(CreatePackageUiState()) }
     val focusManager      = LocalFocusManager.current
     val scrollState       = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
     val charLimit         = 200
-
-    LaunchedEffect(createPackageState) {
-        when (val state = createPackageState) {
-            is CreatePackageState.Loading -> {
-                uiState = uiState.copy(isLoading = true)
-            }
-            is CreatePackageState.Success -> {
-                val payload = state.qrPayload.ifBlank {
-                    "QR_TRACKING:unknown-${System.currentTimeMillis()}"
-                }
-                val packageId = payload.removePrefix("QR_TRACKING:").ifBlank {
-                    "unknown-${System.currentTimeMillis()}"
-                }
-                uiState = uiState.copy(
-                    isLoading = false,
-                    createdPackageId = packageId,
-                    createdQrPayload = payload
-                )
-                viewModel.resetCreatePackageState()
-            }
-            is CreatePackageState.Error -> {
-                uiState = uiState.copy(isLoading = false, error = state.message)
-                viewModel.resetCreatePackageState()
-            }
-            CreatePackageState.Idle -> {
-                if (uiState.isLoading) {
-                    uiState = uiState.copy(isLoading = false)
-                }
-            }
-        }
-    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -115,7 +78,11 @@ fun CreatePackageScreen(navController: NavController) {
                 },
                 actions = {
                     IconButton(
-                        onClick = { /* TODO */ },
+                        onClick = {
+                            if (isAdminFlow) {
+                                navController.navigate(Routes.ADMIN_ALERTS) { launchSingleTop = true }
+                            }
+                        },
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
@@ -132,18 +99,30 @@ fun CreatePackageScreen(navController: NavController) {
             )
         },
         bottomBar = {
-            BottomNavBar(
-                items = listOf(
+            val navItems = if (isAdminFlow) {
+                listOf(
+                    NavItem("Home", Icons.Default.Home, Routes.ADMIN_CHECKPOINT),
+                    NavItem(
+                        label = "Create",
+                        route = Routes.ADMIN_CREATE_PACKAGE,
+                        iconContent = { isSelected -> AdminCreateNavIcon(isSelected) }
+                    ),
+                    NavItem("Packages", Icons.Default.Inventory2, Routes.ADMIN_PACKAGES),
+                )
+            } else {
+                listOf(
                     NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
                     NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
                     NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
                     NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
-                ),
-                currentRoute = Routes.PACKAGE_LIST,
+                )
+            }
+
+            BottomNavBar(
+                items = navItems,
+                currentRoute = if (isAdminFlow) Routes.ADMIN_CREATE_PACKAGE else Routes.PACKAGE_LIST,
                 onItemClick = { route ->
-                    navController.navigate(route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route) { launchSingleTop = true }
                 }
             )
         }
@@ -171,7 +150,6 @@ fun CreatePackageScreen(navController: NavController) {
                     },
                     onCreateAnother = {
                         uiState = CreatePackageUiState()
-                        viewModel.resetCreatePackageState()
                     }
                 )
             } else {
@@ -298,7 +276,13 @@ fun CreatePackageScreen(navController: NavController) {
                                     error = "Description must be at least 3 characters"
                                 )
                             else -> {
-                                viewModel.createPackage(uiState.description.trim())
+                                // ── MOCK: remove when Member 2 adds ViewModel
+                                // TODO: replace with viewModel.createPackage(description)
+                                val mockId = "uuid-${System.currentTimeMillis()}"
+                                uiState = uiState.copy(
+                                    createdPackageId = mockId,
+                                    createdQrPayload = "QR_TRACKING:$mockId"
+                                )
                             }
                         }
                     }
@@ -385,12 +369,6 @@ private fun CreationSuccessCard(
                         fontWeight = FontWeight.SemiBold
                     ),
                     color = ValidGreen
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = "ID: $packageId",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = ValidGreen.copy(alpha = 0.7f)
                 )
             }
         }

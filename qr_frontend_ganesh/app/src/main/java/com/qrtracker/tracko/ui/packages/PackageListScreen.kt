@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocalShipping
@@ -91,10 +92,12 @@ data class PackageListUiState(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PackageListScreen(navController: NavController) {
+fun PackageListScreen(
+    navController: NavController,
+    startWithAll: Boolean = false
+) {
 
-    var uiState           by remember { mutableStateOf(PackageListUiState()) }
-    var showProfileMenu   by remember { mutableStateOf(false) }
+    var uiState           by remember { mutableStateOf(PackageListUiState(showAll = startWithAll)) }
     val context           = LocalContext.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -145,22 +148,41 @@ fun PackageListScreen(navController: NavController) {
         )
     }
 
+    // Determine which bottom nav item is "current" based on showAll state
+    val currentNavRoute = if (uiState.showAll) Routes.PACKAGE_LIST else Routes.HOME
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Surface,
         bottomBar = {
             BottomNavBar(
                 items = listOf(
-                    NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
+                    NavItem("Home", Icons.Default.Home, Routes.HOME),
                     NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
                     NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
                     NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
                 ),
-                currentRoute = Routes.PACKAGE_LIST,
+                currentRoute = currentNavRoute,
                 onItemClick = { route ->
-                    if (route != Routes.PACKAGE_LIST) {
-                        navController.navigate(route) {
-                            launchSingleTop = true
+                    when (route) {
+                        Routes.HOME -> {
+                            if (uiState.showAll) {
+                                // Switch to active-only home view
+                                uiState = uiState.copy(showAll = false)
+                            }
+                            // Already on this screen
+                        }
+                        Routes.PACKAGE_LIST -> {
+                            if (!uiState.showAll) {
+                                // Switch to full package list
+                                uiState = uiState.copy(showAll = true)
+                            }
+                            // Already on this screen
+                        }
+                        else -> {
+                            navController.navigate(route) {
+                                launchSingleTop = true
+                            }
                         }
                     }
                 }
@@ -188,38 +210,21 @@ fun PackageListScreen(navController: NavController) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         // Avatar placeholder
-                        Box {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .background(SurfaceVariant)
-                                    .clickable { showProfileMenu = true },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = uiState.userName.first().toString(),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = OnSurfaceVariant
-                                )
-                            }
-                            
-                            DropdownMenu(
-                                expanded = showProfileMenu,
-                                onDismissRequest = { showProfileMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Sign Out") },
-                                    onClick = {
-                                        showProfileMenu = false
-                                        tokenManager.clearAll()
-                                        navController.navigate(Routes.LOGIN) {
-                                            popUpTo(0) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    }
-                                )
-                            }
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(SurfaceVariant)
+                                .clickable { 
+                                    navController.navigate(Routes.USER_PROFILE) { launchSingleTop = true }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = uiState.userName.first().toString(),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = OnSurfaceVariant
+                            )
                         }
                         Spacer(Modifier.width(12.dp))
                         Column {
@@ -332,7 +337,9 @@ fun PackageListScreen(navController: NavController) {
                         ),
                         color = CoralPrimary,
                         modifier = Modifier.clickable {
-                            uiState = uiState.copy(showAll = !uiState.showAll)
+                            val newShowAll = !uiState.showAll
+                            uiState = uiState.copy(showAll = newShowAll)
+                            // When toggling, this effectively switches between Home/Packages view
                         }
                     )
                 }
@@ -349,6 +356,28 @@ fun PackageListScreen(navController: NavController) {
                     },
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                 )
+            }
+
+            // ══════════════════════════════════════════════════════════════════
+            //  Create Package Option (Above Stats)
+            // ══════════════════════════════════════════════════════════════════
+            item {
+                Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+                    Text(
+                        text = "SHIP SOMETHING NEW",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp
+                        ),
+                        color = OnSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    GradientButton(
+                        text = "Create New Package",
+                        icon = Icons.Default.Add,
+                        onClick = { navController.navigate(Routes.CREATE_PACKAGE) }
+                    )
+                }
             }
 
             // ══════════════════════════════════════════════════════════════════

@@ -7,3 +7,4 @@ data class ScanResponse(
     val alert_sent: Boolean,
     val scanned_by: String?             // Only present if misplaced
 )
+

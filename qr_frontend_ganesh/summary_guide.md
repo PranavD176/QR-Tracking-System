@@ -1,141 +1,175 @@
----
+# Summary Guide For Frontend-Backend Integration
 
-## Screen Status
+This is the short handoff version of [guide_ui_update.md](guide_ui_update.md). It is meant for member 2 to quickly understand what the frontend already expects and what still needs to be connected to the backend.
 
-| Screen | Status | Data Source When Dynamic |
-|--------|--------|--------------------------|
-| LoginScreen | ❌ Mock | `POST /auth/login` |
-| RegisterScreen | ❌ Mock | `POST /auth/register` |
-| PackageListScreen | ❌ Mock | `GET /packages` |
-| PackageDetailScreen | ❌ Mock | `GET /packages/{id}/scans` |
-| CreatePackageScreen | ❌ Mock | `POST /packages` |
-| ScanScreen | ❌ Mock | `POST /scan` |
-| ScanResultScreen | ✅ Dynamic | Navigation arguments |
-| AlertFeedScreen | ⬜ Not built | `GET /alerts` — Member 2 |
-| AdminAlertsScreen | ⬜ Not built | `GET /admin/alerts` — Member 2 |
+## 1. Purpose
 
----
+The app already has the screens, navigation, UI state containers, and Retrofit client. The remaining work is to connect those screens to the backend through repositories and ViewModels.
 
-## Who Makes Pages Dynamic
+## 2. Frontend Stack
 
-| Task | Owner |
-|------|-------|
-| Build ViewModels + API call logic | Member 2 |
-| Replace mock state with ViewModel in screens | Member 1 (You) |
-| Build backend endpoints | Member 3 + 4 |
-| Switch BASE_URL to real backend IP | Member 1 (You) |
+- Jetpack Compose for UI
+- Navigation Compose for routing
+- ViewModel + StateFlow for screen state
+- Retrofit + OkHttp for networking
+- EncryptedSharedPreferences via TokenManager for JWT storage
+- Firebase Messaging for push notifications
+- Room is already included for future local data support
 
-### How You Connect a Screen (Integration Week)
+## 3. Network Setup
 
-**Step 1 — Add ViewModel to screen:**
-```kotlin
-val viewModel: AuthViewModel = viewModel()
-val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-```
+- Base URL: http://10.0.2.2:8000/api/
+- Protected requests use JWT in `Authorization: Bearer <token>`
+- Retrofit already adds the token automatically
+- If the backend returns 401, the app clears local auth data and the user must log in again
+- FCM token is stored on device first, then sent to the backend after login
 
-**Step 2 — Replace mock navigation with event observer:**
-```kotlin
-LaunchedEffect(Unit) {
-    viewModel.navigationEvent.collect { event ->
-        navController.navigate(Routes.PACKAGE_LIST) {
-            popUpTo(Routes.LOGIN) { inclusive = true }
-        }
-    }
+## 4. What Member 2 Needs To Connect
+
+Member 2 should connect:
+
+- Retrofit API calls to backend endpoints
+- Repository layer between Retrofit and ViewModels
+- ViewModel loading/success/error states
+- Request and response mapping for each screen
+- Token handling for login, logout, and session expiry
+- Role-based behavior for user and admin screens
+
+## 5. Existing API Contract
+
+All backend responses should follow this structure:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "error": null
 }
 ```
 
-**Step 3 — Replace TODO mock call with ViewModel call:**
-```kotlin
-// REMOVE
-navController.navigate(Routes.PACKAGE_LIST)
+Error response:
 
-// ADD
-viewModel.login(uiState.email, uiState.password)
+```json
+{
+  "success": false,
+  "data": null,
+  "error": "Human readable message"
+}
 ```
 
-**Step 4 — Switch BASE_URL in RetrofitClient.kt:**
-```kotlin
-// Change this when backend shares their IP
-private const val BASE_URL = "http://<backend-ip>:8000/"
-```
+## 6. Main DTOs Already Used By Frontend
 
----
+- RegisterRequest
+- LoginRequest
+- AuthResponse
+- DeviceTokenRequest
+- CreatePackageRequest
+- PackageResponse
+- ScanRequest
+- ScanResponse
+- ScanHistoryResponse
+- AlertResponse
+- AdminAlertResponse
+- AcknowledgeResponse
+- UpdatedResponse
 
-## Important Rules — Do Not Forget
+## 7. Required Backend Endpoints
 
-### Security
-- `google-services.json` — never commit, always share privately
-- JWT stored in `EncryptedSharedPreferences` only
-- `HttpLoggingInterceptor` logs all requests — acceptable for dev
-- Camera permission — all 4 states handled in ScanScreen
+### Auth
 
-### Git Rules
-- Branch: always push to `dev`, never directly to `main`
-- `google-services.json` is in `.gitignore` ✅
-- `local.properties` is in `.gitignore` ✅
-- Every team member who clones the repo needs `google-services.json`
-  shared privately before building
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/device-token`
 
-### TODO Markers
-Search `// TODO` across the project to find every integration point.
-There are 8 TODOs — one per screen mock call.
-Each TODO = one line Member 2 replaces with a ViewModel call.
+### Packages
 
----
+- `GET /packages`
+- `POST /packages`
+- `GET /packages/{package_id}/scans`
 
-## Member 2 Checklist (Madhur)
+### Scan
 
-- [ ] Clone repo, place `google-services.json` in `app/`, build succeeds
-- [ ] AuthViewModel — login, register, logout
-- [ ] ScanViewModel — POST /scan connected
-- [ ] PackageViewModel — package list, detail, create
-- [ ] AlertViewModel — alerts + acknowledge
-- [ ] AlertFeedScreen built
-- [ ] AdminAlertsScreen built
-- [ ] FCM token sent to backend after login
-- [ ] All TODO markers connected to ViewModels
+- `POST /scan`
 
-## Member 3 Checklist
+### Alerts
 
-- [ ] FastAPI project running locally
-- [ ] PostgreSQL + Alembic migrations done
-- [ ] Firebase Admin SDK verifying tokens
-- [ ] POST /auth/register, POST /auth/login working
-- [ ] POST /scan core logic working
-- [ ] GET /packages, POST /packages working
-- [ ] CORS enabled for development
-- [ ] Standard response envelope on every endpoint
+- `GET /alerts`
+- `PUT /alerts/{alert_id}/acknowledge`
+- `GET /admin/alerts`
 
-## Member 4 Checklist
+## 8. Screen To ViewModel Mapping
 
-- [ ] GET /alerts, PUT /alerts/{id}/acknowledge working
-- [ ] GET /admin/alerts with role guard (403 for non-admin)
-- [ ] FCM push notification on misplacement
-- [ ] Seed script — 3 test users created
-- [ ] Pytest integration tests for all 10 endpoints
+| Screen | ViewModel | Backend Data Needed |
+| --- | --- | --- |
+| LoginScreen | AuthViewModel | token, role, user_id |
+| RegisterScreen | AuthViewModel | token, role, user_id |
+| PackageListScreen | PackageViewModel | package list |
+| PackageDetailScreen | PackageViewModel | scan history |
+| CreatePackageScreen | PackageViewModel | qr_payload |
+| ScanScreen | ScanViewModel | scan result |
+| ScanResultScreen | ScanViewModel | result, package description, owner, alert flag |
+| AlertFeedScreen | AlertViewModel | user alerts |
+| AdminAlertScreen | AlertViewModel | admin alerts |
+| AppAlertsScreen | AlertViewModel or future notification API | notification feed |
 
----
+## 9. ViewModel Responsibilities
 
-## Integration Week Plan (Week 5)
+### AuthViewModel
 
-| Day | Task | Who |
-|-----|------|-----|
-| Day 1 | Backend running, frontend switches BASE_URL | All |
-| Day 2 | Auth flow tested end to end | M1 + M3 |
-| Day 3 | Scan flow + misplacement + notification tested | M1 + M4 |
-| Day 4 | Alerts flow + admin tested | M2 + M4 |
-| Day 5 | Full run, fix bugs, freeze for submission | All |
+- Login and register users
+- Save token, role, and user id
+- Send FCM token after login
+- Clear session on logout
 
----
+### PackageViewModel
 
-## Test Credentials (Member 4 creates via seed script)
+- Fetch package list
+- Fetch scan history for one package
+- Create new package
 
-| User | Email | Password | Role |
-|------|-------|----------|------|
-| Test User A | usera@test.com | Test@1234 | user |
-| Test User B | userb@test.com | Test@1234 | user |
-| Admin | admin@test.com | Admin@1234 | admin |
+### ScanViewModel
 
----
+- Submit scan package_id and location description
+- Return valid or misplaced result state
 
-*QR File Tracker | Community Engineering Project | April 2026*
+### AlertViewModel
+
+- Fetch user alerts
+- Acknowledge alerts
+- Fetch admin alerts
+
+## 10. Important Backend Rules
+
+- JWT must be returned on login and register
+- JWT must be accepted on protected routes
+- 401 means token is invalid or expired
+- Create package must return qr_payload
+- Scan response must include the fields needed by the result screen
+- Alerts must support filtering by status
+- Admin alerts must be role protected
+- Device token registration must work after login
+
+## 11. Recommended Member 2 Workflow
+
+1. Add repository classes for auth, packages, scans, and alerts.
+2. Move Retrofit calls out of ViewModels.
+3. Keep ViewModels focused on UI state only.
+4. Map backend responses into the existing DTOs.
+5. Handle 401 centrally.
+6. Use TokenManager for auth state on device.
+
+## 12. Minimum Acceptance Checklist
+
+- Login returns token, role, and user_id
+- Register returns the same auth data
+- FCM token is saved locally and sent to backend
+- Package list loads on user and admin screens
+- Create package returns qr_payload
+- Scan returns valid or misplaced with full data
+- User alerts load and can be acknowledged
+- Admin alerts load correctly
+- Unauthorized responses send the user back to login
+
+## 13. Short Summary
+
+The frontend is already prepared for backend integration. Member 2 mainly needs to add repository classes, wire the existing ViewModels to the backend contract, and keep token/session handling consistent across the app.

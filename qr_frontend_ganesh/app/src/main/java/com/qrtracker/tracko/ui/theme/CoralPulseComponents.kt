@@ -363,8 +363,9 @@ fun GlassTopBar(
 // ── Bottom Nav Bar ───────────────────────────────────────────────────────────
 data class NavItem(
     val label: String,
-    val icon: ImageVector,
-    val route: String
+    val icon: ImageVector? = null,
+    val route: String,
+    val iconContent: (@Composable (isSelected: Boolean) -> Unit)? = null
 )
 
 @Composable
@@ -374,9 +375,11 @@ fun BottomNavBar(
     onItemClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     fabIcon: ImageVector? = null,
-    fabRoute: String = "",
+    fabLabel: String = "Scan",
     onFabClick: () -> Unit = {}
 ) {
+    val centerOverlayItem = items.firstOrNull { it.iconContent != null }
+
     Box(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -386,16 +389,15 @@ fun BottomNavBar(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .shadow(
-                    elevation = 16.dp,
-                    shape = RoundedCornerShape(topStart = 48.dp, topEnd = 48.dp),
+                    elevation = 10.dp,
+                    shape = RoundedCornerShape(topStart = 52.dp, topEnd = 52.dp),
                     ambientColor = Color(0x0F1A1A1A)
                 )
                 .background(
-                    SurfaceContainerHighest,
-                    RoundedCornerShape(topStart = 48.dp, topEnd = 48.dp)
+                    Color(0xFFD6D9DE),
+                    RoundedCornerShape(topStart = 52.dp, topEnd = 52.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .padding(bottom = 16.dp),
+                .padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 14.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -403,6 +405,12 @@ fun BottomNavBar(
                 if (fabIcon != null && index == 1) {
                     // FAB placeholder space
                     Spacer(Modifier.width(64.dp))
+                }
+
+                if (item.iconContent != null) {
+                    // Reserve center space; render this item as a floating overlay.
+                    Spacer(Modifier.width(88.dp))
+                    return@forEachIndexed
                 }
 
                 val isSelected = item.route == currentRoute
@@ -415,12 +423,14 @@ fun BottomNavBar(
                         ) { onItemClick(item.route) }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        tint = if (isSelected) GradientStart else Color(0xFF9CA3AF),
-                        modifier = Modifier.size(24.dp)
-                    )
+                    if (item.icon != null) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = if (isSelected) GradientStart else Color(0xFF9CA3AF),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = item.label,
@@ -431,6 +441,30 @@ fun BottomNavBar(
                         color = if (isSelected) GradientStart else Color(0xFF9CA3AF)
                     )
                 }
+            }
+        }
+
+        if (centerOverlayItem != null && fabIcon == null) {
+            val isSelected = centerOverlayItem.route == currentRoute
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onItemClick(centerOverlayItem.route) }
+            ) {
+                centerOverlayItem.iconContent?.invoke(isSelected)
+                Text(
+                    text = centerOverlayItem.label,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                        fontSize = 11.sp
+                    ),
+                    color = if (isSelected) GradientStart else Color(0xFF9CA3AF),
+                    modifier = Modifier.offset(y = (-16).dp)
+                )
             }
         }
 
@@ -449,14 +483,14 @@ fun BottomNavBar(
             ) {
                 Icon(
                     imageVector = fabIcon,
-                    contentDescription = "Scan",
+                    contentDescription = fabLabel,
                     tint = Color.White,
                     modifier = Modifier.size(30.dp)
                 )
             }
             // Label under FAB
             Text(
-                text = "Scan",
+                text = fabLabel,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp
@@ -467,6 +501,29 @@ fun BottomNavBar(
                     .offset(y = 44.dp)
             )
         }
+    }
+}
+
+@Composable
+fun AdminCreateNavIcon(isSelected: Boolean) {
+    Box(
+        modifier = Modifier
+            .offset(y = (-24).dp)
+            .size(74.dp)
+            .shadow(16.dp, CircleShape)
+            .clip(CircleShape)
+            .background(SignatureGradient)
+            .border(if (isSelected) 7.dp else 6.dp, Color(0xFFF0F2F5), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "+",
+            style = MaterialTheme.typography.displaySmall.copy(
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 44.sp
+            ),
+            color = Color.White
+        )
     }
 }
 
@@ -487,3 +544,4 @@ fun EditorialLabel(
         modifier = modifier
     )
 }
+

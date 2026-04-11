@@ -31,3 +31,4 @@ interface PackageDao {
     @Query("DELETE FROM packages")
     suspend fun clearAllPackages()
 }
+

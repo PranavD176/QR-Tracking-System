@@ -6,3 +6,4 @@ data class RegisterRequest(
     val password: String,
     val role: String
 )
+

@@ -8,3 +8,4 @@ data class PackageResponse(
     val qr_payload: String?,
     val created_at: String
 )
+

@@ -25,7 +25,7 @@ interface ApiService {
     @POST("auth/device-token")
     suspend fun registerDeviceToken(
         @Body request: DeviceTokenRequest
-    ): Response<ApiResponse<UpdatedResponse>>
+    ): Response<UpdatedResponse>
 
     // ─── PACKAGE ENDPOINTS ───────────────────────────────────────────
 
