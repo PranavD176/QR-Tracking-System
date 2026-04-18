@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -27,18 +28,21 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
+import com.qrtracker.tracko.viewmodel.AuthViewModel
+import com.qrtracker.tracko.viewmodel.AuthState
+import com.qrtracker.tracko.utils.TokenManager
 
-// ── State holder — Member 2 will replace with ViewModel state ────────────────
+// ── State holder ────────────────────────────────────────────────────────────
 data class LoginUiState(
     val email         : String  = "",
     val password      : String  = "",
-    val isLoading     : Boolean = false,
     val isPasswordVisible: Boolean = false,
     val error         : String? = null
 )
@@ -46,7 +50,11 @@ data class LoginUiState(
 @Composable
 fun LoginScreen(navController: NavController) {
 
-    // ── Local state (temporary until Member 2 adds ViewModel) ────────────────
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val authViewModel = remember { AuthViewModel(tokenManager) }
+    val authState by authViewModel.authState.collectAsState()
+
     var uiState by remember { mutableStateOf(LoginUiState()) }
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -57,6 +65,28 @@ fun LoginScreen(navController: NavController) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
             uiState = uiState.copy(error = null)
+        }
+    }
+
+    // ── Observe auth state → navigate on success ──────────────────────────────
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthState.Success -> {
+                val route = when (state.role) {
+                    "admin" -> Routes.ADMIN_CHECKPOINT
+                    "checkpoint" -> Routes.STAFF_HOME
+                    else -> Routes.HOME
+                }
+                navController.navigate(route) {
+                    popUpTo(Routes.LOGIN) { inclusive = true }
+                }
+                authViewModel.resetState()
+            }
+            is AuthState.Error -> {
+                uiState = uiState.copy(error = state.message)
+                authViewModel.resetState()
+            }
+            else -> {}
         }
     }
 
@@ -293,7 +323,7 @@ fun LoginScreen(navController: NavController) {
                 // ── Sign In button ───────────────────────────────────────────
                 GradientButton(
                     text = "Sign In",
-                    isLoading = uiState.isLoading,
+                    isLoading = authState is AuthState.Loading,
                     onClick = {
                         when {
                             uiState.email.isBlank() ->
@@ -304,28 +334,7 @@ fun LoginScreen(navController: NavController) {
                             uiState.password.isBlank() ->
                                 uiState = uiState.copy(error = "Password cannot be empty")
                             else -> {
-                                // ── Hardcoded Credentials ────
-                                val enteredEmail = uiState.email.trim()
-                                val enteredPass = uiState.password
-                                
-                                if (enteredEmail == "u@g.c" && enteredPass == "1") {
-                                    // User login -> Home / Package List
-                                    navController.navigate(Routes.HOME) {
-                                        popUpTo(Routes.LOGIN) { inclusive = true }
-                                    }
-                                } else if (enteredEmail == "a@g.c" && enteredPass == "1") {
-                                    // Admin login -> Admin Checkpoint
-                                    navController.navigate(Routes.ADMIN_CHECKPOINT) {
-                                        popUpTo(Routes.LOGIN) { inclusive = true }
-                                    }
-                                } else if (enteredEmail == "c@g.c" && enteredPass == "1") {
-                                    // Staff login -> Staff Home
-                                    navController.navigate(Routes.STAFF_HOME) {
-                                        popUpTo(Routes.LOGIN) { inclusive = true }
-                                    }
-                                } else {
-                                    uiState = uiState.copy(error = "Invalid credentials. Try testing accounts.")
-                                }
+                                authViewModel.login(uiState.email.trim(), uiState.password)
                             }
                         }
                     }

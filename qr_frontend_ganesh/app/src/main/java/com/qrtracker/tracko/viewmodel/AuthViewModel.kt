@@ -41,6 +41,8 @@ class AuthViewModel(
                         tokenManager.saveToken(authData.token)
                         tokenManager.saveRole(authData.role)
                         tokenManager.saveUserId(authData.user_id)
+                        authData.full_name?.let { tokenManager.saveFullName(it) }
+                        authData.email?.let { tokenManager.saveEmail(it) }
 
                         // Send FCM token to backend
                         sendFcmToken()

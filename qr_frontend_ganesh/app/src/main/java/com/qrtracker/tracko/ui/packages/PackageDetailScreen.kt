@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,12 +25,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.qrtracker.tracko.network.models.ScanHistoryResponse
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.PackageViewModel
+import com.qrtracker.tracko.viewmodel.PackageListState
 import com.qrtracker.tracko.viewmodel.ScanHistoryState
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun PackageDetailScreen(
@@ -37,17 +39,54 @@ fun PackageDetailScreen(
     packageId: String
 ) {
     val scrollState = rememberScrollState()
-    // Mock data — Member 2 will replace with ViewModel state
-    val mockDescription = "MacBook Pro 16\""
-    val mockTrackingId = "QRT-8829-XL"
-    val mockStatus = "active"
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val packageViewModel = remember { PackageViewModel(tokenManager) }
+    val pkgListState by packageViewModel.packageListState.collectAsState()
+    val scanHistoryState by packageViewModel.scanHistoryState.collectAsState()
 
-    // Mock scan history
-    val mockScans = listOf(
-        MockScanEntry("Distribution Center, San Francisco", "Alex Johnson", "valid", "Oct 23, 2023 11:42 AM"),
-        MockScanEntry("Warehouse B, Oakland", "Maria Garcia", "valid", "Oct 22, 2023 09:15 AM"),
-        MockScanEntry("Airport Terminal, SFO", "System Scanner", "misplaced", "Oct 21, 2023 05:30 PM"),
-    )
+    // Package detail state from API
+    var pkgDescription by remember { mutableStateOf("Loading...") }
+    var pkgTrackingId by remember { mutableStateOf(packageId.take(12)) }
+    var pkgStatus by remember { mutableStateOf("active") }
+    var pkgCreatedAt by remember { mutableStateOf("") }
+
+    // Scan history from API
+    var scanEntries by remember { mutableStateOf<List<MockScanEntry>>(emptyList()) }
+
+    // Fetch data on entry
+    LaunchedEffect(packageId) {
+        packageViewModel.fetchPackages()
+        packageViewModel.fetchScanHistory(packageId)
+    }
+
+    // Observe package list to extract this package's details
+    LaunchedEffect(pkgListState) {
+        if (pkgListState is PackageListState.Success) {
+            val pkg = (pkgListState as PackageListState.Success).packages
+                .firstOrNull { it.package_id == packageId }
+            if (pkg != null) {
+                pkgDescription = pkg.description
+                pkgTrackingId = pkg.qr_payload ?: pkg.package_id.take(12)
+                pkgStatus = pkg.status
+                pkgCreatedAt = pkg.created_at ?: ""
+            }
+        }
+    }
+
+    // Observe scan history
+    LaunchedEffect(scanHistoryState) {
+        if (scanHistoryState is ScanHistoryState.Success) {
+            scanEntries = (scanHistoryState as ScanHistoryState.Success).scans.map { s ->
+                MockScanEntry(
+                    location = s.location_description,
+                    scannerName = s.scanner_name,
+                    result = s.result.lowercase(),
+                    timestamp = s.scanned_at
+                )
+            }
+        }
+    }
 
     Scaffold(
         containerColor = Surface,
@@ -117,12 +156,12 @@ fun PackageDetailScreen(
             ) {
                 Column {
                     // Status pill
-                    StatusChip(status = mockStatus)
+                    StatusChip(status = pkgStatus)
                     Spacer(Modifier.height(12.dp))
 
                     // Package name
                     Text(
-                        text = mockDescription,
+                        text = pkgDescription,
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 30.sp
@@ -164,7 +203,7 @@ fun PackageDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = mockTrackingId,
+                                text = pkgTrackingId,
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp
@@ -197,7 +236,7 @@ fun PackageDetailScreen(
                 ) {
                     MetadataCard(
                         label = "Created",
-                        value = "Oct 20, '23",
+                        value = if (pkgCreatedAt.length >= 10) pkgCreatedAt.take(10) else pkgCreatedAt,
                         modifier = Modifier.weight(1f)
                     )
                     MetadataCard(
@@ -258,7 +297,7 @@ fun PackageDetailScreen(
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
 
-                mockScans.forEachIndexed { index, scan ->
+                scanEntries.forEachIndexed { index, scan ->
                     Row(Modifier.fillMaxWidth()) {
                         // Timeline indicator
                         Column(
@@ -272,7 +311,7 @@ fun PackageDetailScreen(
                                     .clip(CircleShape)
                                     .background(dotColor)
                             )
-                            if (index < mockScans.size - 1) {
+                            if (index < scanEntries.size - 1) {
                                 Box(
                                     modifier = Modifier
                                         .width(2.dp)
@@ -326,7 +365,7 @@ fun PackageDetailScreen(
                             }
                         }
                     }
-                    if (index < mockScans.size - 1) Spacer(Modifier.height(12.dp))
+                    if (index < scanEntries.size - 1) Spacer(Modifier.height(12.dp))
                 }
             }
 

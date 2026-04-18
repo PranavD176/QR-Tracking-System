@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -41,6 +42,9 @@ import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.QRParser
+import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.ScanViewModel
+import com.qrtracker.tracko.viewmodel.ScanState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -66,7 +70,37 @@ fun ScanScreen(navController: NavController) {
     var lastScanTime      by remember { mutableLongStateOf(0L) }
     val cameraPermission  = rememberPermissionState(Manifest.permission.CAMERA)
     val context           = LocalContext.current
+    val tokenManager      = remember { TokenManager(context.applicationContext) }
+    val scanViewModel     = remember { ScanViewModel(tokenManager) }
+    val scanState by scanViewModel.scanState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // ── Observe scan state → navigate on result ────────────────────────────
+    LaunchedEffect(scanState) {
+        when (val state = scanState) {
+            is ScanState.Success -> {
+                val resp = state.scanResponse
+                navController.navigate(
+                    Routes.scanResult(
+                        result      = resp.result.lowercase(),
+                        packageDesc = resp.package_description,
+                        ownerName   = resp.owner_name,
+                        alertSent   = resp.alert_sent
+                    )
+                )
+                uiState = uiState.copy(isProcessing = false)
+                scanViewModel.resetScanState()
+            }
+            is ScanState.Error -> {
+                uiState = uiState.copy(isProcessing = false, error = state.message)
+                scanViewModel.resetScanState()
+            }
+            is ScanState.Loading -> {
+                uiState = uiState.copy(isProcessing = true)
+            }
+            else -> {}
+        }
+    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -112,19 +146,8 @@ fun ScanScreen(navController: NavController) {
 
                             uiState = uiState.copy(isProcessing = true)
 
-                            // ── MOCK: remove when Member 2 adds ViewModel ────
-                            // TODO: replace with viewModel.scan(packageId, locationInput)
-                            // Mock navigates to result screen with dummy data
-                            navController.navigate(
-                                Routes.scanResult(
-                                    result      = "valid",
-                                    packageDesc = "Mock Package",
-                                    ownerName   = "Test User",
-                                    alertSent   = false
-                                )
-                            )
-
-                            uiState = uiState.copy(isProcessing = false)
+                            // ── Call backend API ───────────────────────────────────
+                            scanViewModel.submitScan(packageId, uiState.locationInput)
                         }
                     )
 

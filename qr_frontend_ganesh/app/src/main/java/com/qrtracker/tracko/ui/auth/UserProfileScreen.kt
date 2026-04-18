@@ -52,16 +52,19 @@ fun UserProfileScreen(navController: NavController) {
     val context = LocalContext.current
     val tokenManager = TokenManager(context)
 
-    // Mock profile now; keep shape ready for backend response binding.
+    // Read stored profile from TokenManager
+    val fullName = tokenManager.getFullName() ?: "User"
+    val email = tokenManager.getEmail() ?: "—"
+    val userId = tokenManager.getUserId() ?: "—"
+    val role = tokenManager.getRole() ?: "user"
+    val initial = fullName.firstOrNull()?.toString() ?: "U"
+
     val userDetails = linkedMapOf(
-        "Name" to "Ganesh Kumar",
-        "Age" to "28",
-        "User ID" to "USR-DEL-9921",
-        "Phone" to "+91 98765 43210",
-        "Email" to "ganesh.kumar@example.com",
-        "Location" to "New Delhi, India",
-        "Account Status" to "Active",
-        "Member Since" to "Oct 2023"
+        "Name" to fullName,
+        "User ID" to userId,
+        "Email" to email,
+        "Role" to role.replaceFirstChar { it.uppercase() },
+        "Account Status" to "Active"
     )
 
     Scaffold(containerColor = Surface) { padding ->
@@ -106,17 +109,17 @@ fun UserProfileScreen(navController: NavController) {
                                 .border(1.dp, SurfaceContainerHigh, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("G", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = OnSurfaceVariant)
+                            Text(initial, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = OnSurfaceVariant)
                         }
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
-                                "Ganesh Kumar",
+                                fullName,
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = OnSurface
                             )
                             Text(
-                                "Standard User • New Delhi",
+                                "${role.replaceFirstChar { it.uppercase() }} User",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = OnSurfaceVariant
                             )

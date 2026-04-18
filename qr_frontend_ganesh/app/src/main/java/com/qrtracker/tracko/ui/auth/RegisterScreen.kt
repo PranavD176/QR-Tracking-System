@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -38,8 +39,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
+import com.qrtracker.tracko.viewmodel.AuthViewModel
+import com.qrtracker.tracko.viewmodel.AuthState
+import com.qrtracker.tracko.utils.TokenManager
+import androidx.compose.ui.platform.LocalContext
 
-// ── State holder — Member 2 will replace with ViewModel state ────────────────
+// ── State holder ────────────────────────────────────────────────────────────
 data class RegisterUiState(
     val fullName            : String  = "",
     val email               : String  = "",
@@ -47,7 +52,6 @@ data class RegisterUiState(
     val confirmPassword     : String  = "",
     val isPasswordVisible   : Boolean = false,
     val isConfirmVisible    : Boolean = false,
-    val isLoading           : Boolean = false,
     val acceptedTerms       : Boolean = true,
     val error               : String? = null,
     val showDiscardDialog   : Boolean = false
@@ -56,11 +60,15 @@ data class RegisterUiState(
 @Composable
 fun RegisterScreen(navController: NavController) {
 
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val authViewModel = remember { AuthViewModel(tokenManager) }
+    val authState by authViewModel.authState.collectAsState()
+
     var uiState       by remember { mutableStateOf(RegisterUiState()) }
     val focusManager  = LocalFocusManager.current
     val scrollState   = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
-
     // ── Back press → show discard dialog ────────────────────────────────────
     BackHandler {
         uiState = uiState.copy(showDiscardDialog = true)
@@ -71,6 +79,28 @@ fun RegisterScreen(navController: NavController) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
             uiState = uiState.copy(error = null)
+        }
+    }
+
+    // ── Observe auth state → navigate on success ──────────────────────────────
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthState.Success -> {
+                val route = when (state.role) {
+                    "admin" -> Routes.ADMIN_CHECKPOINT
+                    "checkpoint" -> Routes.STAFF_HOME
+                    else -> Routes.HOME
+                }
+                navController.navigate(route) {
+                    popUpTo(Routes.LOGIN) { inclusive = true }
+                }
+                authViewModel.resetState()
+            }
+            is AuthState.Error -> {
+                uiState = uiState.copy(error = state.message)
+                authViewModel.resetState()
+            }
+            else -> {}
         }
     }
 
@@ -330,7 +360,7 @@ fun RegisterScreen(navController: NavController) {
                 GradientButton(
                     text = "Create Account",
                     icon = Icons.Default.ArrowForward,
-                    isLoading = uiState.isLoading,
+                    isLoading = authState is AuthState.Loading,
                     onClick = {
                         when {
                             uiState.fullName.isBlank() ->
@@ -355,11 +385,12 @@ fun RegisterScreen(navController: NavController) {
                             !uiState.acceptedTerms ->
                                 uiState = uiState.copy(error = "Please accept the Terms of Service")
                             else -> {
-                                // ── MOCK: remove when Member 2 adds ViewModel ────
-                                // TODO: replace with viewModel.register(fullName, email, password)
-                                navController.navigate(Routes.PACKAGE_LIST) {
-                                    popUpTo(Routes.LOGIN) { inclusive = true }
-                                }
+                                authViewModel.register(
+                                    uiState.email.trim(),
+                                    uiState.password,
+                                    uiState.fullName.trim(),
+                                    "user" // default role for self-registration
+                                )
                             }
                         }
                     }

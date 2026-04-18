@@ -29,7 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
+import com.qrtracker.tracko.ui.theme.*
+import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.PackageViewModel
+import com.qrtracker.tracko.viewmodel.PackageListState
+import androidx.compose.ui.platform.LocalContext
 import com.qrtracker.tracko.ui.theme.AdminCreateNavIcon
 import com.qrtracker.tracko.ui.theme.BottomNavBar
 import com.qrtracker.tracko.ui.theme.GlassWhite
@@ -63,16 +69,32 @@ data class AdminPendingPackage(
     val eta: String
 )
 
-private val mockPendingPackages = listOf(
-    AdminPendingPackage("PK-4822-RB", "SCAN-04-B", "Not Scanned", "ETA 16:10"),
-    AdminPendingPackage("PK-5530-TR", "SCAN-04-B", "Left To Scan", "ETA 16:25"),
-    AdminPendingPackage("PK-7210-MN", "SCAN-04-B", "Not Scanned", "ETA 16:40"),
-    AdminPendingPackage("PK-6651-KL", "SCAN-04-B", "Left To Scan", "ETA 17:05")
-)
-
 @Composable
 fun AdminPackagesScreen(navController: NavController) {
-    val pendingPackages = remember { mockPendingPackages }
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val packageViewModel = remember { PackageViewModel(tokenManager) }
+    val pkgListState by packageViewModel.packageListState.collectAsState()
+    var pendingPackages by remember { mutableStateOf<List<AdminPendingPackage>>(emptyList()) }
+
+    // Load packages from API
+    LaunchedEffect(Unit) {
+        packageViewModel.fetchPackages()
+    }
+
+    // Map API response to UI model
+    LaunchedEffect(pkgListState) {
+        if (pkgListState is PackageListState.Success) {
+            pendingPackages = (pkgListState as PackageListState.Success).packages.map { pkg ->
+                AdminPendingPackage(
+                    parcelId = pkg.qr_payload ?: pkg.package_id.take(12),
+                    station = "SCAN-04-B",
+                    pendingType = if (pkg.status == "active") "Not Scanned" else "Left To Scan",
+                    eta = pkg.created_at?.take(10) ?: "—"
+                )
+            }
+        }
+    }
 
     Scaffold(
         containerColor = Surface,

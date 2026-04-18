@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -26,8 +27,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.ui.theme.GlassWhite
-import com.qrtracker.tracko.ui.theme.HorizontalBrandGradient
+import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.AlertViewModel
+import com.qrtracker.tracko.viewmodel.AlertListState
+import androidx.compose.ui.platform.LocalContext
 
 // ── User Alert Data ──────────────────────────────────────────────────────────
 enum class UserAlertType { PARCEL_ARRIVED, DELIVERY_DELAYED, OUT_FOR_DELIVERY, DELIVERED, SECURITY }
@@ -42,19 +45,38 @@ data class UserAlert(
     val isUnread: Boolean = false
 )
 
-private val mockUserAlerts = listOf(
-    UserAlert("1", "Package Arrived", "Your parcel QX-9902 is at the local hub.", UserAlertType.PARCEL_ARRIVED, "2m ago", "RECEIVED", true),
-    UserAlert("2", "Delivery Delayed", "Weather conditions have impacted the delivery of PK-8829.", UserAlertType.DELIVERY_DELAYED, "1h ago", "ON HOLD"),
-    UserAlert("3", "Out for Delivery", "Alex is on the way with your package QR-7712.", UserAlertType.OUT_FOR_DELIVERY, "3h ago", "ACTIVE"),
-    UserAlert("4", "Delivered", "Package PK-4456 was left at your front door.", UserAlertType.DELIVERED, "Yesterday", "COMPLETED"),
-    UserAlert("5", "Security Update", "Please update your password for better account protection.", UserAlertType.SECURITY, "2 days ago", "SECURITY"),
-)
-
 @Composable
 fun AlertFeedScreen(navController: NavController) {
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val alertViewModel = remember { AlertViewModel(tokenManager) }
+    val alertListState by alertViewModel.alertListState.collectAsState()
+
     var selectedFilter by remember { mutableStateOf("All") }
     val filters = listOf("All", "Parcel", "Delivery", "System")
-    var alerts by remember { mutableStateOf(mockUserAlerts) }
+    var alerts by remember { mutableStateOf<List<UserAlert>>(emptyList()) }
+
+    // Load alerts from API
+    LaunchedEffect(Unit) {
+        alertViewModel.fetchAlerts(null) // fetch all
+    }
+
+    // Map API response to UI model
+    LaunchedEffect(alertListState) {
+        if (alertListState is AlertListState.Success) {
+            alerts = (alertListState as AlertListState.Success).alerts.map { a ->
+                UserAlert(
+                    id = a.alert_id,
+                    title = "Misplaced Alert",
+                    description = "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}",
+                    type = UserAlertType.PARCEL_ARRIVED,
+                    timeAgo = a.created_at.takeLast(8),
+                    statusLabel = a.status.uppercase(),
+                    isUnread = a.status == "sent"
+                )
+            }
+        }
+    }
 
     val filteredAlerts = remember(selectedFilter, alerts) {
         when (selectedFilter) {

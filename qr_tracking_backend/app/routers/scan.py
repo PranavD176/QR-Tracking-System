@@ -53,11 +53,19 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
     db.commit()
 
+    # Get scanner and owner info for enriched response
+    # matching frontend ScanResponse
+    owner = db.query(User).filter_by(user_id=package.owner_id).first()
+    scanner = db.query(User).filter_by(user_id=user["uid"]).first()
+
     return {
         "success": True,
         "data": {
             "result": result,
-            "alert_sent": alert_sent
+            "package_description": package.description or "",
+            "owner_name": owner.full_name if owner else "Unknown",
+            "alert_sent": alert_sent,
+            "scanned_by": scanner.full_name if scanner and not is_owner else None,
         },
         "error": None
     }
