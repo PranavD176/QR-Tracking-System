@@ -358,27 +358,6 @@ fun PackageListScreen(
                 )
             }
 
-            // ══════════════════════════════════════════════════════════════════
-            //  Create Package Option (Above Stats)
-            // ══════════════════════════════════════════════════════════════════
-            item {
-                Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
-                    Text(
-                        text = "SHIP SOMETHING NEW",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.5.sp
-                        ),
-                        color = OnSurfaceVariant
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    GradientButton(
-                        text = "Create New Package",
-                        icon = Icons.Default.Add,
-                        onClick = { navController.navigate(Routes.CREATE_PACKAGE) }
-                    )
-                }
-            }
 
             // ══════════════════════════════════════════════════════════════════
             //  Stats Bento Grid

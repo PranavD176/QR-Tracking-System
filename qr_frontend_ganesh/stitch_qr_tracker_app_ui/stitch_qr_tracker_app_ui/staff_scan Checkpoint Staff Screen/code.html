@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#470f00",
+                    "surface-dim": "#d3d5d5",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-container": "#53066a",
+                    "tertiary-container": "#e293f6",
+                    "on-tertiary-fixed": "#2e003c",
+                    "primary-fixed": "#ff784e",
+                    "on-background": "#2d2f2f",
+                    "error-dim": "#9f0519",
+                    "error-container": "#fb5151",
+                    "outline": "#767777",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "outline-variant": "#acadad",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "primary": "#a93000",
+                    "on-error-container": "#570008",
+                    "error": "#b31b25",
+                    "tertiary-dim": "#76308c",
+                    "on-secondary-fixed-variant": "#704800",
+                    "tertiary": "#843d99",
+                    "secondary-container": "#ffc87f",
+                    "secondary": "#7f5200",
+                    "primary-dim": "#942900",
+                    "secondary-fixed-dim": "#ffb548",
+                    "inverse-on-surface": "#9c9d9d",
+                    "surface-container-low": "#f0f1f1",
+                    "on-error": "#ffefee",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#f6f6f6",
+                    "surface-bright": "#f6f6f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "on-secondary-container": "#644000",
+                    "on-tertiary": "#ffeefd",
+                    "surface-container": "#e7e8e8",
+                    "on-surface": "#2d2f2f",
+                    "on-primary-fixed": "#000000",
+                    "secondary-fixed": "#ffc87f",
+                    "inverse-primary": "#fb612f",
+                    "surface": "#f6f6f6",
+                    "tertiary-fixed": "#e293f6",
+                    "primary-container": "#ff784e",
+                    "on-surface-variant": "#5a5c5c",
+                    "surface-variant": "#dbdddd",
+                    "surface-tint": "#a93000",
+                    "on-secondary": "#fff0e2",
+                    "surface-container-high": "#e1e3e3",
+                    "on-primary-fixed-variant": "#571400",
+                    "surface-container-highest": "#dbdddd",
+                    "on-primary": "#ffefeb",
+                    "inverse-surface": "#0c0f0f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .camera-overlay {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+        }
+        .scanner-frame {
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+        }
+        .scan-line {
+            background: linear-gradient(to bottom, transparent, #F05A28, transparent);
+            height: 4px;
+            width: 100%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body antialiased min-h-screen overflow-hidden">
+<!-- Top Navigation Anchor (Manual Overwrite for Focus Mode) -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 py-6 bg-transparent">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-lowest/20 backdrop-blur-md text-white hover:bg-surface-container-lowest/30 transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex items-center gap-3 bg-surface-container-lowest/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-headline font-bold text-white text-sm tracking-tight">LIVE SCANNER</span>
+</div>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-lowest/20 backdrop-blur-md text-white hover:bg-surface-container-lowest/30 transition-all">
+<span class="material-symbols-outlined" data-icon="flashlight_on">flashlight_on</span>
+</button>
+</header>
+<!-- Full Screen Camera Preview (Simulated with high-end asset) -->
+<main class="relative h-screen w-full flex items-center justify-center">
+<!-- Visual Backdrop -->
+<div class="absolute inset-0 z-0">
+<img alt="high-tech logistics warehouse interior with stacks of boxes and bright overhead lighting" class="w-full h-full object-cover grayscale-[0.2]" data-alt="industrial logistics warehouse interior with rows of shipping containers and cinematic dramatic lighting from skylights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsdM0Vt5RZm8u0zPYGmncyzJsTOrdc7c7bjYua12HgdWnVfy-wrlbFuFK9xr6ffFCNLrG1DCU_XeLXdDfE4UucJeNpY9cHfgvXjmBLHbIFGvjhJ6JLb6cTm0fTL0E65TW7ZQJA0ip-m9EKCVqcFJz-_C0DOgQEHeyRLPdacXfWUtnPKtEvwEYc_d2f7P3iu-O877sfQ6929cXrXnZguvnTK4axbWoIvLBEB5h3n_Xth3woB4qD_KJkYgpw83jiTa1HIjM2JqzTVw"/>
+</div>
+<!-- Scanner Overlay -->
+<div class="absolute inset-0 z-10 scanner-frame pointer-events-none flex items-center justify-center">
+<div class="relative w-64 h-64 md:w-80 md:h-80 border-4 border-white/40 rounded-xl overflow-hidden shadow-[0_0_80px_rgba(240,90,40,0.3)]">
+<!-- Corner Accents -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-container -mt-1 -ml-1"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-container -mt-1 -mr-1"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-container -mb-1 -ml-1"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-container -mb-1 -mr-1"></div>
+<!-- Scanning Line Animation Placeholder (Static) -->
+<div class="absolute top-1/2 left-0 w-full h-1 bg-primary shadow-[0_0_20px_#F05A28]"></div>
+</div>
+</div>
+<!-- Feedback UI -->
+<div class="absolute bottom-40 left-0 w-full z-20 flex flex-col items-center px-8 text-center">
+<p class="text-white/90 font-headline font-bold text-lg mb-2 drop-shadow-lg">Align QR Code within the frame</p>
+<p class="text-white/60 text-sm max-w-[240px] drop-shadow-md">Scanning will happen automatically once detected.</p>
+</div>
+<!-- Manual Input Fallback (Floating Modal-style) -->
+<div class="absolute bottom-0 left-0 w-full z-30 p-6">
+<div class="max-w-md mx-auto bg-surface-container-lowest/90 backdrop-blur-2xl rounded-xl p-6 shadow-2xl border border-white/20">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface font-headline font-bold">Manual Input</span>
+<span class="material-symbols-outlined text-outline-variant" data-icon="keyboard">keyboard</span>
+</div>
+<div class="relative mb-4 group">
+<input class="w-full bg-surface-container-low border-none rounded-lg px-5 py-4 text-on-surface font-body placeholder:text-outline-variant focus:ring-2 focus:ring-primary-container transition-all" placeholder="Enter Parcel ID manually" type="text"/>
+</div>
+<button class="w-full py-4 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-headline font-bold flex items-center justify-center gap-2 group transition-all active:scale-95">
+<span>Submit Parcel ID</span>
+<span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Hidden Navigation Suppressed per "Task-Focused" Rule -->
+<!-- But if we needed the drawer, we'd use the JSON properties: -->
+<!-- bg-stone-50 text-orange-600 font-be-vietnam-pro rounded-r-3xl -->
+</body></html>

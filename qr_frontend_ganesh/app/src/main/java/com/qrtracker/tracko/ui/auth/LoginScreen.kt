@@ -318,6 +318,11 @@ fun LoginScreen(navController: NavController) {
                                     navController.navigate(Routes.ADMIN_CHECKPOINT) {
                                         popUpTo(Routes.LOGIN) { inclusive = true }
                                     }
+                                } else if (enteredEmail == "c@g.c" && enteredPass == "1") {
+                                    // Staff login -> Staff Home
+                                    navController.navigate(Routes.STAFF_HOME) {
+                                        popUpTo(Routes.LOGIN) { inclusive = true }
+                                    }
                                 } else {
                                     uiState = uiState.copy(error = "Invalid credentials. Try testing accounts.")
                                 }

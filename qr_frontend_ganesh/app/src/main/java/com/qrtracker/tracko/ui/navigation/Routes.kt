@@ -30,6 +30,16 @@ object Routes {
     const val ADMIN_PACKAGES   = "admin_packages"
     const val ADMIN_CREATE_PACKAGE = "admin_create_package"
     const val ADMIN_PROFILE    = "admin_profile"
+    const val CHECKPOINT_PROFILE = "checkpoint_profile"
+
+    // ── Admin Logistics Dashboard ─────────────────────────────────────────
+    const val LOGISTICS_DASHBOARD = "logistics_dashboard/{packageId}"
+
+    // ── Checkpoint Staff ──────────────────────────────────────────────────
+    const val STAFF_HOME       = "staff_home"
+    const val STAFF_SCAN       = "staff_scan"
+    const val STAFF_SCAN_RESULT = "staff_scan_result/{orderId}/{status}/{currentCheckpoint}/{nextCheckpoint}"
+    const val STAFF_HISTORY    = "staff_history"
 
     // ── Helper functions to build routes with arguments ──────────────────────
     fun packageDetail(packageId: String)  = "package_detail/$packageId"
@@ -40,4 +50,13 @@ object Routes {
         ownerName: String,
         alertSent: Boolean
     ) = "scan_result/$result/$packageDesc/$ownerName/$alertSent"
+
+    fun logisticsDashboard(packageId: String) = "logistics_dashboard/$packageId"
+
+    fun staffScanResult(
+        orderId: String,
+        status: String,
+        currentCheckpoint: String,
+        nextCheckpoint: String
+    ) = "staff_scan_result/$orderId/$status/$currentCheckpoint/$nextCheckpoint"
 }

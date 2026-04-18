@@ -18,12 +18,18 @@ import com.qrtracker.tracko.ui.alerts.AlertFeedScreen
 import com.qrtracker.tracko.ui.alerts.AppAlertsScreen
 import com.qrtracker.tracko.ui.admin.AdminProfileScreen
 import com.qrtracker.tracko.ui.checkpoint.AdminCheckpointScreen
+import com.qrtracker.tracko.ui.checkpoint.CheckpointProfileScreen
 import com.qrtracker.tracko.ui.packages.AdminPackagesScreen
 import com.qrtracker.tracko.ui.packages.CreatePackageScreen
+import com.qrtracker.tracko.ui.packages.LogisticsDashboardScreen
 import com.qrtracker.tracko.ui.packages.PackageDetailScreen
 import com.qrtracker.tracko.ui.packages.PackageListScreen
 import com.qrtracker.tracko.ui.scan.ScanResultScreen
 import com.qrtracker.tracko.ui.scan.ScanScreen
+import com.qrtracker.tracko.ui.staff.StaffHomeScreen
+import com.qrtracker.tracko.ui.staff.StaffScanScreen
+import com.qrtracker.tracko.ui.staff.StaffScanResultScreen
+import com.qrtracker.tracko.ui.staff.StaffHistoryScreen
 import com.qrtracker.tracko.utils.TokenManager
 
 @Composable
@@ -77,9 +83,7 @@ fun NavGraph(
             )
         }
 
-        composable(Routes.CREATE_PACKAGE) {
-            CreatePackageScreen(navController = navController)
-        }
+
 
         composable(Routes.ADMIN_CREATE_PACKAGE) {
             CreatePackageScreen(navController = navController, isAdminFlow = true)
@@ -140,6 +144,58 @@ fun NavGraph(
         composable(Routes.ADMIN_PROFILE) {
             AdminProfileScreen(navController = navController)
         }
+
+        composable(Routes.CHECKPOINT_PROFILE) {
+            CheckpointProfileScreen(navController = navController)
+        }
+
+        // ── Admin Logistics Dashboard ──────────────────────────────────────────
+        composable(
+            route = Routes.LOGISTICS_DASHBOARD,
+            arguments = listOf(
+                navArgument("packageId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val packageId = backStackEntry.arguments?.getString("packageId") ?: ""
+            LogisticsDashboardScreen(
+                navController = navController,
+                packageId     = packageId
+            )
+        }
+
+        // ── Checkpoint Staff ───────────────────────────────────────────────────
+        composable(Routes.STAFF_HOME) {
+            StaffHomeScreen(navController = navController)
+        }
+
+        composable(Routes.STAFF_SCAN) {
+            StaffScanScreen(navController = navController)
+        }
+
+        composable(
+            route = Routes.STAFF_SCAN_RESULT,
+            arguments = listOf(
+                navArgument("orderId")           { type = NavType.StringType },
+                navArgument("status")            { type = NavType.StringType },
+                navArgument("currentCheckpoint") { type = NavType.StringType },
+                navArgument("nextCheckpoint")    { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val orderId           = backStackEntry.arguments?.getString("orderId")           ?: ""
+            val status            = backStackEntry.arguments?.getString("status")            ?: "success"
+            val currentCheckpoint = backStackEntry.arguments?.getString("currentCheckpoint") ?: ""
+            val nextCheckpoint    = backStackEntry.arguments?.getString("nextCheckpoint")    ?: ""
+            StaffScanResultScreen(
+                navController     = navController,
+                orderId           = orderId,
+                status            = status,
+                currentCheckpoint = currentCheckpoint,
+                nextCheckpoint    = nextCheckpoint
+            )
+        }
+
+        composable(Routes.STAFF_HISTORY) {
+            StaffHistoryScreen(navController = navController)
+        }
     }
 }
-

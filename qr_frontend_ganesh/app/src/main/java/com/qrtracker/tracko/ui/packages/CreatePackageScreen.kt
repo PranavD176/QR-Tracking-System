@@ -1,12 +1,12 @@
 package com.qrtracker.tracko.ui.packages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -32,13 +32,34 @@ import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 
-// ── State holder ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+//  Create Package — Admin-Only screen
+//  Pixel-accurate to: stitch_qr_tracker_app_ui create package design
+//  Backend-ready: replace mock data with ViewModel when API is available
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── State holders (ViewModel-ready) ──────────────────────────────────────────
 data class CreatePackageUiState(
-    val description     : String  = "",
-    val isLoading       : Boolean = false,
-    val error           : String? = null,
-    val createdPackageId: String? = null,   // non-null = success
-    val createdQrPayload: String? = null    // QR string to display after creation
+    val companyName     : String   = "",
+    val orderId         : String   = "",
+    val pickupAddress   : String   = "",
+    val customerName    : String   = "",
+    val deliveryAddress : String   = "",
+    val checkpoints     : List<RouteCheckpoint> = listOf(
+        RouteCheckpoint("Austin Distribution Center", isOrigin = true),
+        RouteCheckpoint("Dallas Sorting Hub"),
+    ),
+    val isLoading       : Boolean  = false,
+    val error           : String?  = null,
+    val createdPackageId: String?  = null,
+    val createdQrPayload: String?  = null
+)
+
+data class RouteCheckpoint(
+    val name: String,
+    val isOrigin: Boolean = false,
+    val isDestination: Boolean = false,
+    val isExpanded: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,12 +68,10 @@ fun CreatePackageScreen(
     navController: NavController,
     isAdminFlow: Boolean = false
 ) {
-
     var uiState           by remember { mutableStateOf(CreatePackageUiState()) }
     val focusManager      = LocalFocusManager.current
     val scrollState       = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val charLimit         = 200
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -66,61 +85,69 @@ fun CreatePackageScreen(
         snackbarHost   = { SnackbarHost(snackbarHostState) },
         containerColor = Surface,
         topBar = {
-            GlassTopBar(
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = OnSurface
-                        )
+            // ── Glass Top Bar ────────────────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GlassWhite)
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceContainerHigh)
+                            .clickable { navController.popBackStack() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.ArrowBack, null, tint = OnSurface, modifier = Modifier.size(22.dp))
                     }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "QR Tracker",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontFamily = PlusJakartaSans,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            brush = HorizontalBrandGradient
+                        )
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(SurfaceContainerHigh)
+                        .clickable {
                             if (isAdminFlow) {
                                 navController.navigate(Routes.ADMIN_ALERTS) { launchSingleTop = true }
                             }
                         },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainer)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Notifications,
-                            contentDescription = "Notifications",
-                            tint = OnSurface,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Outlined.Notifications, null, tint = OnSurface, modifier = Modifier.size(22.dp))
                 }
-            )
+            }
         },
         bottomBar = {
-            val navItems = if (isAdminFlow) {
-                listOf(
-                    NavItem("Home", Icons.Default.Home, Routes.ADMIN_CHECKPOINT),
-                    NavItem(
-                        label = "Create",
-                        route = Routes.ADMIN_CREATE_PACKAGE,
-                        iconContent = { isSelected -> AdminCreateNavIcon(isSelected) }
-                    ),
-                    NavItem("Packages", Icons.Default.Inventory2, Routes.ADMIN_PACKAGES),
-                )
-            } else {
-                listOf(
-                    NavItem("Home", Icons.Default.Home, Routes.PACKAGE_LIST),
-                    NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
-                    NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
-                    NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
-                )
-            }
+            // ── Admin Bottom Nav only ────────────────────────────────────────
+            val navItems = listOf(
+                NavItem("Home", Icons.Default.Home, Routes.ADMIN_CHECKPOINT),
+                NavItem(
+                    label = "New",
+                    route = Routes.ADMIN_CREATE_PACKAGE,
+                    iconContent = { isSelected -> AdminCreateNavIcon(isSelected) }
+                ),
+                NavItem("Track", Icons.Default.LocalShipping, Routes.ADMIN_PACKAGES),
+                NavItem("Settings", Icons.Default.Settings, Routes.ADMIN_PROFILE),
+            )
 
             BottomNavBar(
                 items = navItems,
-                currentRoute = if (isAdminFlow) Routes.ADMIN_CREATE_PACKAGE else Routes.PACKAGE_LIST,
+                currentRoute = Routes.ADMIN_CREATE_PACKAGE,
                 onItemClick = { route ->
                     navController.navigate(route) { launchSingleTop = true }
                 }
@@ -144,8 +171,8 @@ fun CreatePackageScreen(
                     packageId  = uiState.createdPackageId!!,
                     qrPayload  = uiState.createdQrPayload ?: "",
                     onGoHome   = {
-                        navController.navigate(Routes.PACKAGE_LIST) {
-                            popUpTo(Routes.PACKAGE_LIST) { inclusive = true }
+                        navController.navigate(Routes.ADMIN_CHECKPOINT) {
+                            popUpTo(Routes.ADMIN_CHECKPOINT) { inclusive = true }
                         }
                     },
                     onCreateAnother = {
@@ -153,132 +180,231 @@ fun CreatePackageScreen(
                     }
                 )
             } else {
-
                 // ══════════════════════════════════════════════════════════════
                 //  Editorial Header
                 // ══════════════════════════════════════════════════════════════
                 Text(
-                    text = "New\nPackage.",
+                    text = "New\nPackage",
                     style = MaterialTheme.typography.displayMedium.copy(
+                        fontFamily = PlusJakartaSans,
                         fontWeight = FontWeight.ExtraBold,
-                        lineHeight = 48.sp
+                        lineHeight = 52.sp,
+                        fontSize = 48.sp
                     ),
                     color = OnSurface,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Register a new package and generate a unique QR tracking code.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Create a kinetic pulse for your shipment. Map out the journey and generate a unique tracking ID.",
+                    style = MaterialTheme.typography.bodyLarge,
                     color = OnSurfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(32.dp))
 
                 // ══════════════════════════════════════════════════════════════
-                //  Decorative Card
+                //  SOURCE DETAILS
                 // ══════════════════════════════════════════════════════════════
-                Box(
+                EditorialLabel(
+                    text = "SOURCE DETAILS",
+                    color = CoralPrimary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(SignatureGradient)
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceContainerLowest)
+                        .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(16.dp))
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color.White.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Outlined.LocalShipping,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "READY FOR TRANSIT",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 2.sp
-                                ),
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                            Text(
-                                text = "Fill in the details below",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                color = Color.White
-                            )
-                        }
+                    // Company Name
+                    FormField(
+                        label = "COMPANY NAME",
+                        value = uiState.companyName,
+                        placeholder = "Pulse Logistics Co.",
+                        onValueChange = { uiState = uiState.copy(companyName = it) }
+                    )
+                    // Order ID
+                    FormField(
+                        label = "ORDER ID",
+                        value = uiState.orderId,
+                        placeholder = "ORD-7742-XP-2624",
+                        onValueChange = { uiState = uiState.copy(orderId = it) }
+                    )
+                    // Pickup Address
+                    FormField(
+                        label = "PICKUP ADDRESS",
+                        value = uiState.pickupAddress,
+                        placeholder = "122 Industrial Way, Suite 400, Austin, TX 78701",
+                        onValueChange = { uiState = uiState.copy(pickupAddress = it) },
+                        singleLine = false
+                    )
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                // ══════════════════════════════════════════════════════════════
+                //  DESTINATION DETAILS
+                // ══════════════════════════════════════════════════════════════
+                EditorialLabel(
+                    text = "DESTINATION DETAILS",
+                    color = CoralPrimary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceContainerLowest)
+                        .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(16.dp))
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    FormField(
+                        label = "CUSTOMER NAME (OPTIONAL)",
+                        value = uiState.customerName,
+                        placeholder = "e.g. Jane Doe",
+                        onValueChange = { uiState = uiState.copy(customerName = it) }
+                    )
+                    FormField(
+                        label = "DELIVERY ADDRESS",
+                        value = uiState.deliveryAddress,
+                        placeholder = "Street, City, State, ZIP",
+                        onValueChange = { uiState = uiState.copy(deliveryAddress = it) }
+                    )
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                // ══════════════════════════════════════════════════════════════
+                //  ROUTE BUILDER
+                // ══════════════════════════════════════════════════════════════
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    EditorialLabel(text = "ROUTE BUILDER", color = CoralPrimary)
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(9999.dp))
+                            .background(PrimaryContainer.copy(alpha = 0.15f))
+                            .clickable {
+                                val newList = uiState.checkpoints.toMutableList()
+                                val insertIdx = (newList.size - 1).coerceAtLeast(1)
+                                newList.add(
+                                    insertIdx,
+                                    RouteCheckpoint("New Checkpoint")
+                                )
+                                uiState = uiState.copy(checkpoints = newList)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.AddCircleOutline,
+                            null,
+                            tint = CoralPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            "ADD CHECKPOINT",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = CoralPrimary
+                        )
                     }
                 }
 
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(16.dp))
+
+                // Route timeline
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    uiState.checkpoints.forEachIndexed { index, checkpoint ->
+                        RouteCheckpointItem(
+                            checkpoint = checkpoint,
+                            index = index,
+                            total = uiState.checkpoints.size,
+                            onDelete = {
+                                if (!checkpoint.isOrigin) {
+                                    val newList = uiState.checkpoints.toMutableList()
+                                    newList.removeAt(index)
+                                    uiState = uiState.copy(checkpoints = newList)
+                                }
+                            }
+                        )
+                    }
+
+                    // Destination (pending)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Dot
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clip(CircleShape)
+                                .background(OnSurfaceVariant.copy(alpha = 0.4f))
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "DESTINATION",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp,
+                                    fontSize = 9.sp
+                                ),
+                                color = OnSurfaceVariant
+                            )
+                            Text(
+                                if (uiState.deliveryAddress.isNotBlank()) uiState.deliveryAddress
+                                else "Pending address input...",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = if (uiState.deliveryAddress.isNotBlank()) OnSurface
+                                else OnSurfaceVariant
+                            )
+                        }
+                        Icon(Icons.Default.DragHandle, null, tint = OnSurfaceVariant, modifier = Modifier.size(22.dp))
+                    }
+                }
+
+                Spacer(Modifier.height(32.dp))
 
                 // ══════════════════════════════════════════════════════════════
-                //  Description Field
+                //  Create Package & ID Button
                 // ══════════════════════════════════════════════════════════════
-                EditorialTextField(
-                    value = uiState.description,
-                    onValueChange = {
-                        if (it.length <= charLimit)
-                            uiState = uiState.copy(description = it)
-                    },
-                    label = "Package Description",
-                    placeholder = "e.g. Physics textbook — blue cover",
-                    leadingIcon = Icons.Default.Inventory2,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    singleLine = false,
-                    isError = uiState.error != null
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "${uiState.description.length} / $charLimit",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (uiState.description.length >= charLimit) ErrorRed else OnSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.End
-                )
-
-                Spacer(Modifier.height(24.dp))
-
-                // ── Create button ────────────────────────────────────────────
                 GradientButton(
-                    text = "Create Package",
-                    icon = Icons.Default.Add,
+                    text = "Create Package & ID",
+                    icon = Icons.Default.QrCode2,
                     isLoading = uiState.isLoading,
                     onClick = {
                         focusManager.clearFocus()
                         when {
-                            uiState.description.isBlank() ->
-                                uiState = uiState.copy(
-                                    error = "Package description cannot be empty"
-                                )
-                            uiState.description.trim().length < 3 ->
-                                uiState = uiState.copy(
-                                    error = "Description must be at least 3 characters"
-                                )
+                            uiState.companyName.isBlank() ->
+                                uiState = uiState.copy(error = "Company name is required")
+                            uiState.pickupAddress.isBlank() ->
+                                uiState = uiState.copy(error = "Pickup address is required")
                             else -> {
-                                // ── MOCK: remove when Member 2 adds ViewModel
-                                // TODO: replace with viewModel.createPackage(description)
-                                val mockId = "uuid-${System.currentTimeMillis()}"
+                                // TODO: Replace with viewModel.createPackage(...)
+                                val mockId = "ORD-${(1000..9999).random()}-XP-${(1000..9999).random()}"
                                 uiState = uiState.copy(
                                     createdPackageId = mockId,
                                     createdQrPayload = "QR_TRACKING:$mockId"
@@ -290,6 +416,189 @@ fun CreatePackageScreen(
             }
 
             Spacer(Modifier.height(100.dp)) // Bottom nav clearance
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Form Field — Minimal labeled input matching the Stitch design
+// ══════════════════════════════════════════════════════════════════════════════
+@Composable
+private fun FormField(
+    label: String,
+    value: String,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    singleLine: Boolean = true
+) {
+    Column {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.5.sp,
+                fontSize = 10.sp
+            ),
+            color = OnSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        androidx.compose.foundation.text.BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = singleLine,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = OnSurface,
+                fontWeight = FontWeight.Medium
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            decorationBox = { innerTextField ->
+                Box {
+                    if (value.isEmpty()) {
+                        Text(
+                            placeholder,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = OnSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(SurfaceContainerHighest)
+        )
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Route Checkpoint Item — Timeline row with dot, line, name, and controls
+// ══════════════════════════════════════════════════════════════════════════════
+@Composable
+private fun RouteCheckpointItem(
+    checkpoint: RouteCheckpoint,
+    index: Int,
+    total: Int,
+    onDelete: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        // Timeline: dot + vertical line
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(start = 6.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (checkpoint.isOrigin) CoralPrimary
+                        else SurfaceContainerHighest
+                    )
+                    .then(
+                        if (!checkpoint.isOrigin) Modifier.border(2.dp, CoralPrimary.copy(alpha = 0.4f), CircleShape)
+                        else Modifier
+                    )
+            )
+            if (index < total - 1 || true) { // always draw line to next item
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(52.dp)
+                        .background(SurfaceContainerHighest)
+                )
+            }
+        }
+
+        Spacer(Modifier.width(16.dp))
+
+        // Content
+        Column(modifier = Modifier.weight(1f)) {
+            if (checkpoint.isOrigin) {
+                Text(
+                    "ORIGIN",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp
+                    ),
+                    color = OnSurfaceVariant
+                )
+            } else {
+                Text(
+                    "CHECKPOINT ${index}",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        fontSize = 9.sp
+                    ),
+                    color = OnSurfaceVariant
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SurfaceContainerLowest)
+                    .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    checkpoint.name,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = OnSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (checkpoint.isOrigin) {
+                        Icon(
+                            Icons.Default.Lock,
+                            null,
+                            tint = OnSurfaceVariant.copy(alpha = 0.4f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.ExpandMore,
+                            null,
+                            tint = OnSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Icon(
+                            Icons.Default.ExpandLess,
+                            null,
+                            tint = OnSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(ErrorContainer.copy(alpha = 0.15f))
+                                .clickable { onDelete() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                null,
+                                tint = ErrorRed,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

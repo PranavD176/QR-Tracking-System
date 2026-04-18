@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -543,5 +545,31 @@ fun EditorialLabel(
         color = color,
         modifier = modifier
     )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Checkpoint Staff — Bottom Nav Components
+//  Visually identical to Admin navbar but with Home / Scan / History tabs
+// ══════════════════════════════════════════════════════════════════════════════
+
+@Composable
+fun StaffScanNavIcon(isSelected: Boolean) {
+    Box(
+        modifier = Modifier
+            .offset(y = (-24).dp)
+            .size(74.dp)
+            .shadow(16.dp, CircleShape)
+            .clip(CircleShape)
+            .background(SignatureGradient)
+            .border(if (isSelected) 7.dp else 6.dp, Color(0xFFF0F2F5), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.QrCodeScanner,
+            contentDescription = "Scan",
+            tint = Color.White,
+            modifier = Modifier.size(34.dp)
+        )
+    }
 }
 
