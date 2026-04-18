@@ -86,6 +86,16 @@ val DuplicateGray       = Color(0xFF78716C)
 val DuplicateGrayBg     = Color(0xFFF5F5F4)
 val DuplicateGrayBorder = Color(0xFFE7E5E4)
 
+// ── Delivered / Teal Status (Checkpoint Staff) ───────────────────────────
+val SuccessTeal         = Color(0xFF00696D)
+val SuccessTealContainer= Color(0xFF9EF2F6)
+
+// ── Dynamic Package Status (Logistics Dashboard) ─────────────────────────
+val OnTrackGreen        = Color(0xFF16A34A)
+val OnTrackGreenBg      = Color(0xFFDCFCE7)
+val MisplacedRedStatus  = Color(0xFFDC2626)
+val MisplacedRedStatusBg= Color(0xFFFEE2E2)
+
 // ── Alert Severity ───────────────────────────────────────────────────────────
 val HighSeverityBg      = Color(0xFFFB5151)   // same as ErrorContainer
 val HighSeverityText    = Color(0xFF570008)

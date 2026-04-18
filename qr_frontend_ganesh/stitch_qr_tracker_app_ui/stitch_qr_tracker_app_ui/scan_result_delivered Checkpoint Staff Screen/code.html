@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#470f00",
+                        "surface-dim": "#d3d5d5",
+                        "secondary-dim": "#6f4700",
+                        "on-tertiary-container": "#53066a",
+                        "tertiary-container": "#e293f6",
+                        "on-tertiary-fixed": "#2e003c",
+                        "primary-fixed": "#ff784e",
+                        "on-background": "#2d2f2f",
+                        "error-dim": "#9f0519",
+                        "error-container": "#fb5151",
+                        "outline": "#767777",
+                        "on-tertiary-fixed-variant": "#5d1573",
+                        "outline-variant": "#acadad",
+                        "on-secondary-fixed": "#4a2e00",
+                        "tertiary-fixed-dim": "#d386e7",
+                        "primary": "#a93000",
+                        "on-error-container": "#570008",
+                        "error": "#b31b25",
+                        "tertiary-dim": "#76308c",
+                        "on-secondary-fixed-variant": "#704800",
+                        "tertiary": "#843d99",
+                        "secondary-container": "#ffc87f",
+                        "secondary": "#7f5200",
+                        "primary-dim": "#942900",
+                        "secondary-fixed-dim": "#ffb548",
+                        "inverse-on-surface": "#9c9d9d",
+                        "surface-container-low": "#f0f1f1",
+                        "on-error": "#ffefee",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f6f6f6",
+                        "surface-bright": "#f6f6f6",
+                        "primary-fixed-dim": "#fb612f",
+                        "on-secondary-container": "#644000",
+                        "on-tertiary": "#ffeefd",
+                        "surface-container": "#e7e8e8",
+                        "on-surface": "#2d2f2f",
+                        "on-primary-fixed": "#000000",
+                        "secondary-fixed": "#ffc87f",
+                        "inverse-primary": "#fb612f",
+                        "surface": "#f6f6f6",
+                        "tertiary-fixed": "#e293f6",
+                        "primary-container": "#ff784e",
+                        "on-surface-variant": "#5a5c5c",
+                        "surface-variant": "#dbdddd",
+                        "surface-tint": "#a93000",
+                        "on-secondary": "#fff0e2",
+                        "surface-container-high": "#e1e3e3",
+                        "on-primary-fixed-variant": "#571400",
+                        "surface-container-highest": "#dbdddd",
+                        "on-primary": "#ffefeb",
+                        "inverse-surface": "#0c0f0f",
+                        "success-teal": "#00696d",
+                        "success-container": "#9ef2f6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Be Vietnam Pro"],
+                        "label": ["Be Vietnam Pro"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-gradient-text {
+            background: linear-gradient(135deg, #00696d 0%, #008b8b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .kinetic-pulse-shadow {
+            box-shadow: 0px 12px 32px rgba(0, 105, 109, 0.12);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-background selection:bg-success-container">
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-stone-900 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors p-2 rounded-full" data-icon="menu">menu</button>
+<span class="text-lg font-headline font-bold tracking-tight text-stone-900">The Kinetic Pulse</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="hidden md:block font-label text-sm text-stone-500">North Hub Terminal Manager</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border-2 border-white">
+<img alt="Staff Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male manager in a modern office setting with warm ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrYJzidSPw7pIKkEIg2Rl564GwzO-hTYJ3rIxMLsym2LIDi_JM9tyQXtF-9Ei2XTS63WnuwhvZHHa1-EtIMSywDooP2g6RBicA8-xXwXlZVBYrLqH3QCJ03kQgPV1hDftlHaDNNdRrztOxWB-8JnV01TJojPWvRg1qyn0rTTi9iutkJIJVwzHUdM6Et_NOrfs0EVIwfV62pajB1QBQit-nEtau-FfojfUBUV8ETnTzqfuC6cF74fE6gyw7i7oydHl-6G_GDgrHzQ"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-12 px-6 max-w-7xl mx-auto min-h-screen flex flex-col justify-center">
+<div class="relative w-full mb-12">
+<div class="absolute inset-0 -z-10 bg-success-container/20 blur-[120px] rounded-full"></div>
+<div class="flex flex-col md:flex-row items-center gap-12">
+<div class="w-full md:w-5/12 flex justify-center order-2 md:order-1">
+<div class="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+<div class="absolute inset-0 bg-success-container/40 rounded-full scale-110"></div>
+<div class="absolute inset-0 bg-white rounded-full kinetic-pulse-shadow flex items-center justify-center">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-[8rem] text-success-teal" data-icon="inventory_2" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<div class="absolute -bottom-2 -right-2 w-20 h-20 bg-success-teal rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+<span class="material-symbols-outlined text-white text-4xl" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-full md:w-7/12 space-y-8 order-1 md:order-2">
+<div class="space-y-2">
+<span class="inline-flex items-center px-4 py-1.5 rounded-full bg-success-container text-success-teal text-sm font-semibold tracking-wider uppercase">
+                            Status: FINAL DESTINATION
+                        </span>
+<h1 class="font-headline text-5xl md:text-7xl font-bold editorial-gradient-text tracking-tighter">
+                            Package Delivered!
+                        </h1>
+<p class="text-xl text-on-surface-variant font-light max-w-lg leading-relaxed">
+                            Package successfully reached final destination and marked as Delivered. All logistics cycles for this item are completed.
+                        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-xl space-y-1 kinetic-pulse-shadow">
+<span class="text-xs font-label uppercase tracking-widest text-outline">Order Identifier</span>
+<p class="text-xl font-headline font-bold text-on-surface">QR-7729-LX-04</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl space-y-1 kinetic-pulse-shadow">
+<span class="text-xs font-label uppercase tracking-widest text-outline">Destination Hub</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-success-teal" data-icon="location_on">location_on</span>
+<p class="text-xl font-headline font-bold text-on-surface">Berlin-BER</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+<div class="md:col-span-2 bg-surface-container-low rounded-xl p-8 relative overflow-hidden flex items-center">
+<div class="relative z-10 space-y-4">
+<h3 class="font-headline text-2xl font-bold text-on-surface">Checkpoint Audit Trail</h3>
+<div class="space-y-4">
+<div class="flex gap-4 items-start">
+<div class="w-2 h-2 rounded-full bg-success-teal mt-2 shrink-0"></div>
+<div>
+<p class="font-semibold text-on-surface">Final Delivery Confirmation</p>
+<p class="text-sm text-on-surface-variant">North Hub Terminal • Just now</p>
+</div>
+</div>
+<div class="flex gap-4 items-start opacity-50">
+<div class="w-2 h-2 rounded-full bg-outline mt-2 shrink-0"></div>
+<div>
+<p class="font-semibold text-on-surface">In Transit to Destination</p>
+<p class="text-sm text-on-surface-variant">Central Distribution • 4h 12m ago</p>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute right-0 bottom-0 w-1/3 h-full opacity-10">
+<img alt="Background texture" class="w-full h-full object-cover" data-alt="Subtle top-down view of industrial cargo ships and containers in a harbor with teal water tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnDnxpZehfa2FjKCZlhpMa5AMaQl6igAGDIe2DUplqK23xKyO7XZh3rGihmYSmKPsnAMQSdst1Q_xpVzEd3fdgo9xDTp2XlQE82joMke-Zri7km5VMi6DC2Tv-nLCqrjT8DKiLp9b6KvKeV9k6wbLUvahUC2Ydt7_cYP_U0daDMYwEcHK2E03hDx5U8u78wTk1GT06nUvaPiAS2uEzBEbls6vfgnDP-12G7IIWIKduJl-wj3tDLoTet71wvj_9cf7AXveuQpnzqg"/>
+</div>
+</div>
+<div class="bg-primary-container text-on-primary-container rounded-xl p-8 flex flex-col justify-between group cursor-pointer active:scale-95 duration-200">
+<div class="space-y-4">
+<span class="material-symbols-outlined text-5xl" data-icon="qr_code_scanner" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
+<h3 class="font-headline text-3xl font-extrabold leading-tight">Scan Next Parcel</h3>
+</div>
+<div class="flex justify-between items-center mt-8">
+<span class="text-sm font-semibold">Ready for input...</span>
+<span class="material-symbols-outlined group-hover:translate-x-2 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<div class="w-full h-[200px] rounded-xl overflow-hidden grayscale contrast-125 opacity-40">
+<img alt="Map background" class="w-full h-full object-cover" data-alt="Stylized architectural map of Berlin city streets with clean lines and high contrast" data-location="Berlin" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiiXOSvpqeJBoEj3lliHLhcKU5s379mYvoO5ipqkf-3lYAo5pqQoktUEi9BP46kPpvCgNo8DCrdlrvmROYo50uUnzOX7n1d-yW_qE0H2ZJmzAtSgD3YqHz9oZdEqN7F9JUpvuVIDE-cLHF21t5kIA0R-Jum9UVN5P3nmAMm8-T4Yway9Y4YhA1y5qgt2GMrxtoPb9nf7wRkmhEJ6dJ80XUfOtgG8Y_OKElgDhx6aqWIZ4ommeikcE08XJt-unOVAh3vj8SfgdL1A"/>
+</div>
+</main>
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl px-8 py-4 flex justify-between items-center z-50">
+<div class="flex flex-col items-center gap-1 text-stone-500">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-label font-bold">DASHBOARD</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-stone-500">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-[10px] font-label font-bold">HISTORY</span>
+</div>
+<div class="w-14 h-14 bg-success-teal -mt-10 rounded-full flex items-center justify-center text-white shadow-xl kinetic-pulse-shadow">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-success-teal">
+<span class="material-symbols-outlined" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="text-[10px] font-label font-bold">CHECKPOINT</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-stone-500">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-[10px] font-label font-bold">EXIT</span>
+</div>
+</div>
+</body></html>

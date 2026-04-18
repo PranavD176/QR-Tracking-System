@@ -258,7 +258,11 @@ fun AdminAlertScreen(navController: NavController) {
             items(filteredAlerts) { alert ->
                 OperationalAlertCard(
                     alert = alert,
-                    onViewDetails = { /* TODO */ },
+                    onViewDetails = {
+                        navController.navigate(
+                            Routes.logisticsDashboard(alert.parcelId)
+                        ) { launchSingleTop = true }
+                    },
                     onResolve = { /* TODO */ },
                     onEscalate = { /* TODO */ },
                     onMarkResolved = { /* TODO */ }

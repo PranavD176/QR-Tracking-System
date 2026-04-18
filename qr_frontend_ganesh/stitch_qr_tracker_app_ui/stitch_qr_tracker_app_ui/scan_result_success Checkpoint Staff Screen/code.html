@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#470f00",
+                    "surface-dim": "#d3d5d5",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-container": "#53066a",
+                    "tertiary-container": "#e293f6",
+                    "on-tertiary-fixed": "#2e003c",
+                    "primary-fixed": "#ff784e",
+                    "on-background": "#2d2f2f",
+                    "error-dim": "#9f0519",
+                    "error-container": "#fb5151",
+                    "outline": "#767777",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "outline-variant": "#acadad",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "primary": "#a93000",
+                    "on-error-container": "#570008",
+                    "error": "#b31b25",
+                    "tertiary-dim": "#76308c",
+                    "on-secondary-fixed-variant": "#704800",
+                    "tertiary": "#843d99",
+                    "secondary-container": "#ffc87f",
+                    "secondary": "#7f5200",
+                    "primary-dim": "#942900",
+                    "secondary-fixed-dim": "#ffb548",
+                    "inverse-on-surface": "#9c9d9d",
+                    "surface-container-low": "#f0f1f1",
+                    "on-error": "#ffefee",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#f6f6f6",
+                    "surface-bright": "#f6f6f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "on-secondary-container": "#644000",
+                    "on-tertiary": "#ffeefd",
+                    "surface-container": "#e7e8e8",
+                    "on-surface": "#2d2f2f",
+                    "on-primary-fixed": "#000000",
+                    "secondary-fixed": "#ffc87f",
+                    "inverse-primary": "#fb612f",
+                    "surface": "#f6f6f6",
+                    "tertiary-fixed": "#e293f6",
+                    "primary-container": "#ff784e",
+                    "on-surface-variant": "#5a5c5c",
+                    "surface-variant": "#dbdddd",
+                    "surface-tint": "#a93000",
+                    "on-secondary": "#fff0e2",
+                    "surface-container-high": "#e1e3e3",
+                    "on-primary-fixed-variant": "#571400",
+                    "surface-container-highest": "#dbdddd",
+                    "on-primary": "#ffefeb",
+                    "inverse-surface": "#0c0f0f"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-kinetic-pulse {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+        .text-kinetic-pulse {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface antialiased min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl shadow-sm dark:shadow-none">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="p-2 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-95 duration-200 rounded-full">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline text-lg font-bold tracking-tight text-stone-900 dark:text-white">The Kinetic Pulse</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="Staff Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional logistics manager in a modern terminal setting, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWiYqaRs_4ARXH7tMHRVO_alURHlQR-i_bPpDLFSWuTPF2IR9xqraSUSjHKZCwKkv40b3WXz4K7pHYMJoNVNv-HlW6okDfdB0B8WhGkXBbiEadDq4Esak3LtZXeQY3BWpDdpSPtwvGq0atYF39g8YP0xeNag_WwMXd0kjyhoinbkIQasWCMTNngo7ZNOGj1mNK9KiyB2bHz-CLELU90vM7OUXWtJdsz2vcNJF2ppvjfYunJaVJiHwAYNHFDrPSjMcJstjZ8MXhig"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-12 px-6 max-w-lg mx-auto">
+<!-- Success State Hero -->
+<section class="flex flex-col items-center text-center mb-10">
+<div class="relative mb-6">
+<!-- Outer Glow -->
+<div class="absolute inset-0 bg-green-500/20 blur-3xl rounded-full scale-150"></div>
+<!-- Main Icon Circle -->
+<div class="relative w-32 h-32 bg-surface-container-lowest rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-green-500 text-6xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h2 class="font-headline text-display-md text-on-surface tracking-tight mb-2">Scan Successful</h2>
+<p class="font-body text-on-surface-variant">Checkpoint verified for the current route</p>
+</section>
+<!-- Bento Grid Details -->
+<div class="grid grid-cols-2 gap-4 mb-8">
+<!-- Order ID Card -->
+<div class="col-span-2 bg-surface-container-lowest p-6 rounded-xl border border-white/40 shadow-sm">
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2 block">Order ID</span>
+<div class="flex items-center justify-between">
+<span class="font-headline text-headline-sm text-on-surface">QR-7729-LX-04</span>
+<span class="material-symbols-outlined text-primary" data-icon="qr_code_2">qr_code_2</span>
+</div>
+</div>
+<!-- Current Checkpoint -->
+<div class="bg-surface-container-low p-6 rounded-xl flex flex-col justify-between">
+<div>
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-4 block">Current</span>
+<div class="font-headline text-xl text-on-surface">Berlin-BER</div>
+</div>
+<div class="mt-4 flex items-center gap-2 text-green-600">
+<span class="material-symbols-outlined text-sm" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="text-xs font-semibold">Matched</span>
+</div>
+</div>
+<!-- Next Checkpoint -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-surface-container-highest flex flex-col justify-between">
+<div>
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-4 block">Next</span>
+<div class="font-headline text-xl text-on-surface">Munich-MUC</div>
+</div>
+<div class="mt-4 flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="alt_route">alt_route</span>
+<span class="text-xs font-semibold">Scheduled</span>
+</div>
+</div>
+</div>
+<!-- Dynamic Visualization (The Pulse) -->
+<div class="bg-surface-container-lowest p-8 rounded-xl mb-12 shadow-sm overflow-hidden relative">
+<div class="flex items-center justify-between mb-8 relative z-10">
+<div class="flex flex-col items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary ring-4 ring-primary-container/20"></div>
+<span class="font-label text-[10px] uppercase text-on-surface">Berlin</span>
+</div>
+<div class="flex-1 h-[2px] bg-surface-container-highest mx-2 relative">
+<div class="absolute inset-0 bg-kinetic-pulse w-1/2 rounded-full shadow-[0_0_8px_rgba(240,90,40,0.5)]"></div>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-40">
+<div class="w-3 h-3 rounded-full bg-on-surface-variant"></div>
+<span class="font-label text-[10px] uppercase text-on-surface-variant">Munich</span>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-low p-4 rounded-lg">
+<div class="w-12 h-12 bg-surface-container-lowest rounded-md flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
+</div>
+<div>
+<div class="font-headline text-sm text-on-surface">Express Parcel</div>
+<div class="text-xs text-on-surface-variant">Updated 2 mins ago</div>
+</div>
+</div>
+</div>
+<!-- Fixed Bottom Action -->
+<div class="fixed bottom-0 left-0 w-full p-6 bg-white/40 backdrop-blur-md">
+<div class="max-w-lg mx-auto">
+<button class="w-full py-5 rounded-full bg-kinetic-pulse text-white font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform shadow-xl shadow-primary/20">
+<span>Next Scan</span>
+<span class="material-symbols-outlined" data-icon="barcode_scanner">barcode_scanner</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Side Drawer Mockup (Supressed but visual shell context) -->
+<div class="hidden">
+<aside class="flex flex-col w-80 h-screen p-6 bg-stone-50 dark:bg-stone-950 rounded-r-3xl shadow-2xl font-be-vietnam-pro text-stone-700 dark:text-stone-300">
+<div class="flex items-center gap-4 mb-10">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-stone-200">
+<img alt="Staff User Avatar" class="w-full h-full object-cover" data-alt="Professional terminal manager in a clean, high-tech logistics hub, looking forward, studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc1pDVHygqSMtXKSlrdwWhriSzp6V1M-o5Sa4RjpFrr3vhOJUzhBT2oWcnA_P2ueWUJKQqsApF0kHOu4PFgqZGZKzpLuBzGxRKZfWCiXAwPLkL1vdXnWpAvKhRfXR6Vl8gdXCiQ9TM_kCxb7_Pt0WaQ5cZjJPkbipOyyPK6fIgpcA7UKg8oiTfTu7XkLBaGScc3V2ipjjR480KgjNWbGtpeeDhAU9N0yJIfEQwVAo829DGa_p5_5dmdpEHv6MeXKSGfr9stw8pEw"/>
+</div>
+<div>
+<div class="font-headline font-bold text-orange-600">Terminal Manager</div>
+<div class="text-xs text-stone-500">North Hub Checkpoint</div>
+</div>
+</div>
+<nav class="space-y-2">
+<a class="flex items-center gap-4 p-4 text-stone-600 dark:text-stone-400 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-semibold rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Scan History</span>
+</a>
+</nav>
+</aside>
+</div>
+</body></html>
