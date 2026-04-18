@@ -11,11 +11,10 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // ── MOCK: replace with real IP before integration week ──────────────────
+    // ── BASE URL ─────────────────────────────────────────────────────────────
     // Emulator  → "http://10.0.2.2:8000/api/"
     // Device    → "http://<your-machine-ip>:8000/api/"
-//    private const val BASE_URL = "http://10.0.2.2:8000/api/"
-    private const val BASE_URL = "http://localhost:8000/api/"
+    private const val BASE_URL = "http://10.102.226.187:8000/api/"
     private var tokenManager: TokenManager? = null
 
     // Call this once from Application class before any API call

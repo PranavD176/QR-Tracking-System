@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, ForeignKey, Text, Enum
+from sqlalchemy import Column, String, ForeignKey, Text, Enum, DateTime
 from app.database import Base
 import uuid
+from datetime import datetime, timezone
 
 class Alert(Base):
     __tablename__ = "alerts"
@@ -11,3 +12,4 @@ class Alert(Base):
     scanned_by_id = Column(String, ForeignKey("users.user_id"))
     status = Column(Enum("sent", "acknowledged", name="alert_status"), default="sent")
     details = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

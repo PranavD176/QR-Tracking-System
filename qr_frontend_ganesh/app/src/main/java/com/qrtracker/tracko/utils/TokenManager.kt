@@ -69,6 +69,26 @@ class TokenManager(private val context: Context) {
         return prefs.getString(KEY_USER_ID, null)
     }
 
+    // ─── FULL NAME ────────────────────────────────────────────────
+
+    fun saveFullName(fullName: String) {
+        prefs.edit().putString(KEY_FULL_NAME, fullName).apply()
+    }
+
+    fun getFullName(): String? {
+        return prefs.getString(KEY_FULL_NAME, null)
+    }
+
+    // ─── EMAIL ────────────────────────────────────────────────────
+
+    fun saveEmail(email: String) {
+        prefs.edit().putString(KEY_EMAIL, email).apply()
+    }
+
+    fun getEmail(): String? {
+        return prefs.getString(KEY_EMAIL, null)
+    }
+
     // ─── FCM TOKEN ───────────────────────────────────────────────────
     // FCM token is stored in regular (non-encrypted) prefs
     // because it's not sensitive — it's just a device identifier
@@ -100,6 +120,8 @@ class TokenManager(private val context: Context) {
         private const val KEY_TOKEN = "jwt_token"
         private const val KEY_ROLE = "user_role"
         private const val KEY_USER_ID = "user_id"
+        private const val KEY_FULL_NAME = "full_name"
+        private const val KEY_EMAIL = "user_email"
         private const val KEY_FCM_TOKEN = "fcm_token"
     }
 }

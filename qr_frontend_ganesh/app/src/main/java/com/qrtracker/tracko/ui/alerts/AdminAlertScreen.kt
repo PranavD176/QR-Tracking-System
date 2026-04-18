@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -29,6 +30,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
+import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.AlertViewModel
+import com.qrtracker.tracko.viewmodel.AdminAlertState
+import androidx.compose.ui.platform.LocalContext
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  Admin Alerts — Operational Alert Feed
@@ -71,9 +76,38 @@ private val mockAdminAlerts = listOf(
 
 @Composable
 fun AdminAlertScreen(navController: NavController) {
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val alertViewModel = remember { AlertViewModel(tokenManager) }
+    val adminAlertState by alertViewModel.adminAlertState.collectAsState()
+
     var selectedFilter by remember { mutableStateOf("All") }
     val filters = listOf("All", "Misplaced", "Escalations", "Duplicate", "System")
-    val alerts = remember { mockAdminAlerts }
+    var alerts by remember { mutableStateOf<List<AdminAlert>>(emptyList()) }
+
+    // Load admin alerts from API
+    LaunchedEffect(Unit) {
+        alertViewModel.fetchAdminAlerts(null)
+    }
+
+    // Map API response to UI model
+    LaunchedEffect(adminAlertState) {
+        if (adminAlertState is AdminAlertState.Success) {
+            alerts = (adminAlertState as AdminAlertState.Success).alerts.map { a ->
+                AdminAlert(
+                    id = a.alert_id,
+                    title = "Misplaced: ${a.package_description}",
+                    parcelId = a.package_description.take(12),
+                    hubName = a.location,
+                    timeAgo = a.created_at.takeLast(8),
+                    severity = AlertSeverity.HIGH,
+                    status = AlertStatus.OPEN,
+                    category = AlertCategory.MISPLACED,
+                    isUnread = true
+                )
+            }
+        }
+    }
 
     val filteredAlerts = remember(selectedFilter, alerts) {
         when (selectedFilter) {

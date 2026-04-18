@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
+import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.PackageViewModel
+import com.qrtracker.tracko.viewmodel.CreatePackageState
+import androidx.compose.ui.platform.LocalContext
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  Create Package — Admin-Only screen
@@ -69,9 +74,34 @@ fun CreatePackageScreen(
     isAdminFlow: Boolean = false
 ) {
     var uiState           by remember { mutableStateOf(CreatePackageUiState()) }
+    val context           = LocalContext.current
+    val tokenManager      = remember { TokenManager(context.applicationContext) }
+    val packageViewModel  = remember { PackageViewModel(tokenManager) }
+    val createState by packageViewModel.createPackageState.collectAsState()
     val focusManager      = LocalFocusManager.current
     val scrollState       = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // ── Observe create package state ───────────────────────────────────
+    LaunchedEffect(createState) {
+        when (val state = createState) {
+            is CreatePackageState.Success -> {
+                uiState = uiState.copy(
+                    createdPackageId = state.qrPayload,
+                    createdQrPayload = "QR_TRACKING:${state.qrPayload}",
+                    isLoading = false
+                )
+            }
+            is CreatePackageState.Error -> {
+                uiState = uiState.copy(isLoading = false, error = state.message)
+                packageViewModel.resetCreatePackageState()
+            }
+            is CreatePackageState.Loading -> {
+                uiState = uiState.copy(isLoading = true)
+            }
+            else -> {}
+        }
+    }
 
     // ── Show error in snackbar ───────────────────────────────────────────────
     LaunchedEffect(uiState.error) {
@@ -403,12 +433,9 @@ fun CreatePackageScreen(
                             uiState.pickupAddress.isBlank() ->
                                 uiState = uiState.copy(error = "Pickup address is required")
                             else -> {
-                                // TODO: Replace with viewModel.createPackage(...)
-                                val mockId = "ORD-${(1000..9999).random()}-XP-${(1000..9999).random()}"
-                                uiState = uiState.copy(
-                                    createdPackageId = mockId,
-                                    createdQrPayload = "QR_TRACKING:$mockId"
-                                )
+                                // Build description from form fields
+                                val desc = "${uiState.companyName} - ${uiState.orderId.ifBlank { "Package" }}"
+                                packageViewModel.createPackage(desc)
                             }
                         }
                     }

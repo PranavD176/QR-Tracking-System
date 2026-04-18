@@ -1,0 +1,19 @@
+# Environment & secrets
+.env
+.env.*
+*.json
+!railway.json
+
+# Database files
+*.db
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+
+# Test artifacts
+setup_error_log.txt

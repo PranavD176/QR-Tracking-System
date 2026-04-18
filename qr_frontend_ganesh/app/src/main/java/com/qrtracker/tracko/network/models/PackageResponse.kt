@@ -6,6 +6,6 @@ data class PackageResponse(
     val status: String,
     val owner_id: String?,
     val qr_payload: String?,
-    val created_at: String
+    val created_at: String? = null
 )
 

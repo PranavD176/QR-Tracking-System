@@ -33,16 +33,19 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user.
-    Body: { email, password, full_name }
+    Body: { email, password, full_name, role? }
     """
     if db.query(User).filter_by(email=user.email).first():
         return {"success": False, "data": None, "error": "Email already registered"}
 
     hashed = pwd_context.hash(user.password)
+    # Accept the role from the frontend (default "user" from schema)
+    role = user.role if user.role in ("user", "admin", "checkpoint") else "user"
     new_user = User(
         email=user.email,
         full_name=user.full_name,
         hashed_password=hashed,
+        role=role,
     )
     db.add(new_user)
     db.commit()
@@ -69,6 +72,9 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     Body: { email, password }
     Returns a HS256 JWT to be sent as 'Authorization: Bearer <token>'
     on all subsequent requests.
+
+    Response matches Android AuthData:
+      { token, token_type, expires_in, user_id, role, email, full_name }
     """
     user = db.query(User).filter_by(email=credentials.email).first()
 
@@ -85,6 +91,8 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
         "success": True,
         "data": {
             "token": token,
+            "token_type": "Bearer",
+            "expires_in": 1440,
             "user_id": user.user_id,
             "role": user.role,
             "email": user.email,
@@ -114,6 +122,8 @@ def register_device_token(
     belonging to this user is scanned by someone else (misplacement alert).
 
     Body: { fcm_token: "<device-token-from-firebase-messaging>" }
+
+    Response matches Android UpdatedResponse: { updated: Boolean }
     """
     user = db.query(User).filter_by(user_id=current_user["uid"]).first()
     if not user:
@@ -124,6 +134,6 @@ def register_device_token(
 
     return {
         "success": True,
-        "data": {"message": "Device token registered"},
+        "data": {"updated": True},
         "error": None,
     }

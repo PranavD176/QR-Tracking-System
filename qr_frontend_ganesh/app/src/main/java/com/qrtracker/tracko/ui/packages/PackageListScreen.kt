@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,8 +45,10 @@ import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.PackageViewModel
+import com.qrtracker.tracko.viewmodel.PackageListState
 
-// ── Mock data class — Member 2 replaces with real model ──────────────────────
+// ── Mock data class — kept for UI, now populated from API ────────────────────
 data class PackageItem(
     val packageId   : String,
     val description : String,
@@ -57,33 +60,14 @@ data class PackageItem(
     val icon        : ImageVector = Icons.Outlined.Laptop
 )
 
-// ── Mock list — Member 2 replaces with ViewModel state ───────────────────────
-private val mockPackages = listOf(
-    PackageItem(
-        "uuid-001", "MacBook Pro 16\"", "QRT-8829-XL",
-        "active", "2026-04-01", 0.72f,
-        "Distribution Center, SF", Icons.Outlined.Laptop
-    ),
-    PackageItem(
-        "uuid-002", "Leather Briefcase", "QRT-4410-BK",
-        "misplaced", "2026-04-02", 0.45f,
-        "Contact Support", Icons.Outlined.Work
-    ),
-    PackageItem(
-        "uuid-003", "Ergonomic Mouse", "QRT-1192-MS",
-        "completed", "2026-03-28", 1f,
-        "Oct 24, 2023", Icons.Outlined.Mouse
-    ),
-)
-
-// ── State holder ─────────────────────────────────────────────────────────────
+// ── State holder ─────────────────────────────────────────────────────────
 data class PackageListUiState(
-    val packages     : List<PackageItem> = mockPackages,
-    val userName     : String            = "Ganesh",
+    val packages     : List<PackageItem> = emptyList(),
+    val userName     : String            = "User",
     val searchQuery  : String            = "",
     val showAll      : Boolean           = false,
-    val inTransit    : Int               = 12,
-    val delivered    : Int               = 48,
+    val inTransit    : Int               = 0,
+    val delivered    : Int               = 0,
     val isLoading    : Boolean           = false,
     val isRefreshing : Boolean           = false,
     val error        : String?           = null,
@@ -100,7 +84,55 @@ fun PackageListScreen(
     var uiState           by remember { mutableStateOf(PackageListUiState(showAll = startWithAll)) }
     val context           = LocalContext.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
+    val packageViewModel  = remember { PackageViewModel(tokenManager) }
+    val pkgListState by packageViewModel.packageListState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // ── Load packages from API on screen entry ────────────────────────────
+    LaunchedEffect(Unit) {
+        val name = tokenManager.getFullName() ?: "User"
+        uiState = uiState.copy(userName = name)
+        packageViewModel.fetchPackages()
+    }
+
+    // ── Observe package list state ──────────────────────────────────────
+    LaunchedEffect(pkgListState) {
+        when (val state = pkgListState) {
+            is PackageListState.Loading -> {
+                uiState = uiState.copy(isLoading = true)
+            }
+            is PackageListState.Success -> {
+                val items = state.packages.map { pkg ->
+                    PackageItem(
+                        packageId = pkg.package_id,
+                        description = pkg.description,
+                        trackingId = pkg.qr_payload ?: pkg.package_id.take(12),
+                        status = pkg.status,
+                        createdAt = pkg.created_at ?: "",
+                        progress = when (pkg.status) {
+                            "completed" -> 1f
+                            "misplaced" -> 0.45f
+                            else -> 0.6f
+                        },
+                        lastCheckpoint = pkg.description
+                    )
+                }
+                val activeCount = items.count { it.status == "active" }
+                val completedCount = items.count { it.status == "completed" }
+                uiState = uiState.copy(
+                    packages = items,
+                    inTransit = activeCount,
+                    delivered = completedCount,
+                    isLoading = false,
+                    error = null
+                )
+            }
+            is PackageListState.Error -> {
+                uiState = uiState.copy(isLoading = false, error = state.message)
+            }
+            else -> {}
+        }
+    }
 
     val displayedPackages = remember(uiState.packages, uiState.searchQuery, uiState.showAll) {
         uiState.packages
