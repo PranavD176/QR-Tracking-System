@@ -79,4 +79,8 @@ interface ApiService {
     suspend fun getAdminAlerts(
         @Query("status") status: String? = null
     ): Response<ApiResponse<List<AdminAlertResponse>>>
+
+    // Protected + Admin role only — get all users
+    @GET("admin/users")
+    suspend fun getAdminUsers(): Response<ApiResponse<List<UserResponse>>>
 }

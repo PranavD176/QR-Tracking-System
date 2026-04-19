@@ -6,6 +6,7 @@ import com.qrtracker.tracko.network.RetrofitClient
 import com.qrtracker.tracko.network.models.CreatePackageRequest
 import com.qrtracker.tracko.network.models.PackageResponse
 import com.qrtracker.tracko.network.models.ScanHistoryResponse
+import com.qrtracker.tracko.network.models.UserResponse
 import com.qrtracker.tracko.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,14 @@ sealed class ScanHistoryState {
     object Loading : ScanHistoryState()
     data class Success(val scans: List<ScanHistoryResponse>) : ScanHistoryState()
     data class Error(val message: String) : ScanHistoryState()
+}
+
+// Represents state for admin fetching users
+sealed class AdminUsersState {
+    object Idle : AdminUsersState()
+    object Loading : AdminUsersState()
+    data class Success(val users: List<UserResponse>) : AdminUsersState()
+    data class Error(val message: String) : AdminUsersState()
 }
 
 // Represents every possible state for creating a package
@@ -55,6 +64,11 @@ class PackageViewModel(
 
     private val _createPackageState = MutableStateFlow<CreatePackageState>(CreatePackageState.Idle)
     val createPackageState: StateFlow<CreatePackageState> = _createPackageState
+
+    // ─── ADMIN USERS STATE ───────────────────────────────────────────
+
+    private val _adminUsersState = MutableStateFlow<AdminUsersState>(AdminUsersState.Idle)
+    val adminUsersState: StateFlow<AdminUsersState> = _adminUsersState
 
     // ─── FETCH PACKAGES ──────────────────────────────────────────────
 
@@ -116,17 +130,47 @@ class PackageViewModel(
         }
     }
 
+    // ─── FETCH ADMIN USERS ───────────────────────────────────────────
+
+    fun fetchAdminUsers() {
+        viewModelScope.launch {
+            _adminUsersState.value = AdminUsersState.Loading
+
+            try {
+                val response = apiService.getAdminUsers()
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val users = response.body()!!.data ?: emptyList()
+                    _adminUsersState.value = AdminUsersState.Success(users)
+                } else {
+                    if (response.code() == 401) {
+                        _adminUsersState.value = AdminUsersState.Error("Session expired.")
+                    } else {
+                        val errorMsg = response.body()?.error ?: "Failed to fetch users"
+                        _adminUsersState.value = AdminUsersState.Error(errorMsg)
+                    }
+                }
+            } catch (e: Exception) {
+                _adminUsersState.value = AdminUsersState.Error("Network error: ${e.message}")
+            }
+        }
+    }
+
     // ─── CREATE PACKAGE ──────────────────────────────────────────────
 
     // Called when user submits the Create Package form
     // Returns qr_payload which Member 1 uses to generate the QR image
-    fun createPackage(description: String) {
+    fun createPackage(
+        description: String,
+        destinationUserId: String? = null,
+        destinationAddress: String? = null
+    ) {
         viewModelScope.launch {
             _createPackageState.value = CreatePackageState.Loading
 
             try {
                 val response = apiService.createPackage(
-                    CreatePackageRequest(description)
+                    CreatePackageRequest(description, destinationUserId, destinationAddress)
                 )
 
                 if (response.isSuccessful && response.body()?.success == true) {
