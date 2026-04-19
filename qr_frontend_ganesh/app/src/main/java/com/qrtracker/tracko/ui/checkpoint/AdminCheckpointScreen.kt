@@ -112,9 +112,35 @@ fun AdminCheckpointScreen(navController: NavController) {
         dashboardViewModel.fetchDashboard()
     }
 
-    var uiState by remember {
-        mutableStateOf<CheckpointUiState>(CheckpointUiState.Idle)
+    val scanViewModel = remember { com.qrtracker.tracko.viewmodel.ScanViewModel(tokenManager) }
+    val scanState by scanViewModel.scanState.collectAsState()
+
+    var uiState by remember { mutableStateOf<CheckpointUiState>(CheckpointUiState.Idle) }
+
+    // Sync ScanViewModel state to CheckpointUiState
+    LaunchedEffect(scanState) {
+        when (val state = scanState) {
+            is com.qrtracker.tracko.viewmodel.ScanState.Loading -> uiState = CheckpointUiState.Loading
+            is com.qrtracker.tracko.viewmodel.ScanState.Success -> {
+                val status = when (state.result.result) {
+                    "valid" -> ScanStatus.RECEIVED
+                    "duplicate" -> ScanStatus.DUPLICATE
+                    else -> ScanStatus.MISPLACED
+                }
+                uiState = CheckpointUiState.Result(
+                    ScanResultData(
+                        parcelId = manualParcelId.ifBlank { "Scanned Package" },
+                        status = status,
+                        timestamp = "Just Now",
+                        origin = "Manual Entry"
+                    )
+                )
+            }
+            is com.qrtracker.tracko.viewmodel.ScanState.Error -> uiState = CheckpointUiState.Error(state.message)
+            else -> {}
+        }
     }
+
     var manualParcelId by remember { mutableStateOf("") }
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
 
@@ -206,20 +232,17 @@ fun AdminCheckpointScreen(navController: NavController) {
                     },
                     onSubmitManual = {
                         if (manualParcelId.isNotBlank()) {
-                            // TODO: Call ViewModel to process manual ID
-                            uiState = CheckpointUiState.Result(
-                                ScanResultData(
-                                    manualParcelId, ScanStatus.RECEIVED,
-                                    "Now", "Manual Entry"
-                                )
-                            )
-                            manualParcelId = ""
+                            val idToScan = manualParcelId
+                            val prefix = "QR_TRACKING:"
+                            val cleanId = if (idToScan.startsWith(prefix)) idToScan.substring(prefix.length) else idToScan
+                            scanViewModel.submitScan(cleanId, "Admin Checkpoint")
                         }
                     },
                     onBarcodeDetected = { rawValue ->
-                        uiState = CheckpointUiState.Result(
-                            ScanResultData(rawValue, ScanStatus.RECEIVED, "Now", "Camera Scan")
-                        )
+                        val prefix = "QR_TRACKING:"
+                        val cleanId = if (rawValue.startsWith(prefix)) rawValue.substring(prefix.length) else rawValue
+                        manualParcelId = cleanId
+                        scanViewModel.submitScan(cleanId, "Admin Checkpoint")
                     }
                 )
             }

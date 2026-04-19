@@ -743,20 +743,33 @@ private fun CreationSuccessCard(
         )
         Spacer(Modifier.height(20.dp))
 
-        // QR Code placeholder
+        // QR Code
+        val qrBitmap = remember(qrPayload) {
+            com.qrtracker.tracko.utils.QRCodeGenerator.generate(qrPayload, 512, 512)
+        }
+
         Box(
             modifier = Modifier
-                .size(140.dp)
+                .size(160.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.6f)),
+                .background(Color.White.copy(alpha = 0.6f))
+                .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                Icons.Outlined.QrCode2,
-                contentDescription = null,
-                tint = ValidGreen.copy(alpha = 0.5f),
-                modifier = Modifier.size(80.dp)
-            )
+            if (qrBitmap != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = androidx.compose.ui.graphics.asImageBitmap(qrBitmap),
+                    contentDescription = "QR Code",
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    Icons.Outlined.QrCode2,
+                    contentDescription = null,
+                    tint = ValidGreen.copy(alpha = 0.5f),
+                    modifier = Modifier.size(80.dp)
+                )
+            }
         }
         Spacer(Modifier.height(12.dp))
 
@@ -789,6 +802,21 @@ private fun CreationSuccessCard(
         ) {
             val context = LocalContext.current
             SecondaryActionButton(
+                text = "Download",
+                icon = Icons.Outlined.Download,
+                onClick = {
+                    qrBitmap?.let {
+                        val success = com.qrtracker.tracko.utils.QRCodeGenerator.saveToGallery(context, it, "QR_$qrPayload")
+                        if (success) {
+                            android.widget.Toast.makeText(context, "QR Code saved to Gallery", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
+                            android.widget.Toast.makeText(context, "Failed to save QR Code", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+            SecondaryActionButton(
                 text = "Share",
                 icon = Icons.Outlined.Share,
                 onClick = {
@@ -802,12 +830,13 @@ private fun CreationSuccessCard(
                 },
                 modifier = Modifier.weight(1f)
             )
-            GradientButton(
-                text = "Home",
-                onClick = onGoHome,
-                modifier = Modifier.weight(1f)
-            )
         }
+        Spacer(Modifier.height(12.dp))
+        GradientButton(
+            text = "Home",
+            onClick = onGoHome,
+            modifier = Modifier.fillMaxWidth()
+        )
         Spacer(Modifier.height(12.dp))
         SecondaryActionButton(
             text = "Create Another",
