@@ -505,7 +505,8 @@ fun CreatePackageScreen(
                                 packageViewModel.createPackage(
                                     description = desc,
                                     destinationUserId = uiState.destinationUserId,
-                                    destinationAddress = uiState.deliveryAddress.takeIf { it.isNotBlank() }
+                                    destinationAddress = uiState.deliveryAddress.takeIf { it.isNotBlank() },
+                                    routeCheckpoints = uiState.checkpoints
                                 )
                             }
                         }

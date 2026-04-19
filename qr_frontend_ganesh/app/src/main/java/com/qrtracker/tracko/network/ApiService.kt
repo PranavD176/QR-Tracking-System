@@ -83,4 +83,8 @@ interface ApiService {
     // Protected + Admin role only — get all users
     @GET("admin/users")
     suspend fun getAdminUsers(): Response<ApiResponse<List<UserResponse>>>
+
+    // Protected + Admin role only — get admin dashboard stats
+    @GET("admin/dashboard")
+    suspend fun getAdminDashboard(): Response<ApiResponse<DashboardResponse>>
 }

@@ -53,6 +53,9 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
+import com.qrtracker.tracko.viewmodel.AdminDashboardViewModel
+import com.qrtracker.tracko.viewmodel.DashboardState
+import com.qrtracker.tracko.utils.TokenManager
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  Admin Checkpoint — Main Landing Screen
@@ -95,30 +98,51 @@ sealed class CheckpointUiState {
     object Offline : CheckpointUiState()
 }
 
-// ── Mock Data ────────────────────────────────────────────────────────────────
-private val mockRecentScans = listOf(
-    RecentScan("PK-9021-RT", "14:45 | Today", ScanStatus.RECEIVED),
-    RecentScan("PK-7712-MK", "14:38 | Today", ScanStatus.MISPLACED),
-    RecentScan("PK-4456-LL", "14:30 | Today", ScanStatus.DUPLICATE),
-    RecentScan("PK-2290-AA", "14:15 | Today", ScanStatus.RECEIVED),
-    RecentScan("PK-1105-ZZ", "14:02 | Today", ScanStatus.RECEIVED),
-)
+// Removed Mock Data
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AdminCheckpointScreen(navController: NavController) {
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context.applicationContext) }
+    val dashboardViewModel = remember { AdminDashboardViewModel(tokenManager) }
+    val dashboardState by dashboardViewModel.dashboardState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        dashboardViewModel.fetchDashboard()
+    }
 
     var uiState by remember {
-        mutableStateOf<CheckpointUiState>(
-            CheckpointUiState.Result(
-                ScanResultData("PK-8829-XL", ScanStatus.RECEIVED, "14:22 | Oct 24", "Hamburg Distribution")
-            )
-        )
+        mutableStateOf<CheckpointUiState>(CheckpointUiState.Idle)
     }
     var manualParcelId by remember { mutableStateOf("") }
-    val stats = remember { CheckpointStats() }
-    val recentScans = remember { mockRecentScans }
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
+
+    // Compute stats from dashboard state
+    val stats = remember(dashboardState) {
+        if (dashboardState is DashboardState.Success) {
+            val s = (dashboardState as DashboardState.Success).data.stats
+            CheckpointStats(s.total, s.received, s.misplaced, s.duplicate)
+        } else {
+            CheckpointStats(0, 0, 0, 0)
+        }
+    }
+
+    val recentScans = remember(dashboardState) {
+        if (dashboardState is DashboardState.Success) {
+            val list = (dashboardState as DashboardState.Success).data.recent_scans
+            list.map {
+                val status = when (it.status) {
+                    "MISPLACED" -> ScanStatus.MISPLACED
+                    "DUPLICATE" -> ScanStatus.DUPLICATE
+                    else -> ScanStatus.RECEIVED
+                }
+                RecentScan(it.parcel_id, it.timestamp, status)
+            }
+        } else {
+            emptyList()
+        }
+    }
 
     Scaffold(
         containerColor = Surface,

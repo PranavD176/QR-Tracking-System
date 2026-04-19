@@ -163,14 +163,15 @@ class PackageViewModel(
     fun createPackage(
         description: String,
         destinationUserId: String? = null,
-        destinationAddress: String? = null
+        destinationAddress: String? = null,
+        routeCheckpoints: List<com.qrtracker.tracko.ui.packages.RouteCheckpoint>? = null
     ) {
         viewModelScope.launch {
             _createPackageState.value = CreatePackageState.Loading
 
             try {
                 val response = apiService.createPackage(
-                    CreatePackageRequest(description, destinationUserId, destinationAddress)
+                    CreatePackageRequest(description, destinationUserId, destinationAddress, routeCheckpoints)
                 )
 
                 if (response.isSuccessful && response.body()?.success == true) {
