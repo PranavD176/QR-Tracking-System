@@ -71,7 +71,13 @@ def get_packages(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
-    query = db.query(Package).filter_by(owner_id=user["uid"])
+    from sqlalchemy import or_
+    query = db.query(Package).filter(
+        or_(
+            Package.owner_id == user["uid"],
+            Package.destination_user_id == user["uid"]
+        )
+    )
 
     if status:
         query = query.filter_by(status=status)
