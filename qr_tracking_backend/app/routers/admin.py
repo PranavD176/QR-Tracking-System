@@ -64,3 +64,54 @@ def get_all_users(
         "data": user_list,
         "error": None
     }
+
+
+@router.get("/admin/dashboard")
+def get_admin_dashboard(
+    user=Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    from sqlalchemy import func
+    from app.models.scan import ScanHistory
+
+    # Calculate stats
+    total_scans = db.query(func.count(ScanHistory.scan_id)).scalar() or 0
+    received = db.query(func.count(ScanHistory.scan_id)).filter(ScanHistory.result == "valid").scalar() or 0
+    misplaced = db.query(func.count(ScanHistory.scan_id)).filter(ScanHistory.result == "misplaced").scalar() or 0
+    duplicate = db.query(func.count(ScanHistory.scan_id)).filter(ScanHistory.result == "duplicate").scalar() or 0
+
+    stats = {
+        "total": total_scans,
+        "received": received,
+        "misplaced": misplaced,
+        "duplicate": duplicate
+    }
+
+    # Get recent scans (latest 5)
+    recent_scans_query = db.query(ScanHistory).order_by(ScanHistory.scanned_at.desc()).limit(5).all()
+    recent_scans = []
+    for s in recent_scans_query:
+        # Map "valid" -> "RECEIVED", "misplaced" -> "MISPLACED"
+        status_enum = "RECEIVED" if s.result == "valid" else "MISPLACED"
+        if s.result == "duplicate":
+            status_enum = "DUPLICATE"
+            
+        # Format time for UI (e.g. "14:45 | Today" or "14:45 | Oct 24")
+        # Just send ISO format and let UI handle it, or format here. Let's format here for simplicity or send iso.
+        # It's better to send iso and let UI format.
+        time_str = s.scanned_at.isoformat() if s.scanned_at else "Unknown"
+
+        recent_scans.append({
+            "parcel_id": s.package_id,
+            "timestamp": time_str,
+            "status": status_enum
+        })
+
+    return {
+        "success": True,
+        "data": {
+            "stats": stats,
+            "recent_scans": recent_scans
+        },
+        "error": None
+    }

@@ -20,6 +20,7 @@ def _serialize_package(pkg: Package) -> dict:
         "owner_id": pkg.owner_id,
         "destination_user_id": pkg.destination_user_id,
         "destination_address": pkg.destination_address,
+        "route_checkpoints": pkg.route_checkpoints,
         "qr_payload": f"QR_TRACKING:{pkg.package_id}",
         "created_at": pkg.created_at.isoformat() if pkg.created_at else None,
     }
@@ -32,7 +33,8 @@ def create_package(data: PackageCreate, user=Depends(get_current_user), db: Sess
             owner_id=user["uid"],
             description=data.description,
             destination_user_id=data.destination_user_id,
-            destination_address=data.destination_address
+            destination_address=data.destination_address,
+            route_checkpoints=data.route_checkpoints
         )
         db.add(package)
         db.commit()
