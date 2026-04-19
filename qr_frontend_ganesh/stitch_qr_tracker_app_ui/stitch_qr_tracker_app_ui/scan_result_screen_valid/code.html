@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Be+Vietnam+Pro:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#b31b25",
+                    "on-background": "#2d2f2f",
+                    "primary": "#a93000",
+                    "surface-container": "#e7e8e8",
+                    "on-primary-fixed": "#000000",
+                    "surface-variant": "#dbdddd",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-fixed": "#2e003c",
+                    "on-tertiary-container": "#53066a",
+                    "outline": "#767777",
+                    "tertiary-dim": "#76308c",
+                    "tertiary-container": "#e293f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "background": "#f6f6f6",
+                    "primary-fixed": "#ff784e",
+                    "on-error-container": "#570008",
+                    "on-primary": "#ffefeb",
+                    "surface": "#f6f6f6",
+                    "on-secondary": "#fff0e2",
+                    "surface-tint": "#a93000",
+                    "secondary": "#7f5200",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "on-error": "#ffefee",
+                    "primary-container": "#ff784e",
+                    "surface-bright": "#f6f6f6",
+                    "on-secondary-fixed-variant": "#704800",
+                    "on-primary-fixed-variant": "#571400",
+                    "secondary-container": "#ffc87f",
+                    "on-secondary-container": "#644000",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-dim": "#942900",
+                    "on-tertiary": "#ffeefd",
+                    "on-primary-container": "#470f00",
+                    "inverse-on-surface": "#9c9d9d",
+                    "on-surface": "#2d2f2f",
+                    "secondary-fixed-dim": "#ffb548",
+                    "tertiary": "#843d99",
+                    "outline-variant": "#acadad",
+                    "surface-dim": "#d3d5d5",
+                    "surface-container-highest": "#dbdddd",
+                    "on-surface-variant": "#5a5c5c",
+                    "error-container": "#fb5151",
+                    "secondary-fixed": "#ffc87f",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed": "#e293f6",
+                    "surface-container-high": "#e1e3e3",
+                    "inverse-primary": "#fb612f",
+                    "error-dim": "#9f0519",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "inverse-surface": "#0c0f0f",
+                    "surface-container-low": "#f0f1f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-gradient {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+        .brand-gradient {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl docked full-width top-0 z-50 flex justify-between items-center w-full px-6 py-4 fixed">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface transition-opacity hover:opacity-80">menu</span>
+<h1 class="text-xl font-bold bg-gradient-to-r from-[#F05A28] to-[#F5A623] bg-clip-text text-transparent font-headline">QR Tracker</h1>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-on-surface transition-opacity hover:opacity-80">notifications</span>
+</div>
+</header>
+<main class="flex-1 w-full max-w-[390px] mx-auto pt-20 pb-32 px-6">
+<!-- Success Animation/State Header -->
+<div class="success-gradient rounded-xl p-10 flex flex-col items-center justify-center text-center mb-8 relative overflow-hidden">
+<div class="absolute top-0 right-0 -translate-y-4 translate-x-4 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
+<div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 transform scale-110">
+<span class="material-symbols-outlined text-emerald-500 !text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="text-2xl font-bold font-headline text-emerald-900 mb-1">Package Verified</h2>
+<p class="text-emerald-700 font-label text-sm">Security validation successful</p>
+</div>
+<!-- Package Info Card -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0px_12px_32px_rgba(26,26,26,0.06)] mb-8">
+<div class="flex justify-between items-start mb-10">
+<div>
+<span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant mb-1 block">Tracking Number</span>
+<h3 class="text-lg font-bold font-headline">QX-9902-88-BZ</h3>
+</div>
+<div class="bg-surface-container-low px-3 py-1 rounded-full">
+<span class="text-xs font-bold text-primary">Valid</span>
+</div>
+</div>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">inventory_2</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-on-surface-variant">Content Type</p>
+<p class="font-semibold text-sm">High-Value Electronics</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-surface-container-low rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">location_on</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-on-surface-variant">Destination</p>
+<p class="font-semibold text-sm">Main Distribution Hub, Sector 4</p>
+</div>
+</div>
+</div>
+<!-- Divider (Tonal Layering instead of borders) -->
+<div class="h-px bg-surface-container-highest my-8"></div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-xs text-on-surface-variant">Last Scan Time</p>
+<p class="font-bold text-sm">14:22 | Oct 24, 2023</p>
+</div>
+<img alt="Close up of a stylized modern digital QR code with orange corner markers" class="w-12 h-12 rounded-md" data-alt="Close up of a stylized modern digital QR code with orange corner markers on a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGEkxlol2Gcw9VEitxZh0Y_47Pww_eduUW-GTC86evDhPkN64DqWOsr9EQ1BGu3KSnnEnx61xAKThCYnheNSzB99anh_y3OnuXsNLjfJR-UeoN0DEAHBFOm5OT0KyDLWTE9UOPl5oqBkWnzgNHARD_QlVqI1ftLIG-8NlD24S1QHH0YPMMt3h1FBKkCEiem0jLxr8zDzaI7QPypz1OVYJTj70XMiZwrXCoPkmLCmS6bVXgKcgs2z5qePa4xfeoAbONPum4K4xw2w"/>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="space-y-4">
+<button class="brand-gradient w-full py-4 rounded-full text-white font-bold text-lg flex items-center justify-center gap-3 active:scale-95 duration-200 transition-all shadow-md">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+                Scan Another
+            </button>
+<button class="bg-surface-container-low w-full py-4 rounded-full text-on-surface font-bold text-lg flex items-center justify-center gap-3 active:scale-95 duration-200 transition-all">
+<span class="material-symbols-outlined">home</span>
+                Go Home
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#DBDDDD] dark:bg-gray-800 rounded-t-[3rem] shadow-[0px_-12px_32px_rgba(26,26,26,0.06)]">
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[0.75rem] font-semibold font-label">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F05A28] font-bold scale-110" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
+<span class="text-[0.75rem] font-semibold font-label">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-[0.75rem] font-semibold font-label">Packages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[0.75rem] font-semibold font-label">Alerts</span>
+</a>
+</nav>
+</body></html>

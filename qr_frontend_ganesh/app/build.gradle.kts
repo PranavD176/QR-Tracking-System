@@ -2,18 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services")
-    id("com.google.devtools.ksp")
+//    alias(libs.plugins.google.services)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
 }
 
 android {
-    namespace = "com.ganesh.qrtracker"
-    compileSdk = 35
+    namespace = "com.qrtracker.tracko"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.ganesh.qrtracker"
+        applicationId = "com.qrtracker.tracko"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -49,8 +47,8 @@ android {
 dependencies {
 
     // --- FIREBASE (Using BoM) ---
-    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
-    implementation("com.google.firebase:firebase-auth")
+//    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
 
@@ -74,14 +72,10 @@ dependencies {
     implementation("androidx.room:room-ktx:2.7.1")
     ksp("androidx.room:room-compiler:2.7.1")
 
-    // Room Database
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
     // --- LIFECYCLE & NAVIGATION ---
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.navigation:navigation-compose:2.8.7")
 
     // --- SECURITY ---
     implementation("androidx.security:security-crypto:1.1.0")

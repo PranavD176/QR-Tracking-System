@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String, ForeignKey, DateTime
 from app.database import Base
 import uuid
+from datetime import datetime, timezone
 
 class ScanHistory(Base):
     __tablename__ = "scan_history"
@@ -10,3 +11,4 @@ class ScanHistory(Base):
     scanner_id = Column(String, ForeignKey("users.user_id"))
     result = Column(String)
     location_description = Column(String)
+    scanned_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

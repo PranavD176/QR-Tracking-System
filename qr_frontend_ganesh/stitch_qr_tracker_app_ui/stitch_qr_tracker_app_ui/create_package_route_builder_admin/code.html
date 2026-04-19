@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#b31b25",
+                    "on-background": "#2d2f2f",
+                    "primary": "#a93000",
+                    "surface-container": "#e7e8e8",
+                    "on-primary-fixed": "#000000",
+                    "surface-variant": "#dbdddd",
+                    "secondary-dim": "#6f4700",
+                    "on-tertiary-fixed": "#2e003c",
+                    "on-tertiary-container": "#53066a",
+                    "outline": "#767777",
+                    "tertiary-dim": "#76308c",
+                    "tertiary-container": "#e293f6",
+                    "primary-fixed-dim": "#fb612f",
+                    "background": "#f6f6f6",
+                    "primary-fixed": "#ff784e",
+                    "on-error-container": "#570008",
+                    "on-primary": "#ffefeb",
+                    "surface": "#f6f6f6",
+                    "on-secondary": "#fff0e2",
+                    "surface-tint": "#a93000",
+                    "secondary": "#7f5200",
+                    "on-tertiary-fixed-variant": "#5d1573",
+                    "on-error": "#ffefee",
+                    "primary-container": "#ff784e",
+                    "surface-bright": "#f6f6f6",
+                    "on-secondary-fixed-variant": "#704800",
+                    "on-primary-fixed-variant": "#571400",
+                    "secondary-container": "#ffc87f",
+                    "on-secondary-container": "#644000",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-dim": "#942900",
+                    "on-tertiary": "#ffeefd",
+                    "on-primary-container": "#470f00",
+                    "inverse-on-surface": "#9c9d9d",
+                    "on-surface": "#2d2f2f",
+                    "secondary-fixed-dim": "#ffb548",
+                    "tertiary": "#843d99",
+                    "outline-variant": "#acadad",
+                    "surface-dim": "#d3d5d5",
+                    "surface-container-highest": "#dbdddd",
+                    "on-surface-variant": "#5a5c5c",
+                    "error-container": "#fb5151",
+                    "secondary-fixed": "#ffc87f",
+                    "on-secondary-fixed": "#4a2e00",
+                    "tertiary-fixed": "#e293f6",
+                    "surface-container-high": "#e1e3e3",
+                    "inverse-primary": "#fb612f",
+                    "error-dim": "#9f0519",
+                    "tertiary-fixed-dim": "#d386e7",
+                    "inverse-surface": "#0c0f0f",
+                    "surface-container-low": "#f0f1f1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Be Vietnam Pro"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+        .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-coral-gradient {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+        .route-line {
+            position: absolute;
+            left: 20px;
+            top: 24px;
+            bottom: 24px;
+            width: 2px;
+            background: repeating-linear-gradient(to bottom, #ff784e 0px, #ff784e 4px, transparent 4px, transparent 8px);
+        }
+    </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-[844px] w-[390px] mx-auto overflow-x-hidden relative">
+<!-- Top Navigation Shell -->
+<header class="bg-white/80 backdrop-blur-xl fixed top-0 z-50 flex justify-between items-center w-[390px] px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface" data-icon="arrow_back">arrow_back</span>
+<span class="text-xl font-bold bg-gradient-to-r from-[#F05A28] to-[#F5A623] bg-clip-text text-transparent font-headline">QR Tracker</span>
+</div>
+<span class="material-symbols-outlined text-gray-500" data-icon="notifications">notifications</span>
+</header>
+<main class="pt-20 pb-36 px-6">
+<!-- Editorial Header Section -->
+<section class="mb-8 pt-4">
+<h1 class="text-[2.75rem] font-bold font-headline leading-tight tracking-tight text-on-surface mb-2">
+                New <br/>Package
+            </h1>
+<p class="text-on-surface-variant text-body-md max-w-[280px]">
+                Create a kinetic pulse for your shipment. Map out the journey and generate a unique tracking ID.
+            </p>
+</section>
+<!-- Main Form Container -->
+<div class="space-y-8">
+<!-- Source Details Section -->
+<div class="space-y-4">
+<h2 class="text-[0.7rem] font-bold text-primary tracking-widest uppercase px-1">Source Details</h2>
+<div class="bg-white p-5 rounded-lg shadow-sm border border-outline-variant/20 space-y-4">
+<div class="relative">
+<label class="text-[0.65rem] font-bold text-on-surface-variant/60 uppercase absolute top-2 left-3">Company Name</label>
+<input class="w-full pt-6 pb-2 px-3 bg-surface-container-low border-none rounded-md focus:ring-1 focus:ring-primary/40 outline-none text-on-surface text-sm" placeholder="Pulse Logistics Co." type="text" value="Pulse Logistics Co."/>
+</div>
+<div class="relative">
+<label class="text-[0.65rem] font-bold text-on-surface-variant/60 uppercase absolute top-2 left-3">Order ID</label>
+<input class="w-full pt-6 pb-2 px-3 bg-surface-container border-none rounded-md outline-none text-on-surface-variant text-sm font-mono" readonly="" type="text" value="ORD-7742-XP-2024"/>
+</div>
+<div class="relative">
+<label class="text-[0.65rem] font-bold text-on-surface-variant/60 uppercase absolute top-2 left-3">Pickup Address</label>
+<textarea class="w-full pt-6 pb-2 px-3 bg-surface-container-low border-none rounded-md focus:ring-1 focus:ring-primary/40 outline-none text-on-surface text-sm resize-none" rows="2">122 Industrial Way, Suite 400, Austin, TX 78701</textarea>
+</div>
+</div>
+</div>
+<!-- Destination Details Section -->
+<div class="space-y-4">
+<h2 class="text-[0.7rem] font-bold text-primary tracking-widest uppercase px-1">Destination Details</h2>
+<div class="bg-white p-5 rounded-lg shadow-sm border border-outline-variant/20 space-y-4">
+<div class="relative">
+<label class="text-[0.65rem] font-bold text-on-surface-variant/60 uppercase absolute top-2 left-3">Customer Name (Optional)</label>
+<input class="w-full pt-6 pb-2 px-3 bg-surface-container-low border-none rounded-md focus:ring-1 focus:ring-primary/40 outline-none text-on-surface text-sm" placeholder="e.g. Jane Doe" type="text"/>
+</div>
+<div class="relative">
+<label class="text-[0.65rem] font-bold text-on-surface-variant/60 uppercase absolute top-2 left-3">Delivery Address</label>
+<textarea class="w-full pt-6 pb-2 px-3 bg-surface-container-low border-none rounded-md focus:ring-1 focus:ring-primary/40 outline-none text-on-surface text-sm resize-none" placeholder="Street, City, State, ZIP" rows="2"></textarea>
+</div>
+</div>
+</div>
+<!-- Route Builder Section -->
+<div class="space-y-4">
+<div class="flex justify-between items-center px-1">
+<h2 class="text-[0.7rem] font-bold text-primary tracking-widest uppercase">Route Builder</h2>
+<button class="text-primary text-[0.7rem] font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[1rem]" data-icon="add_circle">add_circle</span>
+                        ADD CHECKPOINT
+                    </button>
+</div>
+<div class="relative space-y-4">
+<div class="route-line"></div>
+<!-- Start Point -->
+<div class="relative flex items-center gap-4 bg-white p-3 pr-4 rounded-lg shadow-sm border border-outline-variant/20">
+<div class="z-10 w-4 h-4 rounded-full bg-primary ring-4 ring-primary-container flex-shrink-0 ml-1"></div>
+<div class="flex-grow">
+<p class="text-[0.6rem] font-bold text-on-surface-variant/60 uppercase">Origin</p>
+<p class="text-sm font-medium">Austin Distribution Center</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[1.25rem]" data-icon="lock">lock</span>
+</div>
+<!-- Intermediate Checkpoint -->
+<div class="relative flex items-center gap-4 bg-white p-3 pr-4 rounded-lg shadow-sm border border-outline-variant/20 ml-4 border-l-4 border-l-primary/40">
+<div class="z-10 w-2 h-2 rounded-full bg-primary-fixed-dim flex-shrink-0 ml-[-21px]"></div>
+<div class="flex-grow">
+<p class="text-[0.6rem] font-bold text-on-surface-variant/60 uppercase">Checkpoint 1</p>
+<input class="w-full p-0 bg-transparent border-none focus:ring-0 text-sm font-medium" type="text" value="Dallas Sorting Hub"/>
+</div>
+<div class="flex flex-col gap-1">
+<span class="material-symbols-outlined text-outline-variant text-[1.25rem] cursor-pointer" data-icon="expand_less">expand_less</span>
+<span class="material-symbols-outlined text-outline-variant text-[1.25rem] cursor-pointer" data-icon="expand_more">expand_more</span>
+</div>
+<span class="material-symbols-outlined text-error/60 text-[1.25rem] ml-2" data-icon="delete">delete</span>
+</div>
+<!-- Destination Point -->
+<div class="relative flex items-center gap-4 bg-white p-3 pr-4 rounded-lg shadow-sm border border-outline-variant/20">
+<div class="z-10 w-4 h-4 rounded-full bg-secondary ring-4 ring-secondary-container flex-shrink-0 ml-1"></div>
+<div class="flex-grow">
+<p class="text-[0.6rem] font-bold text-on-surface-variant/60 uppercase">Destination</p>
+<p class="text-sm font-medium italic text-on-surface-variant">Pending address input...</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[1.25rem]" data-icon="drag_handle">drag_handle</span>
+</div>
+</div>
+</div>
+<!-- Large Action Button -->
+<button class="bg-coral-gradient w-full h-[56px] rounded-full flex items-center justify-center gap-3 inner-glow active:scale-95 transition-transform duration-200 mt-4 shadow-lg shadow-primary/20">
+<span class="text-white font-bold font-headline tracking-wide">Create Package &amp; ID</span>
+<span class="material-symbols-outlined text-white" data-icon="qr_code_scanner">qr_code_scanner</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-[390px] z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-white dark:bg-gray-800 rounded-t-[2.5rem] shadow-[0px_-8px_24px_rgba(0,0,0,0.05)] border-t border-outline-variant/10">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="text-[0.7rem] font-bold font-label uppercase tracking-tighter">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F05A28] scale-110" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="add_box" style="font-variation-settings: 'FILL' 1;">add_box</span>
+<span class="text-[0.7rem] font-bold font-label uppercase tracking-tighter">New</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="inventory_2">inventory_2</span>
+<span class="text-[0.7rem] font-bold font-label uppercase tracking-tighter">Track</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-[#F05A28] transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="text-[0.7rem] font-bold font-label uppercase tracking-tighter">Settings</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Staff Home - The Kinetic Pulse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#470f00",
+                        "surface-dim": "#d3d5d5",
+                        "secondary-dim": "#6f4700",
+                        "on-tertiary-container": "#53066a",
+                        "tertiary-container": "#e293f6",
+                        "on-tertiary-fixed": "#2e003c",
+                        "primary-fixed": "#ff784e",
+                        "on-background": "#2d2f2f",
+                        "error-dim": "#9f0519",
+                        "error-container": "#fb5151",
+                        "outline": "#767777",
+                        "on-tertiary-fixed-variant": "#5d1573",
+                        "outline-variant": "#acadad",
+                        "on-secondary-fixed": "#4a2e00",
+                        "tertiary-fixed-dim": "#d386e7",
+                        "primary": "#a93000",
+                        "on-error-container": "#570008",
+                        "error": "#b31b25",
+                        "tertiary-dim": "#76308c",
+                        "on-secondary-fixed-variant": "#704800",
+                        "tertiary": "#843d99",
+                        "secondary-container": "#ffc87f",
+                        "secondary": "#7f5200",
+                        "primary-dim": "#942900",
+                        "secondary-fixed-dim": "#ffb548",
+                        "inverse-on-surface": "#9c9d9d",
+                        "surface-container-low": "#f0f1f1",
+                        "on-error": "#ffefee",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f6f6f6",
+                        "surface-bright": "#f6f6f6",
+                        "primary-fixed-dim": "#fb612f",
+                        "on-secondary-container": "#644000",
+                        "on-tertiary": "#ffeefd",
+                        "surface-container": "#e7e8e8",
+                        "on-surface": "#2d2f2f",
+                        "on-primary-fixed": "#000000",
+                        "secondary-fixed": "#ffc87f",
+                        "inverse-primary": "#fb612f",
+                        "surface": "#f6f6f6",
+                        "tertiary-fixed": "#e293f6",
+                        "primary-container": "#ff784e",
+                        "on-surface-variant": "#5a5c5c",
+                        "surface-variant": "#dbdddd",
+                        "surface-tint": "#a93000",
+                        "on-secondary": "#fff0e2",
+                        "surface-container-high": "#e1e3e3",
+                        "on-primary-fixed-variant": "#571400",
+                        "surface-container-highest": "#dbdddd",
+                        "on-primary": "#ffefeb",
+                        "inverse-surface": "#0c0f0f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Be Vietnam Pro"],
+                        "label": ["Be Vietnam Pro"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .kinetic-pulse-gradient {
+            background: linear-gradient(135deg, #F05A28 0%, #F5A623 100%);
+        }
+        .glass-header {
+            backdrop-filter: blur(24px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-stone-900/80 glass-header shadow-sm dark:shadow-none">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="p-2 text-orange-600 dark:text-orange-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-95 duration-200 rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex flex-col">
+<span class="text-lg font-bold tracking-tight text-stone-900 dark:text-white font-headline">The Kinetic Pulse</span>
+<span class="text-xs font-semibold text-stone-500 font-label">Berlin Hub (BER)</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-bold text-stone-900 leading-tight">Terminal Manager</p>
+<p class="text-xs text-stone-500">Active Duty</p>
+</div>
+<img alt="Staff Profile" class="w-10 h-10 rounded-full border-2 border-primary-container" data-alt="Professional portrait of a male terminal manager in a clean white studio setting with soft lighting and friendly expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXL4WiMnIPGo51pVIbkQBA6ftTHhG0MrsWOxqWXFuWYehauyo0DGIdLYG3ewzF6869HeyTXJEpdMqTjWgr_U5JPyGkXoxZfsAt7OReutrloLd4KbgOENJuUji8dcYO_1hjjx6ArijP3TGDHX54NaEQCiTfU9sAdu_kILuXmntKRFrFausX0jcCNWdAQNEL6yiJgDOsr-LjNUjaCRm9l4dokghi-YWPt5_s8xjtDYxPxHA8Q3APKcL6ULxD55xxeTr2C_j4SIDrzQ"/>
+</div>
+</div>
+</header>
+<main class="min-h-screen pt-24 pb-12 px-6 flex flex-col items-center justify-center">
+<!-- Hero Checkpoint Visual -->
+<div class="w-full max-w-md mb-12 relative">
+<div class="absolute -top-12 -left-8 w-32 h-32 bg-primary-container/10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-12 -right-8 w-40 h-40 bg-secondary-container/10 rounded-full blur-3xl"></div>
+<div class="bg-surface-container-lowest rounded-xl p-8 shadow-sm relative overflow-hidden">
+<div class="flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<span class="text-label-md font-semibold text-primary uppercase tracking-widest mb-2 font-label">Assigned Checkpoint</span>
+<h1 class="text-4xl font-headline font-extrabold text-on-surface mb-2 tracking-tight">Berlin Hub (BER)</h1>
+<p class="text-body-md text-on-surface-variant max-w-[240px]">Strategic North Hub Terminal • Gate A-14 Logistics Center</p>
+</div>
+</div>
+</div>
+<!-- Main Scanning Action -->
+<div class="flex flex-col items-center gap-8 w-full max-w-md">
+<!-- Large Scanning Button -->
+<button class="kinetic-pulse-gradient w-64 h-64 rounded-full flex flex-col items-center justify-center text-white shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-300 group">
+<div class="relative">
+<span class="material-symbols-outlined text-7xl mb-4">barcode_scanner</span>
+<div class="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-xl font-headline font-extrabold tracking-wide uppercase">Start Scanning</span>
+</button>
+<!-- Status Indicator -->
+<div class="flex items-center gap-3 bg-surface-container-high/50 px-6 py-3 rounded-full">
+<span class="w-3 h-3 bg-primary rounded-full animate-pulse"></span>
+<span class="text-sm font-semibold text-on-surface-variant font-label">System Ready for Input</span>
+</div>
+</div>
+<!-- Secondary Info Grid (Bento Style) -->
+<div class="grid grid-cols-2 gap-4 w-full max-w-md mt-16">
+<div class="bg-surface-container-lowest p-5 rounded-lg border-b-4 border-primary-container/20">
+<span class="material-symbols-outlined text-primary mb-3">inventory_2</span>
+<p class="text-2xl font-headline font-bold text-on-surface">1,248</p>
+<p class="text-xs text-on-surface-variant font-medium">Packages Scanned</p>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-lg border-b-4 border-secondary-container/20">
+<span class="material-symbols-outlined text-secondary mb-3">schedule</span>
+<p class="text-2xl font-headline font-bold text-on-surface">06:42</p>
+<p class="text-xs text-on-surface-variant font-medium">Shift Time Elapsed</p>
+</div>
+</div>
+</main>
+<!-- Bottom Context (Optional quick history peek) -->
+<footer class="w-full max-w-md mx-auto px-6 pb-12">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-title-md font-headline font-bold text-on-surface">Recent Activity</h3>
+<button class="text-primary text-sm font-bold">View History</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-container-low rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">package_2</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">#KP-902-BX</p>
+<p class="text-xs text-on-surface-variant">Successful Entry Scan</p>
+</div>
+</div>
+<span class="text-xs font-semibold text-on-surface-variant">2m ago</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-md">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-container-low rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">package_2</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">#KP-114-AZ</p>
+<p class="text-xs text-on-surface-variant">Outbound Verified</p>
+</div>
+</div>
+<span class="text-xs font-semibold text-on-surface-variant">12m ago</span>
+</div>
+</div>
+</footer>
+</body></html>
