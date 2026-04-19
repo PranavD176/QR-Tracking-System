@@ -8,6 +8,8 @@ class Package(Base):
 
     package_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     owner_id = Column(String, ForeignKey("users.user_id"))
+    destination_user_id = Column(String, ForeignKey("users.user_id"), nullable=True)
+    destination_address = Column(String, nullable=True)
     description = Column(Text)
     status = Column(String, default="active")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
