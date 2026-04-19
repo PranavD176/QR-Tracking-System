@@ -27,30 +27,38 @@ def _serialize_package(pkg: Package) -> dict:
 
 @router.post("/packages")
 def create_package(data: PackageCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
-    package = Package(
-        owner_id=user["uid"],
-        description=data.description,
-        destination_user_id=data.destination_user_id,
-        destination_address=data.destination_address
-    )
-    db.add(package)
-    db.commit()
-    db.refresh(package)
+    try:
+        package = Package(
+            owner_id=user["uid"],
+            description=data.description,
+            destination_user_id=data.destination_user_id,
+            destination_address=data.destination_address
+        )
+        db.add(package)
+        db.commit()
+        db.refresh(package)
 
-    if data.destination_user_id:
-        destination_user = db.query(User).filter(User.user_id == data.destination_user_id).first()
-        if destination_user and destination_user.fcm_token:
-            send_push_notification(
-                destination_user.fcm_token,
-                "Package assigned to you",
-                f"A new package '{data.description}' has been assigned to you for delivery to {data.destination_address or 'Unknown address'}."
-            )
+        if data.destination_user_id:
+            destination_user = db.query(User).filter(User.user_id == data.destination_user_id).first()
+            if destination_user and destination_user.fcm_token:
+                send_push_notification(
+                    destination_user.fcm_token,
+                    "Package assigned to you",
+                    f"A new package '{data.description}' has been assigned to you for delivery to {data.destination_address or 'Unknown address'}."
+                )
 
-    return {
-        "success": True,
-        "data": _serialize_package(package),
-        "error": None
-    }
+        return {
+            "success": True,
+            "data": _serialize_package(package),
+            "error": None
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "data": None,
+            "error": f"Internal Error: {str(e)}\n{traceback.format_exc()}"
+        }
 
 
 @router.get("/packages")
