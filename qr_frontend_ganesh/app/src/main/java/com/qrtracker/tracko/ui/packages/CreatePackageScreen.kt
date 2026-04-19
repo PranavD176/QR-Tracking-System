@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -102,8 +103,8 @@ fun CreatePackageScreen(
         when (val state = createState) {
             is CreatePackageState.Success -> {
                 uiState = uiState.copy(
-                    createdPackageId = state.qrPayload,
-                    createdQrPayload = "QR_TRACKING:${state.qrPayload}",
+                    createdPackageId = state.packageId,
+                    createdQrPayload = state.qrPayload,
                     isLoading = false
                 )
             }
@@ -874,7 +875,7 @@ private fun CreationSuccessCard(
                 EditorialLabel(text = "Tracking ID", color = ValidGreen.copy(alpha = 0.6f))
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = qrPayload,
+                    text = packageId,
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontWeight = FontWeight.SemiBold
                     ),

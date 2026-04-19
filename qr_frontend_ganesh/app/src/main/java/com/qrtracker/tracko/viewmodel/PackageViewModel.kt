@@ -40,7 +40,7 @@ sealed class AdminUsersState {
 sealed class CreatePackageState {
     object Idle : CreatePackageState()
     object Loading : CreatePackageState()
-    data class Success(val qrPayload: String) : CreatePackageState()
+    data class Success(val packageId: String, val qrPayload: String) : CreatePackageState()
     data class Error(val message: String) : CreatePackageState()
 }
 
@@ -175,8 +175,9 @@ class PackageViewModel(
                 )
 
                 if (response.isSuccessful && response.body()?.success == true) {
+                    val packageId = response.body()!!.data?.package_id ?: ""
                     val qrPayload = response.body()!!.data?.qr_payload ?: ""
-                    _createPackageState.value = CreatePackageState.Success(qrPayload)
+                    _createPackageState.value = CreatePackageState.Success(packageId, qrPayload)
 
                 } else {
                     if (response.code() == 401) {
