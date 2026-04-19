@@ -35,6 +35,7 @@ import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.CreatePackageState
+import com.qrtracker.tracko.viewmodel.AdminUsersState
 import androidx.compose.ui.platform.LocalContext
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -49,6 +50,8 @@ data class CreatePackageUiState(
     val orderId         : String   = "",
     val pickupAddress   : String   = "",
     val customerName    : String   = "",
+    val destinationUserId: String? = null,
+    val isDropdownExpanded: Boolean = false,
     val deliveryAddress : String   = "",
     val checkpoints     : List<RouteCheckpoint> = listOf(
         RouteCheckpoint("Austin Distribution Center", isOrigin = true),
@@ -78,9 +81,17 @@ fun CreatePackageScreen(
     val tokenManager      = remember { TokenManager(context.applicationContext) }
     val packageViewModel  = remember { PackageViewModel(tokenManager) }
     val createState by packageViewModel.createPackageState.collectAsState()
+    val usersState by packageViewModel.adminUsersState.collectAsState()
     val focusManager      = LocalFocusManager.current
     val scrollState       = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // ── Fetch users on load ────────────────────────────────────────────
+    LaunchedEffect(Unit) {
+        if (isAdminFlow) {
+            packageViewModel.fetchAdminUsers()
+        }
+    }
 
     // ── Observe create package state ───────────────────────────────────
     LaunchedEffect(createState) {
@@ -299,12 +310,68 @@ fun CreatePackageScreen(
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    FormField(
-                        label = "CUSTOMER NAME (OPTIONAL)",
-                        value = uiState.customerName,
-                        placeholder = "e.g. Jane Doe",
-                        onValueChange = { uiState = uiState.copy(customerName = it) }
-                    )
+                    // DESTINATION USER DROPDOWN
+                    ExposedDropdownMenuBox(
+                        expanded = uiState.isDropdownExpanded,
+                        onExpandedChange = { uiState = uiState.copy(isDropdownExpanded = it) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.customerName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("ASSIGN TO USER", style = MaterialTheme.typography.labelSmall) },
+                            placeholder = { Text("Select destination user") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.isDropdownExpanded) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = CoralPrimary,
+                                focusedLabelColor = CoralPrimary
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+                        
+                        ExposedDropdownMenu(
+                            expanded = uiState.isDropdownExpanded,
+                            onDismissRequest = { uiState = uiState.copy(isDropdownExpanded = false) }
+                        ) {
+                            if (usersState is AdminUsersState.Loading) {
+                                DropdownMenuItem(
+                                    text = { Text("Loading users...") },
+                                    onClick = { }
+                                )
+                            } else if (usersState is AdminUsersState.Success) {
+                                val users = (usersState as AdminUsersState.Success).users
+                                if (users.isEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text("No users found") },
+                                        onClick = { }
+                                    )
+                                } else {
+                                    users.forEach { user ->
+                                        DropdownMenuItem(
+                                            text = { Text("${user.full_name} (${user.email})") },
+                                            onClick = {
+                                                uiState = uiState.copy(
+                                                    customerName = user.full_name,
+                                                    destinationUserId = user.user_id,
+                                                    isDropdownExpanded = false
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            } else {
+                                DropdownMenuItem(
+                                    text = { Text("Failed to load users") },
+                                    onClick = { uiState = uiState.copy(isDropdownExpanded = false) }
+                                )
+                            }
+                        }
+                    }
+
                     FormField(
                         label = "DELIVERY ADDRESS",
                         value = uiState.deliveryAddress,
@@ -435,7 +502,11 @@ fun CreatePackageScreen(
                             else -> {
                                 // Build description from form fields
                                 val desc = "${uiState.companyName} - ${uiState.orderId.ifBlank { "Package" }}"
-                                packageViewModel.createPackage(desc)
+                                packageViewModel.createPackage(
+                                    description = desc,
+                                    destinationUserId = uiState.destinationUserId,
+                                    destinationAddress = uiState.deliveryAddress.takeIf { it.isNotBlank() }
+                                )
                             }
                         }
                     }
