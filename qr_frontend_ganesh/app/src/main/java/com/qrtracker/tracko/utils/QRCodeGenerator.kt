@@ -30,6 +30,7 @@ object QRCodeGenerator {
                 put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "$title.png")
                 put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/QRTracker")
                     put(android.provider.MediaStore.Images.Media.IS_PENDING, 1)
                 }
             }
