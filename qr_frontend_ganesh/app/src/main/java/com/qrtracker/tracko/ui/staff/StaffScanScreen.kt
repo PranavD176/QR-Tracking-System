@@ -42,19 +42,34 @@ import com.google.accompanist.permissions.rememberPermissionState
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun StaffScanScreen(navController: NavController) {
-    // Helper for testing different states based on ID input
-    val resolveStatus = { id: String ->
-        when (id) {
-            "1" -> "misplaced"
-            "2" -> "success"
-            "3" -> "delivered"
-            else -> "success"
-        }
-    }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val tokenManager = remember { com.qrtracker.tracko.utils.TokenManager(context.applicationContext) }
+    val scanViewModel = remember { com.qrtracker.tracko.viewmodel.ScanViewModel(tokenManager) }
+    val scanState by scanViewModel.scanState.collectAsState()
 
     var manualParcelId by remember { mutableStateOf("") }
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     var hasProcessedScan by remember { mutableStateOf(false) }
+
+    LaunchedEffect(scanState) {
+        if (scanState is com.qrtracker.tracko.viewmodel.ScanState.Success) {
+            val result = (scanState as com.qrtracker.tracko.viewmodel.ScanState.Success).result
+            navController.navigate(
+                Routes.staffScanResult(
+                    orderId = result.package_id,
+                    status = result.result, // e.g. "valid", "misplaced", "duplicate"
+                    currentCheckpoint = result.checkpoint_name,
+                    nextCheckpoint = "N/A" // Real logic can compute next
+                )
+            ) { launchSingleTop = true }
+            scanViewModel.resetScanState()
+        } else if (scanState is com.qrtracker.tracko.viewmodel.ScanState.Error) {
+            val msg = (scanState as com.qrtracker.tracko.viewmodel.ScanState.Error).message
+            android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+            hasProcessedScan = false // Reset so they can try again
+            scanViewModel.resetScanState()
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (!cameraPermission.status.isGranted) {
@@ -73,15 +88,9 @@ fun StaffScanScreen(navController: NavController) {
                 onBarcodeDetected = { rawValue ->
                     if (!hasProcessedScan) {
                         hasProcessedScan = true
-                        // TODO: Replace with actual API call to determine status
-                        navController.navigate(
-                            Routes.staffScanResult(
-                                orderId = rawValue,
-                                status = resolveStatus(rawValue),
-                                currentCheckpoint = "Berlin-BER",
-                                nextCheckpoint = "Munich-MUC"
-                            )
-                        ) { launchSingleTop = true }
+                        val prefix = "QR_TRACKING:"
+                        val cleanId = if (rawValue.startsWith(prefix)) rawValue.substring(prefix.length) else rawValue
+                        scanViewModel.submitScan(cleanId, "Staff Mobile Scanner")
                     }
                 },
                 modifier = Modifier.fillMaxSize()
@@ -238,14 +247,11 @@ fun StaffScanScreen(navController: NavController) {
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
                     if (manualParcelId.isNotBlank()) {
-                        navController.navigate(
-                            Routes.staffScanResult(
-                                orderId = manualParcelId,
-                                status = resolveStatus(manualParcelId),
-                                currentCheckpoint = "Berlin-BER",
-                                nextCheckpoint = "Munich-MUC"
-                            )
-                        ) { launchSingleTop = true }
+                        hasProcessedScan = true
+                        val idToScan = manualParcelId
+                        val prefix = "QR_TRACKING:"
+                        val cleanId = if (idToScan.startsWith(prefix)) idToScan.substring(prefix.length) else idToScan
+                        scanViewModel.submitScan(cleanId, "Staff Mobile Scanner")
                     }
                 }),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = OnSurface),
@@ -282,14 +288,11 @@ fun StaffScanScreen(navController: NavController) {
                     )
                     .clickable {
                         if (manualParcelId.isNotBlank()) {
-                            navController.navigate(
-                                Routes.staffScanResult(
-                                    orderId = manualParcelId,
-                                    status = resolveStatus(manualParcelId),
-                                    currentCheckpoint = "Berlin-BER",
-                                    nextCheckpoint = "Munich-MUC"
-                                )
-                            ) { launchSingleTop = true }
+                            hasProcessedScan = true
+                            val idToScan = manualParcelId
+                            val prefix = "QR_TRACKING:"
+                            val cleanId = if (idToScan.startsWith(prefix)) idToScan.substring(prefix.length) else idToScan
+                            scanViewModel.submitScan(cleanId, "Staff Mobile Scanner")
                         }
                     },
                 contentAlignment = Alignment.Center
