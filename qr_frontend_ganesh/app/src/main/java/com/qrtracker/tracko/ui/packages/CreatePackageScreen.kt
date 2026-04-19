@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -67,7 +69,9 @@ data class RouteCheckpoint(
     val name: String,
     val isOrigin: Boolean = false,
     val isDestination: Boolean = false,
-    val isExpanded: Boolean = false
+    val isExpanded: Boolean = false,
+    val assignedUserId: String? = null,
+    val assignedUserName: String? = null
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -436,6 +440,24 @@ fun CreatePackageScreen(
                             checkpoint = checkpoint,
                             index = index,
                             total = uiState.checkpoints.size,
+                            adminUsers = if (usersState is com.qrtracker.tracko.viewmodel.AdminUsersState.Success) {
+                                (usersState as com.qrtracker.tracko.viewmodel.AdminUsersState.Success).users
+                            } else emptyList(),
+                            onNameChange = { newName ->
+                                val newList = uiState.checkpoints.toMutableList()
+                                newList[index] = checkpoint.copy(name = newName)
+                                uiState = uiState.copy(checkpoints = newList)
+                            },
+                            onAssignUser = { userId, userName ->
+                                val newList = uiState.checkpoints.toMutableList()
+                                newList[index] = checkpoint.copy(assignedUserId = userId, assignedUserName = userName)
+                                uiState = uiState.copy(checkpoints = newList)
+                            },
+                            onToggleExpand = {
+                                val newList = uiState.checkpoints.toMutableList()
+                                newList[index] = checkpoint.copy(isExpanded = !checkpoint.isExpanded)
+                                uiState = uiState.copy(checkpoints = newList)
+                            },
                             onDelete = {
                                 if (!checkpoint.isOrigin) {
                                     val newList = uiState.checkpoints.toMutableList()
@@ -577,11 +599,16 @@ private fun FormField(
 // ══════════════════════════════════════════════════════════════════════════════
 //  Route Checkpoint Item — Timeline row with dot, line, name, and controls
 // ══════════════════════════════════════════════════════════════════════════════
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RouteCheckpointItem(
     checkpoint: RouteCheckpoint,
     index: Int,
     total: Int,
+    adminUsers: List<com.qrtracker.tracko.network.models.UserResponse> = emptyList(),
+    onNameChange: (String) -> Unit = {},
+    onAssignUser: (String?, String?) -> Unit = { _, _ -> },
+    onToggleExpand: () -> Unit = {},
     onDelete: () -> Unit
 ) {
     Row(
@@ -610,7 +637,7 @@ private fun RouteCheckpointItem(
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(52.dp)
+                        .height(if (checkpoint.isExpanded) 180.dp else 52.dp)
                         .background(SurfaceContainerHighest)
                 )
             }
@@ -643,57 +670,119 @@ private fun RouteCheckpointItem(
             }
             Spacer(Modifier.height(4.dp))
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(SurfaceContainerLowest)
                     .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
-                Text(
-                    checkpoint.name,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = OnSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     if (checkpoint.isOrigin) {
-                        Icon(
-                            Icons.Default.Lock,
-                            null,
-                            tint = OnSurfaceVariant.copy(alpha = 0.4f),
-                            modifier = Modifier.size(20.dp)
+                        Text(
+                            checkpoint.name,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = OnSurface,
+                            modifier = Modifier.weight(1f)
                         )
                     } else {
-                        Icon(
-                            Icons.Default.ExpandMore,
-                            null,
-                            tint = OnSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                        BasicTextField(
+                            value = checkpoint.name,
+                            onValueChange = onNameChange,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = OnSurface),
+                            modifier = Modifier.weight(1f)
                         )
-                        Icon(
-                            Icons.Default.ExpandLess,
-                            null,
-                            tint = OnSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(ErrorContainer.copy(alpha = 0.15f))
-                                .clickable { onDelete() },
-                            contentAlignment = Alignment.Center
-                        ) {
+                    }
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (checkpoint.isOrigin) {
                             Icon(
-                                Icons.Default.Delete,
+                                Icons.Default.Lock,
                                 null,
-                                tint = ErrorRed,
-                                modifier = Modifier.size(16.dp)
+                                tint = OnSurfaceVariant.copy(alpha = 0.4f),
+                                modifier = Modifier.size(20.dp)
                             )
+                        } else {
+                            Icon(
+                                if (checkpoint.isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                null,
+                                tint = OnSurfaceVariant,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable { onToggleExpand() }
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(ErrorContainer.copy(alpha = 0.15f))
+                                    .clickable { onDelete() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    null,
+                                    tint = ErrorRed,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // Expanded properties
+                if (checkpoint.isExpanded && !checkpoint.isOrigin) {
+                    Spacer(Modifier.height(16.dp))
+                    Divider(color = SurfaceContainerHighest)
+                    Spacer(Modifier.height(12.dp))
+                    
+                    Text("Assigned Staff", style = MaterialTheme.typography.labelSmall, color = OutlineVariant)
+                    Spacer(Modifier.height(4.dp))
+                    
+                    var userDropdownExpanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = userDropdownExpanded,
+                        onExpandedChange = { userDropdownExpanded = !userDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = checkpoint.assignedUserName ?: "Not Assigned",
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = userDropdownExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = CoralPrimary,
+                                unfocusedBorderColor = SurfaceContainerHighest
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = userDropdownExpanded,
+                            onDismissRequest = { userDropdownExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("None") },
+                                onClick = {
+                                    onAssignUser(null, null)
+                                    userDropdownExpanded = false
+                                }
+                            )
+                            adminUsers.forEach { user ->
+                                DropdownMenuItem(
+                                    text = { Text(user.full_name ?: user.email) },
+                                    onClick = {
+                                        onAssignUser(user.user_id, user.full_name ?: user.email)
+                                        userDropdownExpanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -758,7 +847,7 @@ private fun CreationSuccessCard(
         ) {
             if (qrBitmap != null) {
                 androidx.compose.foundation.Image(
-                    bitmap = androidx.compose.ui.graphics.asImageBitmap(qrBitmap),
+                    bitmap = qrBitmap.asImageBitmap(),
                     contentDescription = "QR Code",
                     modifier = Modifier.fillMaxSize()
                 )

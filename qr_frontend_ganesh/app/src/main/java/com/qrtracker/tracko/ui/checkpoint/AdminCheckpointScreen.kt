@@ -115,6 +115,8 @@ fun AdminCheckpointScreen(navController: NavController) {
     val scanViewModel = remember { com.qrtracker.tracko.viewmodel.ScanViewModel(tokenManager) }
     val scanState by scanViewModel.scanState.collectAsState()
 
+    var manualParcelId by remember { mutableStateOf("") }
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
     var uiState by remember { mutableStateOf<CheckpointUiState>(CheckpointUiState.Idle) }
 
     // Sync ScanViewModel state to CheckpointUiState
@@ -122,7 +124,7 @@ fun AdminCheckpointScreen(navController: NavController) {
         when (val state = scanState) {
             is com.qrtracker.tracko.viewmodel.ScanState.Loading -> uiState = CheckpointUiState.Loading
             is com.qrtracker.tracko.viewmodel.ScanState.Success -> {
-                val status = when (state.result.result) {
+                val status = when (state.scanResponse.result) {
                     "valid" -> ScanStatus.RECEIVED
                     "duplicate" -> ScanStatus.DUPLICATE
                     else -> ScanStatus.MISPLACED
@@ -140,9 +142,6 @@ fun AdminCheckpointScreen(navController: NavController) {
             else -> {}
         }
     }
-
-    var manualParcelId by remember { mutableStateOf("") }
-    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA)
 
     // Compute stats from dashboard state
     val stats = remember(dashboardState) {

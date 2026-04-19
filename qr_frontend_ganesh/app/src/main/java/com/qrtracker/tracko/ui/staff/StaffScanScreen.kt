@@ -53,12 +53,12 @@ fun StaffScanScreen(navController: NavController) {
 
     LaunchedEffect(scanState) {
         if (scanState is com.qrtracker.tracko.viewmodel.ScanState.Success) {
-            val result = (scanState as com.qrtracker.tracko.viewmodel.ScanState.Success).result
+            val result = (scanState as com.qrtracker.tracko.viewmodel.ScanState.Success).scanResponse
             navController.navigate(
                 Routes.staffScanResult(
-                    orderId = result.package_id,
+                    orderId = result.package_description,
                     status = result.result, // e.g. "valid", "misplaced", "duplicate"
-                    currentCheckpoint = result.checkpoint_name,
+                    currentCheckpoint = "Checkpoint Hub",
                     nextCheckpoint = "N/A" // Real logic can compute next
                 )
             ) { launchSingleTop = true }
