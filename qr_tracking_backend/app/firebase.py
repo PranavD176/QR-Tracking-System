@@ -28,19 +28,30 @@ def verify_token(id_token):
 
 import firebase_admin
 from firebase_admin import credentials, messaging
+import json
 
 # Initialize Firebase Admin for FCM Push Notifications
 # This uses the modern HTTP v1 API which is required since Legacy is dead.
 try:
-    # Look for the JSON file in the same directory or project root
-    cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "qr-based-tracking--system-6da0041c1786.json")
-    if os.path.exists(cred_path):
-        cred = credentials.Certificate(cred_path)
-        # Avoid initializing the app multiple times in FastAPI reloads
+    # First try reading directly from a JSON string env variable (best for Railway)
+    firebase_json_str = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    
+    if firebase_json_str:
+        cred_dict = json.loads(firebase_json_str)
+        cred = credentials.Certificate(cred_dict)
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
+            print("Firebase initialized from JSON environment variable.")
     else:
-        print(f"Warning: Firebase credentials file not found at {cred_path}. Push notifications will not send.")
+        # Fallback to looking for the JSON file path
+        cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "qr-based-tracking--system-6da0041c1786.json")
+        if os.path.exists(cred_path):
+            cred = credentials.Certificate(cred_path)
+            if not firebase_admin._apps:
+                firebase_admin.initialize_app(cred)
+                print("Firebase initialized from credentials file.")
+        else:
+            print(f"Warning: Firebase credentials not found (checked env and file {cred_path}). Push notifications will not send.")
 except Exception as e:
     print(f"Failed to initialize Firebase Admin: {e}")
 
