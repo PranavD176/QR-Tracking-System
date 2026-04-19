@@ -42,3 +42,25 @@ def get_all_alerts(
         "data": enriched_alerts,
         "error": None
     }
+
+
+@router.get("/admin/users")
+def get_all_users(
+    user=Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    users = db.query(User).all()
+    user_list = []
+    for u in users:
+        user_list.append({
+            "user_id": u.user_id,
+            "email": u.email,
+            "full_name": u.full_name,
+            "role": u.role
+        })
+    
+    return {
+        "success": True,
+        "data": user_list,
+        "error": None
+    }

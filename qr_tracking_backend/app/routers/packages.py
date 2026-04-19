@@ -5,6 +5,7 @@ from app.models.package import Package
 from app.models.scan import ScanHistory
 from app.models.user import User
 from app.schemas import PackageCreate
+from app.firebase import send_push_notification
 from typing import Optional
 
 router = APIRouter()
@@ -17,6 +18,8 @@ def _serialize_package(pkg: Package) -> dict:
         "description": pkg.description,
         "status": pkg.status,
         "owner_id": pkg.owner_id,
+        "destination_user_id": pkg.destination_user_id,
+        "destination_address": pkg.destination_address,
         "qr_payload": f"QR_TRACKING:{pkg.package_id}",
         "created_at": pkg.created_at.isoformat() if pkg.created_at else None,
     }
@@ -26,11 +29,22 @@ def _serialize_package(pkg: Package) -> dict:
 def create_package(data: PackageCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     package = Package(
         owner_id=user["uid"],
-        description=data.description
+        description=data.description,
+        destination_user_id=data.destination_user_id,
+        destination_address=data.destination_address
     )
     db.add(package)
     db.commit()
     db.refresh(package)
+
+    if data.destination_user_id:
+        destination_user = db.query(User).filter(User.user_id == data.destination_user_id).first()
+        if destination_user and destination_user.fcm_token:
+            send_push_notification(
+                destination_user.fcm_token,
+                "Package assigned to you",
+                f"A new package '{data.description}' has been assigned to you for delivery to {data.destination_address or 'Unknown address'}."
+            )
 
     return {
         "success": True,
