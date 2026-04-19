@@ -787,10 +787,19 @@ private fun CreationSuccessCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            val context = LocalContext.current
             SecondaryActionButton(
                 text = "Share",
                 icon = Icons.Outlined.Share,
-                onClick = { /* TODO */ },
+                onClick = {
+                    val sendIntent: android.content.Intent = android.content.Intent().apply {
+                        action = android.content.Intent.ACTION_SEND
+                        putExtra(android.content.Intent.EXTRA_TEXT, "Here is the Tracking ID for the package: $qrPayload")
+                        type = "text/plain"
+                    }
+                    val shareIntent = android.content.Intent.createChooser(sendIntent, "Share Tracking ID")
+                    context.startActivity(shareIntent)
+                },
                 modifier = Modifier.weight(1f)
             )
             GradientButton(
