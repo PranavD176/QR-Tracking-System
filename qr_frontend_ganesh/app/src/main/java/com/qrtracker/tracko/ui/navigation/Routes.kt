@@ -47,9 +47,12 @@ object Routes {
     fun scanResult(
         result: String,
         packageDesc: String,
-        ownerName: String,
+        ownerName: String?,
         alertSent: Boolean
-    ) = "scan_result/$result/$packageDesc/$ownerName/$alertSent"
+    ): String {
+        val safeOwner = ownerName ?: "Unknown"
+        return "scan_result/$result/$packageDesc/$safeOwner/$alertSent"
+    }
 
     fun logisticsDashboard(packageId: String) = "logistics_dashboard/$packageId"
 
