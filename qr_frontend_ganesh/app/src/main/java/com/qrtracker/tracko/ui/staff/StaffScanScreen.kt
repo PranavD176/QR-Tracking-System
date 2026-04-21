@@ -88,8 +88,7 @@ fun StaffScanScreen(navController: NavController) {
                 onBarcodeDetected = { rawValue ->
                     if (!hasProcessedScan) {
                         hasProcessedScan = true
-                        val prefix = "QR_TRACKING:"
-                        val cleanId = if (rawValue.startsWith(prefix)) rawValue.substring(prefix.length) else rawValue
+                        val cleanId = com.qrtracker.tracko.utils.QRParser.extractPackageId(rawValue) ?: rawValue
                         scanViewModel.submitScan(cleanId, "Staff Mobile Scanner")
                     }
                 },

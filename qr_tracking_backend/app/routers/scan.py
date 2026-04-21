@@ -35,7 +35,18 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
                         is_authorized = True
                         break
 
-        result = "valid" if is_authorized else "misplaced"
+        intended_result = "valid" if is_authorized else "misplaced"
+
+        # Prevent duplicate scans
+        last_scan = db.query(ScanHistory).filter(
+            ScanHistory.package_id == package.package_id,
+            ScanHistory.result != "duplicate"
+        ).order_by(ScanHistory.scanned_at.desc()).first()
+
+        if last_scan and last_scan.result == intended_result and last_scan.location_description == data.location_description:
+            result = "duplicate"
+        else:
+            result = intended_result
 
         scan_entry = ScanHistory(
             package_id=package.package_id,
@@ -47,7 +58,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         alert_sent = False
 
-        if not is_authorized:
+        if not is_authorized and result != "duplicate":
             alert = Alert(
                 package_id=package.package_id,
                 recipient_id=package.owner_id,

@@ -48,7 +48,8 @@ class ScanViewModel(
                     } else if (response.code() == 404) {
                         _scanState.value = ScanState.Error("Invalid QR code — package not found.")
                     } else {
-                        val errorMsg = response.body()?.error ?: "Scan failed"
+                        val errorBodyString = response.errorBody()?.string()
+                        val errorMsg = response.body()?.error ?: "Code: ${response.code()}, Body: $errorBodyString"
                         _scanState.value = ScanState.Error(errorMsg)
                     }
                 }
