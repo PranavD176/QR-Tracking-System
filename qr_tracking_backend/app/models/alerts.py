@@ -10,6 +10,7 @@ class Alert(Base):
     package_id = Column(String, ForeignKey("packages.package_id"))
     recipient_id = Column(String, ForeignKey("users.user_id"))
     scanned_by_id = Column(String, ForeignKey("users.user_id"))
+    alert_type = Column(String, default="misplaced")  # misplaced | handoff
     status = Column(Enum("sent", "acknowledged", name="alert_status"), default="sent")
     details = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

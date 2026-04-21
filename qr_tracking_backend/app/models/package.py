@@ -7,10 +7,10 @@ class Package(Base):
     __tablename__ = "packages"
 
     package_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    owner_id = Column(String, ForeignKey("users.user_id"))
-    destination_user_id = Column(String, ForeignKey("users.user_id"), nullable=True)
-    destination_address = Column(String, nullable=True)
-    route_checkpoints = Column(JSON, nullable=True)
+    sender_id = Column(String, ForeignKey("users.user_id"))                # who created it
+    receiver_id = Column(String, ForeignKey("users.user_id"))              # final destination user
+    route_checkpoints = Column(JSON, nullable=True)   # ordered list of user_ids: ["uid1", "uid2"]
+    current_holder_id = Column(String, ForeignKey("users.user_id"), nullable=True)
     description = Column(Text)
-    status = Column(String, default="active")
+    status = Column(String, default="in_transit")      # in_transit | delivered
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

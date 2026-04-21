@@ -1,3 +1,11 @@
+"""
+scan.py — P2P Scan Router
+
+Authorization: sender ∪ receiver ∪ route_checkpoints
+Valid scan → update current_holder, notify next person
+Scanner == receiver → mark delivered, notify sender
+Misplaced → alert both sender AND receiver
+"""
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.dependencies import get_current_user, get_db
@@ -19,21 +27,17 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
         if not package:
             return {"success": False, "data": None, "error": "Package not found"}
 
-        is_owner = package.owner_id == user["uid"]
-        
-        # Check if the user is authorized to scan without triggering a misplaced alert
-        is_authorized = False
-        if is_owner:
-            is_authorized = True
-        elif package.destination_user_id == user["uid"]:
-            is_authorized = True
-        else:
-            # Check if user is assigned to any checkpoint
-            if package.route_checkpoints:
-                for cp in package.route_checkpoints:
-                    if cp.get("assigned_user_id") == user["uid"]:
-                        is_authorized = True
-                        break
+        # Build authorized set: sender + receiver + all checkpoint user_ids
+        authorized_ids = set()
+        authorized_ids.add(package.sender_id)
+        if package.receiver_id:
+            authorized_ids.add(package.receiver_id)
+        if package.route_checkpoints:
+            authorized_ids.update(package.route_checkpoints)  # now just a list of user_ids
+
+        is_authorized = user["uid"] in authorized_ids
+        is_sender = package.sender_id == user["uid"]
+        is_receiver = package.receiver_id == user["uid"]
 
         intended_result = "valid" if is_authorized else "misplaced"
 
@@ -58,32 +62,58 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         alert_sent = False
 
-        if not is_authorized and result != "duplicate":
-            alert = Alert(
-                package_id=package.package_id,
-                recipient_id=package.owner_id,
-                scanned_by_id=user["uid"],
-                details=data.location_description
-            )
-            db.add(alert)
+        if is_authorized and result != "duplicate":
+            # ── Valid scan ─────────────────────────────────────────────
+            # Update current holder
+            package.current_holder_id = user["uid"]
 
-            owner = db.query(User).filter_by(user_id=package.owner_id).first()
+            if is_receiver:
+                # Receiver scanned → mark delivered, notify sender
+                package.status = "delivered"
+                sender = db.query(User).filter_by(user_id=package.sender_id).first()
+                if sender and sender.fcm_token:
+                    try:
+                        send_push_notification(
+                            sender.fcm_token,
+                            "Parcel Delivered ✅",
+                            f"Your package '{package.description}' has been received!"
+                        )
+                    except Exception as e:
+                        print(f"Error sending push: {e}")
+            else:
+                # Checkpoint or sender scan → notify next in chain
+                _notify_next_in_chain(package, user["uid"], db)
 
-            if owner and owner.fcm_token:
-                try:
-                    send_push_notification(
-                        owner.fcm_token,
-                        "Package Alert 🚨",
-                        f"Your package was scanned at {data.location_description}"
+        elif not is_authorized and result != "duplicate":
+            # ── Misplaced scan ─────────────────────────────────────────
+            # Alert BOTH sender AND receiver
+            for recipient_id in [package.sender_id, package.receiver_id]:
+                if recipient_id:
+                    alert = Alert(
+                        package_id=package.package_id,
+                        recipient_id=recipient_id,
+                        scanned_by_id=user["uid"],
+                        alert_type="misplaced",
+                        details=data.location_description
                     )
-                except Exception as e:
-                    print(f"Error sending push notification: {e}")
+                    db.add(alert)
+
+                    recipient = db.query(User).filter_by(user_id=recipient_id).first()
+                    if recipient and recipient.fcm_token:
+                        try:
+                            send_push_notification(
+                                recipient.fcm_token,
+                                "Package Alert 🚨",
+                                f"Your package was scanned by an unauthorized person at {data.location_description}"
+                            )
+                        except Exception as e:
+                            print(f"Error sending push notification: {e}")
 
             alert_sent = True
 
         db.commit()
 
-        owner = db.query(User).filter_by(user_id=package.owner_id).first()
+        sender = db.query(User).filter_by(user_id=package.sender_id).first()
         scanner = db.query(User).filter_by(user_id=user["uid"]).first()
 
         return {
@@ -91,9 +121,10 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
             "data": {
                 "result": result,
                 "package_description": package.description or "",
-                "owner_name": owner.full_name if owner else "Unknown",
+                "sender_name": sender.full_name if sender else "Unknown",
                 "alert_sent": alert_sent,
-                "scanned_by": scanner.full_name if scanner and not is_owner else None,
+                "scanned_by": scanner.full_name if scanner and not is_sender else None,
+                "status": package.status,
             },
             "error": None
         }
@@ -101,4 +132,30 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
         import traceback
         traceback.print_exc()
         db.rollback()
-        return {"success": False, "data": None, "error": f"Server Error: {str(e)}"}
+        return {"success": False, "data": None, "error": f"Server Error: {str(e)}"}
+
+
+def _notify_next_in_chain(package: Package, scanner_uid: str, db: Session):
+    """
+    Notify the next person in the route chain.
+    Chain order: sender → checkpoint_1 → checkpoint_2 → ... → receiver
+    """
+    chain = [package.sender_id]
+    if package.route_checkpoints:
+        chain.extend(package.route_checkpoints)
+    if package.receiver_id:
+        chain.append(package.receiver_id)
+
+    try:
+        current_idx = chain.index(scanner_uid)
+        if current_idx + 1 < len(chain):
+            next_uid = chain[current_idx + 1]
+            next_user = db.query(User).filter_by(user_id=next_uid).first()
+            if next_user and next_user.fcm_token:
+                send_push_notification(
+                    next_user.fcm_token,
+                    "Parcel on its way 🚚",
+                    f"Package '{package.description}' is heading to you next!"
+                )
+    except (ValueError, IndexError):
+        pass  # scanner not in chain or no next person

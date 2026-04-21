@@ -13,23 +13,14 @@ import androidx.navigation.navArgument
 import com.qrtracker.tracko.ui.auth.LoginScreen
 import com.qrtracker.tracko.ui.auth.UserProfileScreen
 import com.qrtracker.tracko.ui.auth.RegisterScreen
-import com.qrtracker.tracko.ui.alerts.AdminAlertScreen
 import com.qrtracker.tracko.ui.alerts.AlertFeedScreen
 import com.qrtracker.tracko.ui.alerts.AppAlertsScreen
-import com.qrtracker.tracko.ui.admin.AdminProfileScreen
-import com.qrtracker.tracko.ui.checkpoint.AdminCheckpointScreen
-import com.qrtracker.tracko.ui.checkpoint.CheckpointProfileScreen
-import com.qrtracker.tracko.ui.packages.AdminPackagesScreen
 import com.qrtracker.tracko.ui.packages.CreatePackageScreen
 import com.qrtracker.tracko.ui.packages.LogisticsDashboardScreen
 import com.qrtracker.tracko.ui.packages.PackageDetailScreen
 import com.qrtracker.tracko.ui.packages.PackageListScreen
 import com.qrtracker.tracko.ui.scan.ScanResultScreen
 import com.qrtracker.tracko.ui.scan.ScanScreen
-import com.qrtracker.tracko.ui.staff.StaffHomeScreen
-import com.qrtracker.tracko.ui.staff.StaffScanScreen
-import com.qrtracker.tracko.ui.staff.StaffScanResultScreen
-import com.qrtracker.tracko.ui.staff.StaffHistoryScreen
 import com.qrtracker.tracko.utils.TokenManager
 
 @Composable
@@ -83,10 +74,9 @@ fun NavGraph(
             )
         }
 
-
-
-        composable(Routes.ADMIN_CREATE_PACKAGE) {
-            CreatePackageScreen(navController = navController, isAdminFlow = true)
+        // ── Create Package (any user) ────────────────────────────────────────
+        composable(Routes.CREATE_PACKAGE) {
+            CreatePackageScreen(navController = navController)
         }
 
         // ── Scanner ───────────────────────────────────────────────────────────
@@ -99,32 +89,27 @@ fun NavGraph(
             arguments = listOf(
                 navArgument("result")      { type = NavType.StringType  },
                 navArgument("packageDesc") { type = NavType.StringType  },
-                navArgument("ownerName")   { type = NavType.StringType  },
+                navArgument("senderName")  { type = NavType.StringType  },
                 navArgument("alertSent")   { type = NavType.BoolType    }
             )
         ) { backStackEntry ->
             val result      = backStackEntry.arguments?.getString("result")      ?: ""
             val packageDesc = backStackEntry.arguments?.getString("packageDesc") ?: ""
-            val ownerName   = backStackEntry.arguments?.getString("ownerName")   ?: ""
+            val senderName  = backStackEntry.arguments?.getString("senderName")  ?: ""
             val alertSent   = backStackEntry.arguments?.getBoolean("alertSent")  ?: false
 
             ScanResultScreen(
                 navController = navController,
                 result        = result,
                 packageDesc   = packageDesc,
-                ownerName     = ownerName,
+                ownerName     = senderName,
                 alertSent     = alertSent
             )
         }
 
-        // ── User Alerts (bottom nav for users) ────────────────────────────────
+        // ── User Alerts (bottom nav) ──────────────────────────────────────────
         composable(Routes.ALERTS) {
             AlertFeedScreen(navController = navController)
-        }
-
-        // ── Admin Alerts (bottom nav for admin) ───────────────────────────────
-        composable(Routes.ADMIN_ALERTS) {
-            AdminAlertScreen(navController = navController)
         }
 
         // ── App Alerts (system notifications, from bell icon) ─────────────────
@@ -132,24 +117,7 @@ fun NavGraph(
             AppAlertsScreen(navController = navController)
         }
 
-        // ── Admin Checkpoint (main landing for admin) ─────────────────────────
-        composable(Routes.ADMIN_CHECKPOINT) {
-            AdminCheckpointScreen(navController = navController)
-        }
-
-        composable(Routes.ADMIN_PACKAGES) {
-            AdminPackagesScreen(navController = navController)
-        }
-
-        composable(Routes.ADMIN_PROFILE) {
-            AdminProfileScreen(navController = navController)
-        }
-
-        composable(Routes.CHECKPOINT_PROFILE) {
-            CheckpointProfileScreen(navController = navController)
-        }
-
-        // ── Admin Logistics Dashboard ──────────────────────────────────────────
+        // ── Logistics Dashboard ───────────────────────────────────────────────
         composable(
             route = Routes.LOGISTICS_DASHBOARD,
             arguments = listOf(
@@ -161,41 +129,6 @@ fun NavGraph(
                 navController = navController,
                 packageId     = packageId
             )
-        }
-
-        // ── Checkpoint Staff ───────────────────────────────────────────────────
-        composable(Routes.STAFF_HOME) {
-            StaffHomeScreen(navController = navController)
-        }
-
-        composable(Routes.STAFF_SCAN) {
-            StaffScanScreen(navController = navController)
-        }
-
-        composable(
-            route = Routes.STAFF_SCAN_RESULT,
-            arguments = listOf(
-                navArgument("orderId")           { type = NavType.StringType },
-                navArgument("status")            { type = NavType.StringType },
-                navArgument("currentCheckpoint") { type = NavType.StringType },
-                navArgument("nextCheckpoint")    { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val orderId           = backStackEntry.arguments?.getString("orderId")           ?: ""
-            val status            = backStackEntry.arguments?.getString("status")            ?: "success"
-            val currentCheckpoint = backStackEntry.arguments?.getString("currentCheckpoint") ?: ""
-            val nextCheckpoint    = backStackEntry.arguments?.getString("nextCheckpoint")    ?: ""
-            StaffScanResultScreen(
-                navController     = navController,
-                orderId           = orderId,
-                status            = status,
-                currentCheckpoint = currentCheckpoint,
-                nextCheckpoint    = nextCheckpoint
-            )
-        }
-
-        composable(Routes.STAFF_HISTORY) {
-            StaffHistoryScreen(navController = navController)
         }
     }
 }

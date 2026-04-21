@@ -47,8 +47,8 @@ fun PackageDetailScreen(
 
     // Package detail state from API
     var pkgDescription by remember { mutableStateOf("Loading...") }
-    var pkgTrackingId by remember { mutableStateOf(packageId.take(12)) }
-    var pkgStatus by remember { mutableStateOf("active") }
+    var pkgTrackingId by remember { mutableStateOf(if (packageId.length > 16) packageId.take(8) + "..." + packageId.takeLast(4) else packageId) }
+    var pkgStatus by remember { mutableStateOf("in_transit") }
     var pkgCreatedAt by remember { mutableStateOf("") }
 
     // Scan history from API
@@ -67,7 +67,10 @@ fun PackageDetailScreen(
                 .firstOrNull { it.package_id == packageId }
             if (pkg != null) {
                 pkgDescription = pkg.description
-                pkgTrackingId = pkg.qr_payload ?: pkg.package_id.take(12)
+                pkgTrackingId = run {
+                    val fullId = pkg.qr_payload ?: pkg.package_id
+                    if (fullId.length > 16) fullId.take(8) + "..." + fullId.takeLast(4) else fullId
+                }
                 pkgStatus = pkg.status
                 pkgCreatedAt = pkg.created_at ?: ""
             }
@@ -204,11 +207,13 @@ fun PackageDetailScreen(
                         ) {
                             Text(
                                 text = pkgTrackingId,
-                                style = MaterialTheme.typography.headlineSmall.copy(
+                                style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp
                                 ),
-                                color = OnSurface
+                                color = OnSurface,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )
                             IconButton(
                                 onClick = { /* TODO: Copy to clipboard */ },
@@ -275,11 +280,13 @@ fun PackageDetailScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "QR_TRACKING:$packageId",
+                            text = "QR_TRACKING:${if (packageId.length > 16) packageId.take(8) + "..." else packageId}",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.Medium
                             ),
-                            color = OnSurfaceVariant
+                            color = OnSurfaceVariant,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
                 }

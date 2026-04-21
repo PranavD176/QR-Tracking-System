@@ -21,15 +21,20 @@ interface ApiService {
     ): Response<AuthResponse>
 
     // Protected — sends FCM token to backend after login
-    // JWT is auto-attached by interceptor, no @Header needed
     @POST("auth/device-token")
     suspend fun registerDeviceToken(
         @Body request: DeviceTokenRequest
     ): Response<UpdatedResponse>
 
+    // Protected — get all users for picking receiver/intermediates
+    @GET("auth/users")
+    suspend fun getUsers(
+        @Query("search") search: String? = null
+    ): Response<ApiResponse<List<UserResponse>>>
+
     // ─── PACKAGE ENDPOINTS ───────────────────────────────────────────
 
-    // Protected — returns all packages owned by logged-in user
+    // Protected — returns packages where user is sender, receiver, or checkpoint
     @GET("packages")
     suspend fun getPackages(
         @Query("status") status: String? = null,
@@ -37,7 +42,7 @@ interface ApiService {
         @Query("offset") offset: Int = 0
     ): Response<ApiResponse<List<PackageResponse>>>
 
-    // Protected — create a new package
+    // Protected — create a new package (any user)
     @POST("packages")
     suspend fun createPackage(
         @Body request: CreatePackageRequest
@@ -48,6 +53,25 @@ interface ApiService {
     suspend fun getPackageScans(
         @Path("package_id") packageId: String
     ): Response<ApiResponse<List<ScanHistoryResponse>>>
+
+    // Protected — receiver can accept a pending package
+    @PUT("packages/{package_id}/accept")
+    suspend fun acceptPackage(
+        @Path("package_id") packageId: String
+    ): Response<ApiResponse<PackageResponse>>
+
+    // Protected — receiver can reject a pending package
+    @PUT("packages/{package_id}/reject")
+    suspend fun rejectPackage(
+        @Path("package_id") packageId: String
+    ): Response<ApiResponse<PackageResponse>>
+
+    // Protected — sender can modify route checkpoints
+    @PUT("packages/{package_id}/checkpoints")
+    suspend fun updateCheckpoints(
+        @Path("package_id") packageId: String,
+        @Body checkpoints: Map<String, List<String>>
+    ): Response<ApiResponse<PackageResponse>>
 
     // ─── SCAN ENDPOINT ───────────────────────────────────────────────
 
@@ -72,19 +96,9 @@ interface ApiService {
         @Path("alert_id") alertId: String
     ): Response<ApiResponse<AcknowledgeResponse>>
 
-    // ─── ADMIN ENDPOINTS ─────────────────────────────────────────────
+    // ─── DASHBOARD ───────────────────────────────────────────────────
 
-    // Protected + Admin role only — get all unacknowledged alerts system-wide
-    @GET("admin/alerts")
-    suspend fun getAdminAlerts(
-        @Query("status") status: String? = null
-    ): Response<ApiResponse<List<AdminAlertResponse>>>
-
-    // Protected + Admin role only — get all users
-    @GET("admin/users")
-    suspend fun getAdminUsers(): Response<ApiResponse<List<UserResponse>>>
-
-    // Protected + Admin role only — get admin dashboard stats
-    @GET("admin/dashboard")
-    suspend fun getAdminDashboard(): Response<ApiResponse<DashboardResponse>>
+    // Protected — personal dashboard (scoped to current user)
+    @GET("dashboard")
+    suspend fun getDashboard(): Response<ApiResponse<DashboardResponse>>
 }

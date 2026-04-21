@@ -1,13 +1,11 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel
 
 
 class UserCreate(BaseModel):
-    """Schema for user registration — replaces firebase_uid with password."""
+    """Schema for user registration — P2P, no role needed."""
     email: str
     password: str
     full_name: str
-    role: Optional[str] = "user"
 
 
 class LoginRequest(BaseModel):

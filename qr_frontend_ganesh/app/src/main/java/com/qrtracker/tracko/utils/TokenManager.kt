@@ -45,20 +45,6 @@ class TokenManager(private val context: Context) {
         return prefs.getString(KEY_TOKEN, null)
     }
 
-    // ─── USER ROLE ───────────────────────────────────────────────────
-
-    fun saveRole(role: String) {
-        prefs.edit().putString(KEY_ROLE, role).apply()
-    }
-
-    fun getRole(): String? {
-        return prefs.getString(KEY_ROLE, null)
-    }
-
-    fun isAdmin(): Boolean {
-        return getRole() == "admin"
-    }
-
     // ─── USER ID ─────────────────────────────────────────────────────
 
     fun saveUserId(userId: String) {
@@ -87,6 +73,16 @@ class TokenManager(private val context: Context) {
 
     fun getEmail(): String? {
         return prefs.getString(KEY_EMAIL, null)
+    }
+
+    // ─── ROLE ─────────────────────────────────────────────────────
+
+    fun saveRole(role: String) {
+        prefs.edit().putString(KEY_ROLE, role).apply()
+    }
+
+    fun getRole(): String? {
+        return prefs.getString(KEY_ROLE, null)
     }
 
     // ─── FCM TOKEN ───────────────────────────────────────────────────
@@ -118,10 +114,10 @@ class TokenManager(private val context: Context) {
 
     companion object {
         private const val KEY_TOKEN = "jwt_token"
-        private const val KEY_ROLE = "user_role"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_FULL_NAME = "full_name"
         private const val KEY_EMAIL = "user_email"
+        private const val KEY_ROLE = "user_role"
         private const val KEY_FCM_TOKEN = "fcm_token"
     }
 }

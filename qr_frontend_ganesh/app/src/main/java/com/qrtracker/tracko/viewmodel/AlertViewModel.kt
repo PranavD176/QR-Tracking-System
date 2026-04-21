@@ -3,7 +3,6 @@ package com.qrtracker.tracko.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qrtracker.tracko.network.RetrofitClient
-import com.qrtracker.tracko.network.models.AdminAlertResponse
 import com.qrtracker.tracko.network.models.AlertResponse
 import com.qrtracker.tracko.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +14,6 @@ sealed class AlertListState {
     object Loading : AlertListState()
     data class Success(val alerts: List<AlertResponse>) : AlertListState()
     data class Error(val message: String) : AlertListState()
-}
-
-sealed class AdminAlertState {
-    object Idle : AdminAlertState()
-    object Loading : AdminAlertState()
-    data class Success(val alerts: List<AdminAlertResponse>) : AdminAlertState()
-    data class Error(val message: String) : AdminAlertState()
 }
 
 sealed class AcknowledgeState {
@@ -41,11 +33,6 @@ class AlertViewModel(
 
     private val _alertListState = MutableStateFlow<AlertListState>(AlertListState.Idle)
     val alertListState: StateFlow<AlertListState> = _alertListState
-
-    // ─── ADMIN ALERT STATE ───────────────────────────────────────────
-
-    private val _adminAlertState = MutableStateFlow<AdminAlertState>(AdminAlertState.Idle)
-    val adminAlertState: StateFlow<AdminAlertState> = _adminAlertState
 
     // ─── ACKNOWLEDGE STATE ───────────────────────────────────────────
 
@@ -100,32 +87,7 @@ class AlertViewModel(
         }
     }
 
-    // ─── FETCH ADMIN ALERTS ──────────────────────────────────────────
-
-    fun fetchAdminAlerts(status: String? = "sent") {
-        viewModelScope.launch {
-            _adminAlertState.value = AdminAlertState.Loading
-
-            try {
-                val response = apiService.getAdminAlerts(status = status)
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val alerts = response.body()!!.data ?: emptyList()
-                    _adminAlertState.value = AdminAlertState.Success(alerts)
-
-                } else {
-                    val errorMsg = response.body()?.error ?: "Failed to fetch admin alerts"
-                    _adminAlertState.value = AdminAlertState.Error(errorMsg)
-                }
-
-            } catch (e: Exception) {
-                _adminAlertState.value = AdminAlertState.Error("Network error: ${e.message}")
-            }
-        }
-    }
-
     fun resetAcknowledgeState() {
         _acknowledgeState.value = AcknowledgeState.Idle
     }
 }
-
