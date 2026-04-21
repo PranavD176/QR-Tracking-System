@@ -1,6 +1,6 @@
-# User model — firebase_uid removed; identity is now user_id (UUID).
+# User model — P2P architecture: no role column, all users are equal.
 # hashed_password added for self-managed bcrypt authentication.
-from sqlalchemy import Column, String, Enum, Text
+from sqlalchemy import Column, String, Text
 from app.database import Base
 import uuid
 
@@ -12,5 +12,4 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(Enum('user', 'admin', name='role_enum'), default='user')
     fcm_token = Column(Text, nullable=True)

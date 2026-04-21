@@ -17,29 +17,14 @@ object Routes {
 
     // ── Scanner ─────────────────────────────────────────────────────────────
     const val SCANNER    = "scanner"
-    const val SCAN_RESULT = "scan_result/{result}/{packageDesc}/{ownerName}/{alertSent}"
+    const val SCAN_RESULT = "scan_result/{result}/{packageDesc}/{senderName}/{alertSent}"
 
     // ── Alerts ──────────────────────────────────────────────────────────────
     const val ALERTS       = "alerts"           // User-facing alert feed
-    const val ADMIN_ALERTS = "admin_alerts"      // Operational admin alerts (bottom nav)
     const val APP_ALERTS   = "app_alerts"        // System notifications (bell icon)
-    const val USER_ALERTS  = "user_alerts"       // User alert screen
 
-    // ── Admin Checkpoint ────────────────────────────────────────────────────
-    const val ADMIN_CHECKPOINT = "admin_checkpoint"
-    const val ADMIN_PACKAGES   = "admin_packages"
-    const val ADMIN_CREATE_PACKAGE = "admin_create_package"
-    const val ADMIN_PROFILE    = "admin_profile"
-    const val CHECKPOINT_PROFILE = "checkpoint_profile"
-
-    // ── Admin Logistics Dashboard ─────────────────────────────────────────
+    // ── Logistics Dashboard ─────────────────────────────────────────────────
     const val LOGISTICS_DASHBOARD = "logistics_dashboard/{packageId}"
-
-    // ── Checkpoint Staff ──────────────────────────────────────────────────
-    const val STAFF_HOME       = "staff_home"
-    const val STAFF_SCAN       = "staff_scan"
-    const val STAFF_SCAN_RESULT = "staff_scan_result/{orderId}/{status}/{currentCheckpoint}/{nextCheckpoint}"
-    const val STAFF_HISTORY    = "staff_history"
 
     // ── Helper functions to build routes with arguments ──────────────────────
     fun packageDetail(packageId: String)  = "package_detail/$packageId"
@@ -47,19 +32,12 @@ object Routes {
     fun scanResult(
         result: String,
         packageDesc: String,
-        ownerName: String?,
+        senderName: String?,
         alertSent: Boolean
     ): String {
-        val safeOwner = ownerName ?: "Unknown"
-        return "scan_result/$result/$packageDesc/$safeOwner/$alertSent"
+        val safeSender = senderName ?: "Unknown"
+        return "scan_result/$result/$packageDesc/$safeSender/$alertSent"
     }
 
     fun logisticsDashboard(packageId: String) = "logistics_dashboard/$packageId"
-
-    fun staffScanResult(
-        orderId: String,
-        status: String,
-        currentCheckpoint: String,
-        nextCheckpoint: String
-    ) = "staff_scan_result/$orderId/$status/$currentCheckpoint/$nextCheckpoint"
 }

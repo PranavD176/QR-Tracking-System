@@ -72,12 +72,7 @@ fun LoginScreen(navController: NavController) {
     LaunchedEffect(authState) {
         when (val state = authState) {
             is AuthState.Success -> {
-                val route = when (state.role) {
-                    "admin" -> Routes.ADMIN_CHECKPOINT
-                    "checkpoint" -> Routes.STAFF_HOME
-                    else -> Routes.HOME
-                }
-                navController.navigate(route) {
+                navController.navigate(Routes.HOME) {
                     popUpTo(Routes.LOGIN) { inclusive = true }
                 }
                 authViewModel.resetState()

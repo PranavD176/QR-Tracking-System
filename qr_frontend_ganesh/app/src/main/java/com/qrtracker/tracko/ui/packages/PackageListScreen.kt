@@ -53,6 +53,7 @@ data class PackageItem(
     val packageId   : String,
     val description : String,
     val trackingId  : String = "",
+    val shortId     : String = "",
     val status      : String,
     val createdAt   : String,
     val progress    : Float = 0f,
@@ -103,22 +104,25 @@ fun PackageListScreen(
             }
             is PackageListState.Success -> {
                 val items = state.packages.map { pkg ->
+                    val fullId = pkg.qr_payload ?: pkg.package_id
+                    val displayId = if (fullId.length > 16) fullId.take(8) + "..." + fullId.takeLast(4) else fullId
                     PackageItem(
                         packageId = pkg.package_id,
                         description = pkg.description,
-                        trackingId = pkg.qr_payload ?: pkg.package_id.take(12),
+                        trackingId = fullId,
+                        shortId = displayId,
                         status = pkg.status,
                         createdAt = pkg.created_at ?: "",
                         progress = when (pkg.status) {
-                            "completed" -> 1f
+                            "delivered" -> 1f
                             "misplaced" -> 0.45f
                             else -> 0.6f
                         },
                         lastCheckpoint = pkg.description
                     )
                 }
-                val activeCount = items.count { it.status == "active" }
-                val completedCount = items.count { it.status == "completed" }
+                val activeCount = items.count { it.status == "in_transit" }
+                val completedCount = items.count { it.status == "delivered" }
                 uiState = uiState.copy(
                     packages = items,
                     inTransit = activeCount,
@@ -137,7 +141,7 @@ fun PackageListScreen(
     val displayedPackages = remember(uiState.packages, uiState.searchQuery, uiState.showAll) {
         uiState.packages
             .filter {
-                if (uiState.showAll) true else it.status.equals("active", ignoreCase = true)
+                if (uiState.showAll) true else it.status.equals("in_transit", ignoreCase = true)
             }
             .filter {
                 val query = uiState.searchQuery.trim()
@@ -186,6 +190,17 @@ fun PackageListScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Surface,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Routes.CREATE_PACKAGE) { launchSingleTop = true } },
+                containerColor = CoralPrimary,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Create Parcel")
+            }
+        },
         bottomBar = {
             BottomNavBar(
                 items = listOf(
@@ -428,7 +443,7 @@ private fun PackageCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isCompleted = pkg.status == "completed"
+    val isCompleted = pkg.status == "delivered"
     val isMisplaced = pkg.status == "misplaced"
 
     Box(
@@ -472,9 +487,11 @@ private fun PackageCard(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "ID: ${pkg.trackingId}",
+                        text = "ID: ${pkg.shortId}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = OnSurfaceVariant
+                        color = OnSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Spacer(Modifier.width(12.dp))

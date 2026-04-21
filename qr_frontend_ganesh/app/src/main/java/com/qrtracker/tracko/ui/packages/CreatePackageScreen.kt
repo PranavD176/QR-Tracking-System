@@ -12,11 +12,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
@@ -25,11 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -38,67 +37,49 @@ import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.CreatePackageState
-import com.qrtracker.tracko.viewmodel.AdminUsersState
-import androidx.compose.ui.platform.LocalContext
+import com.qrtracker.tracko.viewmodel.UsersState
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  Create Package — Admin-Only screen
-//  Pixel-accurate to: stitch_qr_tracker_app_ui create package design
-//  Backend-ready: replace mock data with ViewModel when API is available
+//  Create Package — P2P: any user can send a parcel to any other user
 // ══════════════════════════════════════════════════════════════════════════════
 
-// ── State holders (ViewModel-ready) ──────────────────────────────────────────
 data class CreatePackageUiState(
-    val companyName     : String   = "",
-    val orderId         : String   = "",
-    val pickupAddress   : String   = "",
-    val customerName    : String   = "",
-    val destinationUserId: String? = null,
-    val isDropdownExpanded: Boolean = false,
-    val deliveryAddress : String   = "",
-    val checkpoints     : List<RouteCheckpoint> = listOf(
-        RouteCheckpoint("Austin Distribution Center", isOrigin = true),
-        RouteCheckpoint("Dallas Sorting Hub"),
-    ),
-    val isLoading       : Boolean  = false,
-    val error           : String?  = null,
-    val createdPackageId: String?  = null,
-    val createdQrPayload: String?  = null
+    val description           : String  = "",
+    val receiverName          : String  = "",
+    val receiverId            : String? = null,
+    val isReceiverDropdown    : Boolean = false,
+    val intermediates         : List<IntermediateUser> = emptyList(),
+    val isIntDropdown         : Boolean = false,
+    val isLoading             : Boolean = false,
+    val error                 : String? = null,
+    val createdPackageId      : String? = null,
+    val createdQrPayload      : String? = null
 )
 
-data class RouteCheckpoint(
-    val name: String,
-    val isOrigin: Boolean = false,
-    val isDestination: Boolean = false,
-    val isExpanded: Boolean = false,
-    val assignedUserId: String? = null,
-    val assignedUserName: String? = null
+data class IntermediateUser(
+    val userId: String,
+    val name: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePackageScreen(
-    navController: NavController,
-    isAdminFlow: Boolean = false
-) {
+fun CreatePackageScreen(navController: NavController) {
     var uiState           by remember { mutableStateOf(CreatePackageUiState()) }
     val context           = LocalContext.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
     val packageViewModel  = remember { PackageViewModel(tokenManager) }
     val createState by packageViewModel.createPackageState.collectAsState()
-    val usersState by packageViewModel.adminUsersState.collectAsState()
+    val usersState by packageViewModel.usersState.collectAsState()
     val focusManager      = LocalFocusManager.current
     val scrollState       = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // ── Fetch users on load ────────────────────────────────────────────
+    // Fetch users on load
     LaunchedEffect(Unit) {
-        if (isAdminFlow) {
-            packageViewModel.fetchAdminUsers()
-        }
+        packageViewModel.fetchUsers()
     }
 
-    // ── Observe create package state ───────────────────────────────────
+    // Observe create package state
     LaunchedEffect(createState) {
         when (val state = createState) {
             is CreatePackageState.Success -> {
@@ -119,7 +100,7 @@ fun CreatePackageScreen(
         }
     }
 
-    // ── Show error in snackbar ───────────────────────────────────────────────
+    // Show error in snackbar
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it)
@@ -131,7 +112,6 @@ fun CreatePackageScreen(
         snackbarHost   = { SnackbarHost(snackbarHostState) },
         containerColor = Surface,
         topBar = {
-            // ── Glass Top Bar ────────────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -153,7 +133,7 @@ fun CreatePackageScreen(
                     }
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        "QR Tracker",
+                        "New Parcel",
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontFamily = PlusJakartaSans,
                             fontWeight = FontWeight.Bold,
@@ -168,9 +148,7 @@ fun CreatePackageScreen(
                         .clip(CircleShape)
                         .background(SurfaceContainerHigh)
                         .clickable {
-                            if (isAdminFlow) {
-                                navController.navigate(Routes.ADMIN_ALERTS) { launchSingleTop = true }
-                            }
+                            navController.navigate(Routes.ALERTS) { launchSingleTop = true }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -179,21 +157,14 @@ fun CreatePackageScreen(
             }
         },
         bottomBar = {
-            // ── Admin Bottom Nav only ────────────────────────────────────────
-            val navItems = listOf(
-                NavItem("Home", Icons.Default.Home, Routes.ADMIN_CHECKPOINT),
-                NavItem(
-                    label = "New",
-                    route = Routes.ADMIN_CREATE_PACKAGE,
-                    iconContent = { isSelected -> AdminCreateNavIcon(isSelected) }
-                ),
-                NavItem("Track", Icons.Default.LocalShipping, Routes.ADMIN_PACKAGES),
-                NavItem("Settings", Icons.Default.Settings, Routes.ADMIN_PROFILE),
-            )
-
             BottomNavBar(
-                items = navItems,
-                currentRoute = Routes.ADMIN_CREATE_PACKAGE,
+                items = listOf(
+                    NavItem("Home", Icons.Default.Home, Routes.HOME),
+                    NavItem("Scan", Icons.Default.QrCodeScanner, Routes.SCANNER),
+                    NavItem("Packages", Icons.Default.Inventory2, Routes.PACKAGE_LIST),
+                    NavItem("Alerts", Icons.Default.Notifications, Routes.ALERTS),
+                ),
+                currentRoute = Routes.CREATE_PACKAGE,
                 onItemClick = { route ->
                     navController.navigate(route) { launchSingleTop = true }
                 }
@@ -211,18 +182,19 @@ fun CreatePackageScreen(
         ) {
             Spacer(Modifier.height(24.dp))
 
-            // ── Show success state after creation ────────────────────────────
+            // Show success state after creation
             if (uiState.createdPackageId != null) {
                 CreationSuccessCard(
                     packageId  = uiState.createdPackageId!!,
                     qrPayload  = uiState.createdQrPayload ?: "",
                     onGoHome   = {
-                        navController.navigate(Routes.ADMIN_CHECKPOINT) {
-                            popUpTo(Routes.ADMIN_CHECKPOINT) { inclusive = true }
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.HOME) { inclusive = true }
                         }
                     },
                     onCreateAnother = {
                         uiState = CreatePackageUiState()
+                        packageViewModel.resetCreatePackageState()
                     }
                 )
             } else {
@@ -230,7 +202,7 @@ fun CreatePackageScreen(
                 //  Editorial Header
                 // ══════════════════════════════════════════════════════════════
                 Text(
-                    text = "New\nPackage",
+                    text = "Send\nParcel",
                     style = MaterialTheme.typography.displayMedium.copy(
                         fontFamily = PlusJakartaSans,
                         fontWeight = FontWeight.ExtraBold,
@@ -243,7 +215,7 @@ fun CreatePackageScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Create a kinetic pulse for your shipment. Map out the journey and generate a unique tracking ID.",
+                    text = "Send a parcel to anyone. Pick a receiver, add intermediates, and generate a unique tracking QR.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = OnSurfaceVariant,
                     modifier = Modifier.fillMaxWidth()
@@ -252,10 +224,10 @@ fun CreatePackageScreen(
                 Spacer(Modifier.height(32.dp))
 
                 // ══════════════════════════════════════════════════════════════
-                //  SOURCE DETAILS
+                //  PARCEL DETAILS
                 // ══════════════════════════════════════════════════════════════
                 EditorialLabel(
-                    text = "SOURCE DETAILS",
+                    text = "PARCEL DETAILS",
                     color = CoralPrimary,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -270,37 +242,21 @@ fun CreatePackageScreen(
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Company Name
                     FormField(
-                        label = "COMPANY NAME",
-                        value = uiState.companyName,
-                        placeholder = "Pulse Logistics Co.",
-                        onValueChange = { uiState = uiState.copy(companyName = it) }
-                    )
-                    // Order ID
-                    FormField(
-                        label = "ORDER ID",
-                        value = uiState.orderId,
-                        placeholder = "ORD-7742-XP-2624",
-                        onValueChange = { uiState = uiState.copy(orderId = it) }
-                    )
-                    // Pickup Address
-                    FormField(
-                        label = "PICKUP ADDRESS",
-                        value = uiState.pickupAddress,
-                        placeholder = "122 Industrial Way, Suite 400, Austin, TX 78701",
-                        onValueChange = { uiState = uiState.copy(pickupAddress = it) },
-                        singleLine = false
+                        label = "DESCRIPTION",
+                        value = uiState.description,
+                        placeholder = "e.g. Laptop, Documents, Gift Box",
+                        onValueChange = { uiState = uiState.copy(description = it) }
                     )
                 }
 
                 Spacer(Modifier.height(32.dp))
 
                 // ══════════════════════════════════════════════════════════════
-                //  DESTINATION DETAILS
+                //  RECEIVER
                 // ══════════════════════════════════════════════════════════════
                 EditorialLabel(
-                    text = "DESTINATION DETAILS",
+                    text = "SEND TO",
                     color = CoralPrimary,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -312,22 +268,20 @@ fun CreatePackageScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .background(SurfaceContainerLowest)
                         .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(16.dp))
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(20.dp)
                 ) {
-                    // DESTINATION USER DROPDOWN
                     ExposedDropdownMenuBox(
-                        expanded = uiState.isDropdownExpanded,
-                        onExpandedChange = { uiState = uiState.copy(isDropdownExpanded = it) },
+                        expanded = uiState.isReceiverDropdown,
+                        onExpandedChange = { uiState = uiState.copy(isReceiverDropdown = it) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = uiState.customerName,
+                            value = uiState.receiverName,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("ASSIGN TO USER", style = MaterialTheme.typography.labelSmall) },
-                            placeholder = { Text("Select destination user") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.isDropdownExpanded) },
+                            label = { Text("RECEIVER", style = MaterialTheme.typography.labelSmall) },
+                            placeholder = { Text("Select who to send to") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.isReceiverDropdown) },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = CoralPrimary,
                                 focusedLabelColor = CoralPrimary
@@ -337,18 +291,18 @@ fun CreatePackageScreen(
                                 .fillMaxWidth()
                                 .menuAnchor()
                         )
-                        
+
                         ExposedDropdownMenu(
-                            expanded = uiState.isDropdownExpanded,
-                            onDismissRequest = { uiState = uiState.copy(isDropdownExpanded = false) }
+                            expanded = uiState.isReceiverDropdown,
+                            onDismissRequest = { uiState = uiState.copy(isReceiverDropdown = false) }
                         ) {
-                            if (usersState is AdminUsersState.Loading) {
+                            if (usersState is UsersState.Loading) {
                                 DropdownMenuItem(
                                     text = { Text("Loading users...") },
                                     onClick = { }
                                 )
-                            } else if (usersState is AdminUsersState.Success) {
-                                val users = (usersState as AdminUsersState.Success).users
+                            } else if (usersState is UsersState.Success) {
+                                val users = (usersState as UsersState.Success).users
                                 if (users.isEmpty()) {
                                     DropdownMenuItem(
                                         text = { Text("No users found") },
@@ -357,12 +311,24 @@ fun CreatePackageScreen(
                                 } else {
                                     users.forEach { user ->
                                         DropdownMenuItem(
-                                            text = { Text("${user.full_name} (${user.email})") },
+                                            text = {
+                                                Column {
+                                                    Text(
+                                                        user.full_name,
+                                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                                    )
+                                                    Text(
+                                                        user.email,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = OnSurfaceVariant
+                                                    )
+                                                }
+                                            },
                                             onClick = {
                                                 uiState = uiState.copy(
-                                                    customerName = user.full_name,
-                                                    destinationUserId = user.user_id,
-                                                    isDropdownExpanded = false
+                                                    receiverName = user.full_name,
+                                                    receiverId = user.user_id,
+                                                    isReceiverDropdown = false
                                                 )
                                             }
                                         )
@@ -371,56 +337,41 @@ fun CreatePackageScreen(
                             } else {
                                 DropdownMenuItem(
                                     text = { Text("Failed to load users") },
-                                    onClick = { uiState = uiState.copy(isDropdownExpanded = false) }
+                                    onClick = { uiState = uiState.copy(isReceiverDropdown = false) }
                                 )
                             }
                         }
                     }
-
-                    FormField(
-                        label = "DELIVERY ADDRESS",
-                        value = uiState.deliveryAddress,
-                        placeholder = "Street, City, State, ZIP",
-                        onValueChange = { uiState = uiState.copy(deliveryAddress = it) }
-                    )
                 }
 
                 Spacer(Modifier.height(32.dp))
 
                 // ══════════════════════════════════════════════════════════════
-                //  ROUTE BUILDER
+                //  INTERMEDIATES (Route Checkpoints)
                 // ══════════════════════════════════════════════════════════════
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    EditorialLabel(text = "ROUTE BUILDER", color = CoralPrimary)
+                    EditorialLabel(text = "INTERMEDIATES", color = CoralPrimary)
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(9999.dp))
                             .background(PrimaryContainer.copy(alpha = 0.15f))
                             .clickable {
-                                val newList = uiState.checkpoints.toMutableList()
-                                val insertIdx = (newList.size - 1).coerceAtLeast(1)
-                                newList.add(
-                                    insertIdx,
-                                    RouteCheckpoint("New Checkpoint")
-                                )
-                                uiState = uiState.copy(checkpoints = newList)
+                                uiState = uiState.copy(isIntDropdown = true)
                             }
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.AddCircleOutline,
-                            null,
-                            tint = CoralPrimary,
-                            modifier = Modifier.size(18.dp)
+                            Icons.Default.AddCircleOutline, null,
+                            tint = CoralPrimary, modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            "ADD CHECKPOINT",
+                            "ADD PERSON",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
@@ -430,106 +381,152 @@ fun CreatePackageScreen(
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(8.dp))
 
-                // Route timeline
-                Column(
+                Text(
+                    text = "Optional. People who'll handle this parcel before the receiver.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurfaceVariant,
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    uiState.checkpoints.forEachIndexed { index, checkpoint ->
-                        RouteCheckpointItem(
-                            checkpoint = checkpoint,
-                            index = index,
-                            total = uiState.checkpoints.size,
-                            adminUsers = if (usersState is com.qrtracker.tracko.viewmodel.AdminUsersState.Success) {
-                                (usersState as com.qrtracker.tracko.viewmodel.AdminUsersState.Success).users
-                            } else emptyList(),
-                            onNameChange = { newName ->
-                                val newList = uiState.checkpoints.toMutableList()
-                                newList[index] = checkpoint.copy(name = newName)
-                                uiState = uiState.copy(checkpoints = newList)
-                            },
-                            onAssignUser = { userId, userName ->
-                                val newList = uiState.checkpoints.toMutableList()
-                                newList[index] = checkpoint.copy(assignedUserId = userId, assignedUserName = userName)
-                                uiState = uiState.copy(checkpoints = newList)
-                            },
-                            onToggleExpand = {
-                                val newList = uiState.checkpoints.toMutableList()
-                                newList[index] = checkpoint.copy(isExpanded = !checkpoint.isExpanded)
-                                uiState = uiState.copy(checkpoints = newList)
-                            },
-                            onDelete = {
-                                if (!checkpoint.isOrigin) {
-                                    val newList = uiState.checkpoints.toMutableList()
-                                    newList.removeAt(index)
-                                    uiState = uiState.copy(checkpoints = newList)
+                )
+
+                // Add intermediate dropdown
+                if (uiState.isIntDropdown) {
+                    ExposedDropdownMenuBox(
+                        expanded = uiState.isIntDropdown,
+                        onExpandedChange = { uiState = uiState.copy(isIntDropdown = it) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = "",
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = { Text("Select person") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = uiState.isIntDropdown) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = CoralPrimary
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = uiState.isIntDropdown,
+                            onDismissRequest = { uiState = uiState.copy(isIntDropdown = false) }
+                        ) {
+                            if (usersState is UsersState.Success) {
+                                val users = (usersState as UsersState.Success).users
+                                    .filter { u -> u.user_id != uiState.receiverId && uiState.intermediates.none { it.userId == u.user_id } }
+                                users.forEach { user ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Column {
+                                                Text(
+                                                    user.full_name,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                                )
+                                                Text(
+                                                    user.email,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = OnSurfaceVariant
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            uiState = uiState.copy(
+                                                intermediates = uiState.intermediates + IntermediateUser(user.user_id, user.full_name),
+                                                isIntDropdown = false
+                                            )
+                                        }
+                                    )
                                 }
                             }
-                        )
+                        }
                     }
+                }
 
-                    // Destination (pending)
+                Spacer(Modifier.height(12.dp))
+
+                // Show added intermediates as chips
+                uiState.intermediates.forEachIndexed { index, intermediate ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(vertical = 4.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SurfaceContainerLowest)
+                            .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Dot
-                        Box(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .clip(CircleShape)
-                                .background(OnSurfaceVariant.copy(alpha = 0.4f))
-                        )
-                        Spacer(Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            // Order indicator
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(CoralPrimary.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "${index + 1}",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = CoralPrimary
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
                             Text(
-                                "DESTINATION",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp,
-                                    fontSize = 9.sp
-                                ),
-                                color = OnSurfaceVariant
-                            )
-                            Text(
-                                if (uiState.deliveryAddress.isNotBlank()) uiState.deliveryAddress
-                                else "Pending address input...",
+                                intermediate.name,
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = if (uiState.deliveryAddress.isNotBlank()) OnSurface
-                                else OnSurfaceVariant
+                                color = OnSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
-                        Icon(Icons.Default.DragHandle, null, tint = OnSurfaceVariant, modifier = Modifier.size(22.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(ErrorContainer.copy(alpha = 0.15f))
+                                .clickable {
+                                    uiState = uiState.copy(
+                                        intermediates = uiState.intermediates.toMutableList().also { it.removeAt(index) }
+                                    )
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Close, null,
+                                tint = ErrorRed, modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
 
                 Spacer(Modifier.height(32.dp))
 
                 // ══════════════════════════════════════════════════════════════
-                //  Create Package & ID Button
+                //  Create Parcel Button
                 // ══════════════════════════════════════════════════════════════
                 GradientButton(
-                    text = "Create Package & ID",
+                    text = "Create & Generate QR",
                     icon = Icons.Default.QrCode2,
                     isLoading = uiState.isLoading,
                     onClick = {
                         focusManager.clearFocus()
                         when {
-                            uiState.companyName.isBlank() ->
-                                uiState = uiState.copy(error = "Company name is required")
-                            uiState.pickupAddress.isBlank() ->
-                                uiState = uiState.copy(error = "Pickup address is required")
+                            uiState.description.isBlank() ->
+                                uiState = uiState.copy(error = "Description is required")
+                            uiState.receiverId == null ->
+                                uiState = uiState.copy(error = "Please select a receiver")
                             else -> {
-                                // Build description from form fields
-                                val desc = "${uiState.companyName} - ${uiState.orderId.ifBlank { "Package" }}"
                                 packageViewModel.createPackage(
-                                    description = desc,
-                                    destinationUserId = uiState.destinationUserId,
-                                    destinationAddress = uiState.deliveryAddress.takeIf { it.isNotBlank() },
-                                    routeCheckpoints = uiState.checkpoints
+                                    description = uiState.description,
+                                    receiverId = uiState.receiverId!!,
+                                    routeCheckpoints = uiState.intermediates.map { it.userId }.takeIf { it.isNotEmpty() }
                                 )
                             }
                         }
@@ -537,13 +534,13 @@ fun CreatePackageScreen(
                 )
             }
 
-            Spacer(Modifier.height(100.dp)) // Bottom nav clearance
+            Spacer(Modifier.height(100.dp))
         }
     }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  Form Field — Minimal labeled input matching the Stitch design
+//  Form Field — Minimal labeled input
 // ══════════════════════════════════════════════════════════════════════════════
 @Composable
 private fun FormField(
@@ -564,7 +561,7 @@ private fun FormField(
             color = OnSurfaceVariant
         )
         Spacer(Modifier.height(4.dp))
-        androidx.compose.foundation.text.BasicTextField(
+        BasicTextField(
             value = value,
             onValueChange = onValueChange,
             singleLine = singleLine,
@@ -594,201 +591,6 @@ private fun FormField(
                 .height(1.dp)
                 .background(SurfaceContainerHighest)
         )
-    }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-//  Route Checkpoint Item — Timeline row with dot, line, name, and controls
-// ══════════════════════════════════════════════════════════════════════════════
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RouteCheckpointItem(
-    checkpoint: RouteCheckpoint,
-    index: Int,
-    total: Int,
-    adminUsers: List<com.qrtracker.tracko.network.models.UserResponse> = emptyList(),
-    onNameChange: (String) -> Unit = {},
-    onAssignUser: (String?, String?) -> Unit = { _, _ -> },
-    onToggleExpand: () -> Unit = {},
-    onDelete: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
-        // Timeline: dot + vertical line
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(start = 6.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (checkpoint.isOrigin) CoralPrimary
-                        else SurfaceContainerHighest
-                    )
-                    .then(
-                        if (!checkpoint.isOrigin) Modifier.border(2.dp, CoralPrimary.copy(alpha = 0.4f), CircleShape)
-                        else Modifier
-                    )
-            )
-            if (index < total - 1 || true) { // always draw line to next item
-                Box(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .height(if (checkpoint.isExpanded) 180.dp else 52.dp)
-                        .background(SurfaceContainerHighest)
-                )
-            }
-        }
-
-        Spacer(Modifier.width(16.dp))
-
-        // Content
-        Column(modifier = Modifier.weight(1f)) {
-            if (checkpoint.isOrigin) {
-                Text(
-                    "ORIGIN",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        fontSize = 9.sp
-                    ),
-                    color = OnSurfaceVariant
-                )
-            } else {
-                Text(
-                    "CHECKPOINT ${index}",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        fontSize = 9.sp
-                    ),
-                    color = OnSurfaceVariant
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceContainerLowest)
-                    .border(1.dp, SurfaceContainerHighest, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    if (checkpoint.isOrigin) {
-                        Text(
-                            checkpoint.name,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = OnSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                    } else {
-                        BasicTextField(
-                            value = checkpoint.name,
-                            onValueChange = onNameChange,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = OnSurface),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        if (checkpoint.isOrigin) {
-                            Icon(
-                                Icons.Default.Lock,
-                                null,
-                                tint = OnSurfaceVariant.copy(alpha = 0.4f),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        } else {
-                            Icon(
-                                if (checkpoint.isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                null,
-                                tint = OnSurfaceVariant,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable { onToggleExpand() }
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(ErrorContainer.copy(alpha = 0.15f))
-                                    .clickable { onDelete() },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    null,
-                                    tint = ErrorRed,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-                
-                // Expanded properties
-                if (checkpoint.isExpanded && !checkpoint.isOrigin) {
-                    Spacer(Modifier.height(16.dp))
-                    Divider(color = SurfaceContainerHighest)
-                    Spacer(Modifier.height(12.dp))
-                    
-                    Text("Assigned Staff", style = MaterialTheme.typography.labelSmall, color = OutlineVariant)
-                    Spacer(Modifier.height(4.dp))
-                    
-                    var userDropdownExpanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = userDropdownExpanded,
-                        onExpandedChange = { userDropdownExpanded = !userDropdownExpanded }
-                    ) {
-                        OutlinedTextField(
-                            value = checkpoint.assignedUserName ?: "Not Assigned",
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = userDropdownExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(),
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                                focusedBorderColor = CoralPrimary,
-                                unfocusedBorderColor = SurfaceContainerHighest
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        ExposedDropdownMenu(
-                            expanded = userDropdownExpanded,
-                            onDismissRequest = { userDropdownExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("None") },
-                                onClick = {
-                                    onAssignUser(null, null)
-                                    userDropdownExpanded = false
-                                }
-                            )
-                            adminUsers.forEach { user ->
-                                DropdownMenuItem(
-                                    text = { Text(user.full_name ?: user.email) },
-                                    onClick = {
-                                        onAssignUser(user.user_id, user.full_name ?: user.email)
-                                        userDropdownExpanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -825,7 +627,7 @@ private fun CreationSuccessCard(
         }
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "Package Created!",
+            text = "Parcel Created!",
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -863,7 +665,7 @@ private fun CreationSuccessCard(
         }
         Spacer(Modifier.height(12.dp))
 
-        // Package ID
+        // Tracking ID — truncated for readability
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -875,11 +677,13 @@ private fun CreationSuccessCard(
                 EditorialLabel(text = "Tracking ID", color = ValidGreen.copy(alpha = 0.6f))
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = packageId,
+                    text = packageId.take(8) + "..." + packageId.takeLast(4),
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
-                    color = ValidGreen
+                    color = ValidGreen,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -912,7 +716,7 @@ private fun CreationSuccessCard(
                 onClick = {
                     val sendIntent: android.content.Intent = android.content.Intent().apply {
                         action = android.content.Intent.ACTION_SEND
-                        putExtra(android.content.Intent.EXTRA_TEXT, "Here is the Tracking ID for the package: $qrPayload")
+                        putExtra(android.content.Intent.EXTRA_TEXT, "Track your parcel: $qrPayload")
                         type = "text/plain"
                     }
                     val shareIntent = android.content.Intent.createChooser(sendIntent, "Share Tracking ID")

@@ -6,10 +6,10 @@ data class DashboardResponse(
 )
 
 data class DashboardStats(
-    val total: Int,
+    val sent: Int,
     val received: Int,
-    val misplaced: Int,
-    val duplicate: Int
+    val in_transit: Int,
+    val delivered: Int
 )
 
 data class DashboardRecentScan(
