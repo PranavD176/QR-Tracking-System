@@ -2,6 +2,7 @@ from jose import jwt, JWTError
 from fastapi import HTTPException
 import os
 from datetime import datetime, timedelta, timezone
+import uuid
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-key-for-testing")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
@@ -64,18 +65,33 @@ def send_push_notification(fcm_token: str, title: str, body: str) -> bool:
         return False
         
     try:
-        # Create the modern FCM v1 message payload
+        event_id = str(uuid.uuid4())
+        sent_at = datetime.now(timezone.utc).isoformat()
+
+        # Send both notification and data payloads for consistent popup behavior
+        # across foreground/background/device states.
         message = messaging.Message(
-            notification=messaging.Notification(
-                title=title,
-                body=body,
-            ),
             token=fcm_token,
+            notification=messaging.Notification(title=title, body=body),
+            data={
+                "title": title,
+                "body": body,
+                "event_id": event_id,
+                "sent_at": sent_at,
+            },
+            android=messaging.AndroidConfig(
+                priority="high",
+                ttl=timedelta(hours=1),
+                notification=messaging.AndroidNotification(
+                    channel_id="qr_tracker_alerts",
+                    sound="default",
+                ),
+            ),
         )
         
         # Send the message
         response = messaging.send(message)
-        print(f"Push notification sent successfully! Message ID: {response}")
+        print(f"Push notification sent successfully! Message ID: {response}; event_id={event_id}")
         return True
         
     except Exception as e:

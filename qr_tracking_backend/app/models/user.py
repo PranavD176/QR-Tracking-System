@@ -2,13 +2,13 @@
 # hashed_password added for self-managed bcrypt authentication.
 from sqlalchemy import Column, String, Text
 from app.database import Base
-import uuid
+from app.utils.user_id import new_short_user_id
 
 
 class User(Base):
     __tablename__ = "users"
 
-    user_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, primary_key=True, default=lambda: new_short_user_id(8))
     email = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)

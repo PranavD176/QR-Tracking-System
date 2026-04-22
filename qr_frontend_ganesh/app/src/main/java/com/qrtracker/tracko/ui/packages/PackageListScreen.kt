@@ -41,12 +41,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.AlertViewModel
 import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.PackageListState
+import androidx.compose.ui.platform.LocalLifecycleOwner
 
 // ── Mock data class — kept for UI, now populated from API ────────────────────
 data class PackageItem(
@@ -58,6 +62,8 @@ data class PackageItem(
     val createdAt   : String,
     val progress    : Float = 0f,
     val lastCheckpoint: String = "",
+    val source: String = "",
+    val destination: String = "",
     val icon        : ImageVector = Icons.Outlined.Laptop
 )
 
@@ -84,9 +90,12 @@ fun PackageListScreen(
 
     var uiState           by remember { mutableStateOf(PackageListUiState(showAll = startWithAll)) }
     val context           = LocalContext.current
+    val lifecycleOwner    = LocalLifecycleOwner.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
     val packageViewModel  = remember { PackageViewModel(tokenManager) }
+    val alertViewModel = remember { AlertViewModel(tokenManager) }
     val pkgListState by packageViewModel.packageListState.collectAsState()
+    val unreadCount by alertViewModel.unreadCount.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // ── Load packages from API on screen entry ────────────────────────────
@@ -94,6 +103,20 @@ fun PackageListScreen(
         val name = tokenManager.getFullName() ?: "User"
         uiState = uiState.copy(userName = name)
         packageViewModel.fetchPackages()
+        alertViewModel.fetchAlerts("sent")
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                alertViewModel.fetchAlerts("sent")
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // ── Observe package list state ──────────────────────────────────────
@@ -118,7 +141,9 @@ fun PackageListScreen(
                             "misplaced" -> 0.45f
                             else -> 0.6f
                         },
-                        lastCheckpoint = pkg.description
+                        lastCheckpoint = pkg.description,
+                        source = pkg.sender_name ?: "Unknown",
+                        destination = pkg.receiver_name ?: "Unknown"
                     )
                 }
                 val activeCount = items.count { it.status == "in_transit" }
@@ -292,19 +317,27 @@ fun PackageListScreen(
                             )
                         }
                     }
-                    IconButton(
-                        onClick = { navController.navigate(Routes.ALERTS) { launchSingleTop = true } },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainer)
+                    BadgedBox(
+                        badge = {
+                            if (unreadCount > 0) {
+                                Badge { Text(if (unreadCount > 99) "99+" else unreadCount.toString()) }
+                            }
+                        }
                     ) {
-                        Icon(
-                            Icons.Outlined.Notifications,
-                            contentDescription = "Notifications",
-                            tint = OnSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        IconButton(
+                            onClick = { navController.navigate(Routes.ALERTS) { launchSingleTop = true } },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(SurfaceContainer)
+                        ) {
+                            Icon(
+                                Icons.Outlined.Notifications,
+                                contentDescription = "Notifications",
+                                tint = OnSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -542,6 +575,28 @@ private fun PackageCard(
                         color = if (isMisplaced) StatusRedText else OnSurface
                     )
                 }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "From: ${pkg.source}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "To: ${pkg.destination}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = OnSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
