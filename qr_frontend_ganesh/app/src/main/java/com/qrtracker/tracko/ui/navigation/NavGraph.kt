@@ -22,6 +22,7 @@ import com.qrtracker.tracko.ui.packages.PackageListScreen
 import com.qrtracker.tracko.ui.scan.ScanResultScreen
 import com.qrtracker.tracko.ui.scan.ScanScreen
 import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.AlertViewModel
 
 @Composable
 fun NavGraph(
@@ -31,6 +32,7 @@ fun NavGraph(
 ) {
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context.applicationContext) }
+    val alertViewModel = remember { AlertViewModel(tokenManager) }
 
     NavHost(
         navController    = navController,
@@ -53,12 +55,20 @@ fun NavGraph(
 
         // ── Home (Active Pulse homepage) ─────────────────────────────────────
         composable(Routes.HOME) {
-            PackageListScreen(navController = navController, startWithAll = false)
+            PackageListScreen(
+                navController = navController,
+                startWithAll = false,
+                alertViewModel = alertViewModel,
+            )
         }
 
         // ── Packages (Full list) ─────────────────────────────────────────────
         composable(Routes.PACKAGE_LIST) {
-            PackageListScreen(navController = navController, startWithAll = true)
+            PackageListScreen(
+                navController = navController,
+                startWithAll = true,
+                alertViewModel = alertViewModel,
+            )
         }
 
         composable(
@@ -109,7 +119,7 @@ fun NavGraph(
 
         // ── User Alerts (bottom nav) ──────────────────────────────────────────
         composable(Routes.ALERTS) {
-            AlertFeedScreen(navController = navController)
+            AlertFeedScreen(navController = navController, alertViewModel = alertViewModel)
         }
 
         // ── App Alerts (system notifications, from bell icon) ─────────────────

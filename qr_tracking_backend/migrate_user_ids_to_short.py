@@ -121,12 +121,37 @@ def _collect_reference_issues(db, known_user_ids: set[str]) -> List[str]:
     return issues
 
 
+def _validate_postgres_constraint_strategy(db) -> None:
+    rows = db.execute(
+        text(
+            """
+            SELECT c.conname, c.condeferrable
+            FROM pg_constraint c
+            JOIN pg_class rel ON rel.oid = c.conrelid
+            JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+            WHERE c.contype = 'f'
+              AND c.confrelid = 'users'::regclass
+              AND nsp.nspname = current_schema()
+            """
+        )
+    ).fetchall()
+
+    non_deferrable = [row.conname for row in rows if not row.condeferrable]
+    if non_deferrable:
+        raise RuntimeError(
+            "PostgreSQL migration requires deferrable foreign keys referencing users.user_id. "
+            f"Non-deferrable constraints found: {non_deferrable}. "
+            "Recreate these constraints as DEFERRABLE before running --apply."
+        )
+
+
 def _apply_migration(db, mapping: Dict[str, str], dialect_name: str) -> MigrationStats:
     stats = MigrationStats()
 
     if dialect_name == "sqlite":
         db.execute(text("PRAGMA foreign_keys = OFF"))
     elif dialect_name == "postgresql":
+        _validate_postgres_constraint_strategy(db)
         # Works when constraints are DEFERRABLE.
         db.execute(text("SET CONSTRAINTS ALL DEFERRED"))
 

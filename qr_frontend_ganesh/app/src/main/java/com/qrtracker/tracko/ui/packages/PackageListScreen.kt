@@ -85,7 +85,8 @@ data class PackageListUiState(
 @Composable
 fun PackageListScreen(
     navController: NavController,
-    startWithAll: Boolean = false
+    startWithAll: Boolean = false,
+    alertViewModel: AlertViewModel,
 ) {
 
     var uiState           by remember { mutableStateOf(PackageListUiState(showAll = startWithAll)) }
@@ -93,7 +94,6 @@ fun PackageListScreen(
     val lifecycleOwner    = LocalLifecycleOwner.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
     val packageViewModel  = remember { PackageViewModel(tokenManager) }
-    val alertViewModel = remember { AlertViewModel(tokenManager) }
     val pkgListState by packageViewModel.packageListState.collectAsState()
     val unreadCount by alertViewModel.unreadCount.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
