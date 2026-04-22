@@ -44,6 +44,13 @@ sealed class CreatePackageState {
     data class Error(val message: String) : CreatePackageState()
 }
 
+sealed class UpdateCheckpointsState {
+    object Idle : UpdateCheckpointsState()
+    object Loading : UpdateCheckpointsState()
+    object Success : UpdateCheckpointsState()
+    data class Error(val message: String) : UpdateCheckpointsState()
+}
+
 class PackageViewModel(
     private val tokenManager: TokenManager
 ) : ViewModel() {
@@ -69,6 +76,9 @@ class PackageViewModel(
 
     private val _usersState = MutableStateFlow<UsersState>(UsersState.Idle)
     val usersState: StateFlow<UsersState> = _usersState
+
+    private val _updateCheckpointsState = MutableStateFlow<UpdateCheckpointsState>(UpdateCheckpointsState.Idle)
+    val updateCheckpointsState: StateFlow<UpdateCheckpointsState> = _updateCheckpointsState
 
     // ─── FETCH PACKAGES ──────────────────────────────────────────────
 
@@ -215,6 +225,29 @@ class PackageViewModel(
         }
     }
 
+    fun updateCheckpoints(packageId: String, checkpoints: List<String>) {
+        viewModelScope.launch {
+            _updateCheckpointsState.value = UpdateCheckpointsState.Loading
+            try {
+                val cleanCheckpoints = checkpoints.map { it.trim() }.filter { it.isNotBlank() }
+                val response = apiService.updateCheckpoints(
+                    packageId = packageId,
+                    checkpoints = mapOf("route_checkpoints" to cleanCheckpoints)
+                )
+                if (response.isSuccessful && response.body()?.success == true) {
+                    _updateCheckpointsState.value = UpdateCheckpointsState.Success
+                    fetchPackages()
+                    fetchScanHistory(packageId)
+                } else {
+                    val errorMsg = response.body()?.error ?: "Failed to update route checkpoints"
+                    _updateCheckpointsState.value = UpdateCheckpointsState.Error(errorMsg)
+                }
+            } catch (e: Exception) {
+                _updateCheckpointsState.value = UpdateCheckpointsState.Error("Network error: ${e.message}")
+            }
+        }
+    }
+
     // ─── RESET STATES ────────────────────────────────────────────────
 
     fun resetCreatePackageState() {
@@ -223,5 +256,9 @@ class PackageViewModel(
 
     fun resetScanHistoryState() {
         _scanHistoryState.value = ScanHistoryState.Idle
+    }
+
+    fun resetUpdateCheckpointsState() {
+        _updateCheckpointsState.value = UpdateCheckpointsState.Idle
     }
 }

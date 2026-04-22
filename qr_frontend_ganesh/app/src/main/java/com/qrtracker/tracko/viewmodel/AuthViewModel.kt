@@ -81,12 +81,17 @@ class AuthViewModel(
     private fun sendFcmToken() {
         viewModelScope.launch {
             try {
-                val fcmToken = tokenManager.getFcmToken() ?: return@launch
+                val fcmToken = tokenManager.getFcmToken()
+                if (fcmToken.isNullOrBlank()) return@launch
                 apiService.registerDeviceToken(DeviceTokenRequest(fcmToken))
             } catch (e: Exception) {
                 // Background task failed
             }
         }
+    }
+
+    fun syncFcmTokenIfAvailable() {
+        sendFcmToken()
     }
 
     fun logout() {

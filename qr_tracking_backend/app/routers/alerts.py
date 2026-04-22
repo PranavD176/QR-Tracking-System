@@ -49,7 +49,7 @@ def get_alerts(
 @router.put("/alerts/{alert_id}/acknowledge")
 def acknowledge(alert_id: str, user=Depends(get_current_user), db: Session = Depends(get_db)):
 
-    alert = db.query(Alert).filter_by(alert_id=alert_id).first()
+    alert = db.query(Alert).filter_by(alert_id=alert_id, recipient_id=user["uid"]).first()
 
     if not alert:
         return {"success": False, "data": None, "error": "Alert not found"}
@@ -61,4 +61,32 @@ def acknowledge(alert_id: str, user=Depends(get_current_user), db: Session = Dep
         "success": True,
         "data": {"alert_id": alert_id, "status": "acknowledged"},
         "error": None
+    }
+
+
+@router.put("/alerts/acknowledge-all")
+def acknowledge_all(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    status: Optional[str] = Query("sent"),
+):
+    query = db.query(Alert).filter_by(recipient_id=user["uid"])
+
+    if status:
+        query = query.filter_by(status=status)
+
+    alerts = query.all()
+    updated = 0
+
+    for alert in alerts:
+        if alert.status != "acknowledged":
+            alert.status = "acknowledged"
+            updated += 1
+
+    db.commit()
+
+    return {
+        "success": True,
+        "data": {"updated": updated},
+        "error": None,
     }

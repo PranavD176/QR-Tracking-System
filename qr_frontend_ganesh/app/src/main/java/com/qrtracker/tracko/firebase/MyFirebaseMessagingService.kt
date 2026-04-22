@@ -3,6 +3,7 @@ package com.qrtracker.tracko.firebase
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -10,7 +11,12 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.qrtracker.tracko.MainActivity
+import com.qrtracker.tracko.network.RetrofitClient
+import com.qrtracker.tracko.network.models.DeviceTokenRequest
 import com.qrtracker.tracko.utils.TokenManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -19,9 +25,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     // to know WHERE to send the push notification.
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Save FCM token using TokenManager so AuthViewModel can read it
+        // Save FCM token locally, then sync with backend if user is logged in.
         val tokenManager = TokenManager(applicationContext)
         tokenManager.saveFcmToken(token)
+        if (!tokenManager.getToken().isNullOrBlank()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    RetrofitClient.apiService.registerDeviceToken(DeviceTokenRequest(token))
+                } catch (_: Exception) {
+                    // Best-effort background sync; next login/session refresh can retry.
+                }
+            }
+        }
     }
 
     // This function fires when a push notification arrives on this device.
@@ -29,22 +44,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
+        // When app is in background and notification payload exists, Android will
+        // usually display it automatically. Skip local rendering to avoid duplicates.
+        if (remoteMessage.notification != null && !isAppInForeground()) {
+            return
+        }
+
         // Extract the notification title and body sent by the backend
-        val title = remoteMessage.notification?.title ?: "Package Alert"
-        val body = remoteMessage.notification?.body ?: "Your package was scanned."
+        // We look in 'data' first (since our backend now sends data payloads to guarantee delivery),
+        // and fallback to 'notification' if present.
+        val title = remoteMessage.data["title"] ?: remoteMessage.notification?.title ?: "Package Alert"
+        val body = remoteMessage.data["body"] ?: remoteMessage.notification?.body ?: "Your package was scanned."
+        val eventId = remoteMessage.data["event_id"]
 
         // Build and display the notification to the user
-        showNotification(title, body)
-    }
-
-    // Saves the FCM token in SharedPreferences so TokenManager can read it later
-    private fun saveTokenLocally(token: String) {
-        val prefs = getSharedPreferences("fcm_prefs", Context.MODE_PRIVATE)
-        prefs.edit().putString("fcm_token", token).apply()
+        showNotification(title, body, eventId)
     }
 
     // Builds and shows the actual notification the user sees on their screen
-    private fun showNotification(title: String, body: String) {
+    private fun showNotification(title: String, body: String, eventId: String?) {
         val channelId = "qr_tracker_alerts"
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -77,11 +95,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setContentText(body)
             .setAutoCancel(true)   // Dismisses notification when tapped
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setContentIntent(pendingIntent)
             .build()
 
-        // Display it — using a fixed ID (1) for all package alerts
-        notificationManager.notify(1, notification)
+        // Use event-scoped IDs so notifications don't overwrite each other.
+        val notificationId = eventId?.hashCode()?.and(0x7fffffff)
+            ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+
+        notificationManager.notify(notificationId, notification)
+    }
+
+    private fun isAppInForeground(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val processes = activityManager.runningAppProcesses ?: return false
+        val packageName = applicationContext.packageName
+        return processes.any {
+            it.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                it.processName == packageName
+        }
     }
 }
 

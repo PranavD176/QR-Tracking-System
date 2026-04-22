@@ -87,7 +87,7 @@ interface ApiService {
     @GET("alerts")
     suspend fun getAlerts(
         @Query("status") status: String? = null,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 100
     ): Response<ApiResponse<List<AlertResponse>>>
 
     // Protected — acknowledge (dismiss) an alert
@@ -95,6 +95,11 @@ interface ApiService {
     suspend fun acknowledgeAlert(
         @Path("alert_id") alertId: String
     ): Response<ApiResponse<AcknowledgeResponse>>
+
+    @PUT("alerts/acknowledge-all")
+    suspend fun acknowledgeAllAlerts(
+        @Query("status") status: String? = "sent"
+    ): Response<ApiResponse<BulkAcknowledgeResponse>>
 
     // ─── DASHBOARD ───────────────────────────────────────────────────
 

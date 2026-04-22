@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -497,7 +498,7 @@ fun LogisticsDashboardScreen(
                             .height(60.dp)
                             .clip(RoundedCornerShape(9999.dp))
                             .background(Color(0xFF1C1917))
-                            .clickable { /* TODO: Navigate to route editor */ },
+                            .clickable { navController.navigate(Routes.packageDetail(packageId)) },
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -517,7 +518,7 @@ fun LogisticsDashboardScreen(
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        "* Only future checkpoints can be modified.",
+                        "* Opens package details route editor for checkpoint updates.",
                         style = MaterialTheme.typography.bodySmall,
                         color = OnSurfaceVariant,
                         modifier = Modifier.fillMaxWidth(),
