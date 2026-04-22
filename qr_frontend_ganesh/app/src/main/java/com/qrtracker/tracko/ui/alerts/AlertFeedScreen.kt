@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.AlertViewModel
 import com.qrtracker.tracko.viewmodel.AcknowledgeState
 import com.qrtracker.tracko.viewmodel.AlertListState
@@ -48,10 +47,11 @@ data class UserAlert(
 )
 
 @Composable
-fun AlertFeedScreen(navController: NavController) {
+fun AlertFeedScreen(
+    navController: NavController,
+    alertViewModel: AlertViewModel,
+) {
     val context = LocalContext.current
-    val tokenManager = remember { TokenManager(context.applicationContext) }
-    val alertViewModel = remember { AlertViewModel(tokenManager) }
     val alertListState by alertViewModel.alertListState.collectAsState()
     val acknowledgeState by alertViewModel.acknowledgeState.collectAsState()
 
