@@ -39,7 +39,7 @@ fun ScanResultScreen(
     BackHandler { /* consumed — user must use buttons below */ }
 
     val isValid = result == "valid"
-    val isError = result in listOf("misplaced", "rejected", "already_delivered")
+    val isError = result in listOf("misplaced", "rejected", "already_delivered", "out_of_sequence")
 
     // ── Icon pulse animation ─────────────────────────────────────────────────
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -157,6 +157,7 @@ fun ScanResultScreen(
                                 "rejected" -> "Package Rejected"
                                 "already_delivered" -> "Already Delivered"
                                 "duplicate" -> "Duplicate Scan"
+                                "out_of_sequence" -> "Sequence Breach"
                                 else -> "Misplaced Package"
                             },
                             style = MaterialTheme.typography.headlineMedium.copy(
@@ -172,6 +173,7 @@ fun ScanResultScreen(
                                 "rejected" -> "This package has been rejected by the receiver"
                                 "already_delivered" -> "This package has already been delivered"
                                 "duplicate" -> "This scan was already recorded"
+                                "out_of_sequence" -> "Package scanned out of route sequence"
                                 else -> "Alert sent to sender & receiver"
                             },
                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -217,6 +219,7 @@ fun ScanResultScreen(
                                 "valid" -> "in_transit"
                                 "rejected" -> "rejected"
                                 "already_delivered" -> "delivered"
+                                "out_of_sequence" -> "misplaced"
                                 else -> "misplaced"
                             }
                         )
@@ -242,6 +245,7 @@ fun ScanResultScreen(
                             "rejected" -> "✕ Rejected"
                             "already_delivered" -> "✓ Already Delivered"
                             "duplicate" -> "↻ Duplicate"
+                            "out_of_sequence" -> "⚠ Out of Sequence"
                             else -> "⚠ Misplaced"
                         }
                     )
