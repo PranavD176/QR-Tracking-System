@@ -201,7 +201,10 @@ def get_package_scans(package_id: str, user=Depends(get_current_user), db: Sessi
     if not authorized:
         return {"success": False, "data": None, "error": "Not authorized to view this package"}
 
-    scans = db.query(ScanHistory).filter_by(package_id=package_id).order_by(ScanHistory.scanned_at.desc()).all()
+    scans = db.query(ScanHistory).filter(
+        ScanHistory.package_id == package_id,
+        ScanHistory.result != "duplicate"
+    ).order_by(ScanHistory.scanned_at.desc()).all()
 
     enriched_scans = []
     for scan in scans:

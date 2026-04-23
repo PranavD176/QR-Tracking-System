@@ -56,6 +56,7 @@ fun PackageDetailScreen(
     // Package detail state from API
     var pkgDescription by remember { mutableStateOf("Loading...") }
     var pkgTrackingId by remember { mutableStateOf(if (packageId.length > 16) packageId.take(8) + "..." + packageId.takeLast(4) else packageId) }
+    var pkgQrPayload by remember { mutableStateOf("") }  // Full QR content for generation
     var pkgStatus by remember { mutableStateOf("in_transit") }
     var pkgReceiverId by remember { mutableStateOf("") }
     var pkgReceiverName by remember { mutableStateOf("Unknown") }
@@ -88,8 +89,9 @@ fun PackageDetailScreen(
                 .firstOrNull { it.package_id == packageId }
             if (pkg != null) {
                 pkgDescription = pkg.description
+                pkgQrPayload = pkg.qr_payload ?: "QR_TRACKING:${pkg.package_id}"
                 pkgTrackingId = run {
-                    val fullId = pkg.qr_payload ?: pkg.package_id
+                    val fullId = pkgQrPayload
                     if (fullId.length > 16) fullId.take(8) + "..." + fullId.takeLast(4) else fullId
                 }
                 pkgStatus = pkg.status
@@ -437,7 +439,7 @@ fun PackageDetailScreen(
                         Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = {
-                                val content = pkgTrackingId.ifBlank { packageId }
+                                val content = pkgQrPayload.ifBlank { "QR_TRACKING:$packageId" }
                                 val bitmap = QRCodeGenerator.generate(content)
                                 if (bitmap != null) {
                                     val saved = QRCodeGenerator.saveToGallery(context, bitmap, "qr_$packageId")

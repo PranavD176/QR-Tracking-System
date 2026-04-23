@@ -41,16 +41,21 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         intended_result = "valid" if is_authorized else "misplaced"
 
-        # Prevent duplicate scans
+        # Prevent duplicate scans (same scanner, same result, same location, within 30 seconds)
+        from datetime import datetime, timedelta
         last_scan = db.query(ScanHistory).filter(
             ScanHistory.package_id == package.package_id,
+            ScanHistory.scanner_id == user["uid"],
             ScanHistory.result != "duplicate"
         ).order_by(ScanHistory.scanned_at.desc()).first()
 
-        if last_scan and last_scan.result == intended_result and last_scan.location_description == data.location_description:
-            result = "duplicate"
-        else:
-            result = intended_result
+        is_duplicate = False
+        if last_scan:
+            time_diff = datetime.utcnow() - last_scan.scanned_at if last_scan.scanned_at else timedelta(seconds=999)
+            if time_diff.total_seconds() < 30 and last_scan.result == intended_result:
+                is_duplicate = True
+
+        result = "duplicate" if is_duplicate else intended_result
 
         scan_entry = ScanHistory(
             package_id=package.package_id,
