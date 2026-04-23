@@ -33,6 +33,7 @@ def get_alerts(
             "package_id": alert.package_id,
             "package_description": package.description if package else "Unknown",
             "scanned_by_name": scanner.full_name if scanner else "Unknown",
+            "alert_type": alert.alert_type or "misplaced",
             "location": alert.details or "",
             "status": alert.status,
             "created_at": alert.created_at.isoformat() if alert.created_at else None,

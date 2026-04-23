@@ -68,11 +68,17 @@ fun AlertFeedScreen(
     LaunchedEffect(alertListState) {
         if (alertListState is AlertListState.Success) {
             alerts = (alertListState as AlertListState.Success).alerts.map { a ->
+                val (title, alertType) = when (a.alert_type) {
+                    "acceptance_request" -> "New Package 📦" to UserAlertType.PARCEL_ARRIVED
+                    "misplaced" -> "Misplaced Alert ⚠️" to UserAlertType.SECURITY
+                    "handoff" -> "Package Handoff 🚚" to UserAlertType.OUT_FOR_DELIVERY
+                    else -> "Package Alert" to UserAlertType.PARCEL_ARRIVED
+                }
                 UserAlert(
                     id = a.alert_id,
-                    title = "Misplaced Alert",
+                    title = title,
                     description = "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}",
-                    type = UserAlertType.PARCEL_ARRIVED,
+                    type = alertType,
                     timeAgo = a.created_at.takeLast(8),
                     statusLabel = a.status.uppercase(),
                     isUnread = a.status == "sent"

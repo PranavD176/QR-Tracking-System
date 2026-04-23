@@ -62,6 +62,8 @@ fun PackageDetailScreen(
     var pkgSenderId by remember { mutableStateOf("") }
     var pkgSenderName by remember { mutableStateOf("Unknown") }
     var routeCheckpoints by remember { mutableStateOf<List<String>>(emptyList()) }
+    var routeCheckpointNames by remember { mutableStateOf<List<String>>(emptyList()) }
+    var scannedCheckpointCount by remember { mutableStateOf(0) }
     var pkgCreatedAt by remember { mutableStateOf("") }
     var showRouteEditor by remember { mutableStateOf(false) }
     // Checkpoint editor state — list of selected user IDs
@@ -96,6 +98,8 @@ fun PackageDetailScreen(
                 pkgSenderId = pkg.sender_id ?: ""
                 pkgSenderName = pkg.sender_name ?: "Unknown"
                 routeCheckpoints = pkg.route_checkpoints ?: emptyList()
+                routeCheckpointNames = pkg.route_checkpoint_names ?: emptyList()
+                scannedCheckpointCount = pkg.scanned_checkpoint_count
                 pkgCreatedAt = pkg.created_at ?: ""
             }
         }
@@ -354,7 +358,7 @@ fun PackageDetailScreen(
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = OnSurface
                         )
-                        if (routeCheckpoints.isEmpty()) {
+                        if (routeCheckpointNames.isEmpty() && routeCheckpoints.isEmpty()) {
                             Spacer(Modifier.height(6.dp))
                             Text(
                                 text = "No intermediate checkpoints configured.",
@@ -363,7 +367,8 @@ fun PackageDetailScreen(
                             )
                         } else {
                             Spacer(Modifier.height(8.dp))
-                            routeCheckpoints.forEachIndexed { index, checkpoint ->
+                            val displayList = routeCheckpointNames.ifEmpty { routeCheckpoints }
+                            displayList.forEachIndexed { index, checkpoint ->
                                 Text(
                                     text = "${index + 1}. $checkpoint",
                                     style = MaterialTheme.typography.bodySmall,
