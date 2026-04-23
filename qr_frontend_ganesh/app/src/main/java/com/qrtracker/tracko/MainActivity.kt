@@ -15,6 +15,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.qrtracker.tracko.network.RetrofitClient
+import com.qrtracker.tracko.network.models.DeviceTokenRequest
 
 class MainActivity : ComponentActivity() {
     // Register the permissions callback, which handles the user's response to the system permissions dialog.
@@ -59,6 +64,15 @@ class MainActivity : ComponentActivity() {
                     val token = task.result
                     if (token != null) {
                         tokenManager.saveFcmToken(token)
+                        // If the user is already logged in, sync the FCM token with the backend
+                        // so notifications work immediately after reinstall / token refresh.
+                        if (tokenManager.isLoggedIn()) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    RetrofitClient.apiService.registerDeviceToken(DeviceTokenRequest(token))
+                                } catch (_: Exception) { /* best-effort */ }
+                            }
+                        }
                     }
                 }
             }

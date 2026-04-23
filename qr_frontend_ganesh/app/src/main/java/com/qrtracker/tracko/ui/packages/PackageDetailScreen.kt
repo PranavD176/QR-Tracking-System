@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QrCode2
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
@@ -34,6 +37,7 @@ import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.PackageListState
 import com.qrtracker.tracko.viewmodel.ScanHistoryState
 import com.qrtracker.tracko.viewmodel.UpdateCheckpointsState
+import com.qrtracker.tracko.viewmodel.UsersState
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
 
@@ -60,8 +64,11 @@ fun PackageDetailScreen(
     var routeCheckpoints by remember { mutableStateOf<List<String>>(emptyList()) }
     var pkgCreatedAt by remember { mutableStateOf("") }
     var showRouteEditor by remember { mutableStateOf(false) }
-    var editedCheckpoints by remember { mutableStateOf("") }
+    // Checkpoint editor state — list of selected user IDs
+    var selectedCheckpointIds by remember { mutableStateOf<List<String>>(emptyList()) }
     val updateCheckpointsState by packageViewModel.updateCheckpointsState.collectAsState()
+    val usersState by packageViewModel.usersState.collectAsState()
+    var userSearchQuery by remember { mutableStateOf("") }
 
     // Scan history from API
     var scanEntries by remember { mutableStateOf<List<MockScanEntry>>(emptyList()) }
@@ -471,7 +478,9 @@ fun PackageDetailScreen(
             if (pkgSenderId == tokenManager.getUserId()) {
                 Button(
                     onClick = {
-                        editedCheckpoints = routeCheckpoints.joinToString("\n")
+                        selectedCheckpointIds = routeCheckpoints
+                        userSearchQuery = ""
+                        packageViewModel.fetchUsers()
                         showRouteEditor = true
                     },
                     modifier = Modifier
@@ -570,37 +579,162 @@ fun PackageDetailScreen(
         }
     }
 
+    // ── Route Editor Dialog with User Picker ─────────────────────────────────
     if (showRouteEditor) {
+        val allUsers = (usersState as? UsersState.Success)?.users ?: emptyList()
+        val filteredUsers = remember(userSearchQuery, allUsers) {
+            if (userSearchQuery.isBlank()) allUsers
+            else allUsers.filter {
+                it.full_name.contains(userSearchQuery, ignoreCase = true) ||
+                it.email.contains(userSearchQuery, ignoreCase = true)
+            }
+        }
+
         AlertDialog(
             onDismissRequest = { showRouteEditor = false },
             title = { Text("Edit Route Checkpoints") },
             text = {
                 Column {
                     Text(
-                        text = "One checkpoint per line. Receiver remains: $pkgReceiverName",
+                        text = "Select users who will handle this parcel en route to $pkgReceiverName.",
                         style = MaterialTheme.typography.bodySmall,
                         color = OnSurfaceVariant
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(12.dp))
+
+                    // ── Selected chips ────────────────────────────────────────
+                    if (selectedCheckpointIds.isNotEmpty()) {
+                        Text(
+                            "Selected (${selectedCheckpointIds.size})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = OnSurfaceVariant
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            selectedCheckpointIds.forEach { uid ->
+                                val user = allUsers.firstOrNull { it.user_id == uid }
+                                val label = user?.full_name ?: uid
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(CoralPrimary.copy(alpha = 0.12f))
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        label,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                        color = CoralPrimary
+                                    )
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Remove",
+                                        tint = CoralPrimary,
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clickable {
+                                                selectedCheckpointIds = selectedCheckpointIds.filter { it != uid }
+                                            }
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(color = SurfaceContainerHighest)
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    // ── User search field ─────────────────────────────────────
                     OutlinedTextField(
-                        value = editedCheckpoints,
-                        onValueChange = { editedCheckpoints = it },
+                        value = userSearchQuery,
+                        onValueChange = {
+                            userSearchQuery = it
+                            packageViewModel.fetchUsers(it.ifBlank { null })
+                        },
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 4
+                        placeholder = { Text("Search users…") },
+                        leadingIcon = { Icon(Icons.Outlined.Search, null, modifier = Modifier.size(18.dp)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp)
                     )
+                    Spacer(Modifier.height(8.dp))
+
+                    // ── User list ─────────────────────────────────────────────
+                    when {
+                        usersState is UsersState.Loading -> {
+                            Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = CoralPrimary)
+                            }
+                        }
+                        filteredUsers.isEmpty() -> {
+                            Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+                                Text("No users found", style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariant)
+                            }
+                        }
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 200.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                items(filteredUsers) { user ->
+                                    val isSelected = user.user_id in selectedCheckpointIds
+                                    val isReceiver = user.user_id == pkgReceiverId
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(
+                                                if (isSelected) CoralPrimary.copy(alpha = 0.1f)
+                                                else SurfaceContainerLow
+                                            )
+                                            .clickable(enabled = !isReceiver) {
+                                                selectedCheckpointIds = if (isSelected) {
+                                                    selectedCheckpointIds.filter { it != user.user_id }
+                                                } else {
+                                                    selectedCheckpointIds + user.user_id
+                                                }
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                user.full_name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                                color = if (isReceiver) OnSurfaceVariant else OnSurface
+                                            )
+                                            Text(
+                                                user.email,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = OnSurfaceVariant
+                                            )
+                                        }
+                                        if (isReceiver) {
+                                            Text(
+                                                "Receiver",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = OnSurfaceVariant
+                                            )
+                                        } else if (isSelected) {
+                                            Icon(Icons.Default.Check, null, tint = CoralPrimary, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val checkpoints = editedCheckpoints
-                            .lines()
-                            .map { it.trim() }
-                            .filter { it.isNotBlank() }
-                        if (checkpoints.isEmpty()) {
-                            Toast.makeText(context, "Add at least one checkpoint", Toast.LENGTH_SHORT).show()
+                        if (selectedCheckpointIds.isEmpty()) {
+                            Toast.makeText(context, "Select at least one checkpoint user", Toast.LENGTH_SHORT).show()
                         } else {
-                            packageViewModel.updateCheckpoints(packageId, checkpoints)
+                            packageViewModel.updateCheckpoints(packageId, selectedCheckpointIds)
                         }
                     }
                 ) { Text("Save") }
