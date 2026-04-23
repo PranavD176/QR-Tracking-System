@@ -71,13 +71,19 @@ fun AlertFeedScreen(
                 val (title, alertType) = when (a.alert_type) {
                     "acceptance_request" -> "New Package 📦" to UserAlertType.PARCEL_ARRIVED
                     "misplaced" -> "Misplaced Alert ⚠️" to UserAlertType.SECURITY
+                    "rejected" -> "Parcel Rejected ❌" to UserAlertType.SECURITY
                     "handoff" -> "Package Handoff 🚚" to UserAlertType.OUT_FOR_DELIVERY
                     else -> "Package Alert" to UserAlertType.PARCEL_ARRIVED
+                }
+                val description = if (a.alert_type == "rejected") {
+                    a.location.ifBlank { "Package \"${a.package_description}\" was rejected" }
+                } else {
+                    "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}"
                 }
                 UserAlert(
                     id = a.alert_id,
                     title = title,
-                    description = "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}",
+                    description = description,
                     type = alertType,
                     timeAgo = a.created_at.takeLast(8),
                     statusLabel = a.status.uppercase(),

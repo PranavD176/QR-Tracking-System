@@ -250,9 +250,10 @@ fun StatusChip(
     modifier: Modifier = Modifier
 ) {
     val (bgColor, textColor, showPulse) = when (status.lowercase()) {
-        "active"    -> Triple(EmeraldActiveBg, Color(0xFF15803D), true)
+        "active", "in_transit" -> Triple(EmeraldActiveBg, Color(0xFF15803D), true)
         "misplaced" -> Triple(StatusRedChip, StatusRedText, false)
-        "completed" -> Triple(SurfaceContainerHighest, OnSurfaceVariant, false)
+        "rejected"  -> Triple(StatusRedChip, StatusRedText, false)
+        "delivered", "completed" -> Triple(SurfaceContainerHighest, OnSurfaceVariant, false)
         else        -> Triple(SurfaceContainerLow, OnSurfaceVariant, false)
     }
 

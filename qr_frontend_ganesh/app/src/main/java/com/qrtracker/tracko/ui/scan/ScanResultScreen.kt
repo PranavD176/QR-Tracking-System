@@ -39,6 +39,7 @@ fun ScanResultScreen(
     BackHandler { /* consumed — user must use buttons below */ }
 
     val isValid = result == "valid"
+    val isError = result in listOf("misplaced", "rejected", "already_delivered")
 
     // ── Icon pulse animation ─────────────────────────────────────────────────
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -139,7 +140,10 @@ fun ScanResultScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (isValid) Icons.Outlined.CheckCircle else Icons.Default.Warning,
+                                imageVector = if (isValid) Icons.Outlined.CheckCircle
+                                    else if (result == "rejected") Icons.Default.Block
+                                    else if (result == "already_delivered") Icons.Default.CheckCircle
+                                    else Icons.Default.Warning,
                                 contentDescription = null,
                                 tint = if (isValid) EmeraldActive else StatusRedText,
                                 modifier = Modifier.size(48.dp)
@@ -148,7 +152,13 @@ fun ScanResultScreen(
                         Spacer(Modifier.height(20.dp))
 
                         Text(
-                            text = if (isValid) "Package Verified" else "Misplaced Package",
+                            text = when (result) {
+                                "valid" -> "Package Verified"
+                                "rejected" -> "Package Rejected"
+                                "already_delivered" -> "Already Delivered"
+                                "duplicate" -> "Duplicate Scan"
+                                else -> "Misplaced Package"
+                            },
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
@@ -157,10 +167,13 @@ fun ScanResultScreen(
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            text = if (isValid)
-                                "Security validation successful"
-                            else
-                                "Alert sent to sender & receiver",
+                            text = when (result) {
+                                "valid" -> "Security validation successful"
+                                "rejected" -> "This package has been rejected by the receiver"
+                                "already_delivered" -> "This package has already been delivered"
+                                "duplicate" -> "This scan was already recorded"
+                                else -> "Alert sent to sender & receiver"
+                            },
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Medium
                             ),
@@ -200,7 +213,12 @@ fun ScanResultScreen(
                             )
                         }
                         StatusChip(
-                            status = if (isValid) "in_transit" else "misplaced"
+                            status = when (result) {
+                                "valid" -> "in_transit"
+                                "rejected" -> "rejected"
+                                "already_delivered" -> "delivered"
+                                else -> "misplaced"
+                            }
                         )
                     }
 
@@ -219,7 +237,13 @@ fun ScanResultScreen(
                     Spacer(Modifier.height(10.dp))
                     ResultInfoRow(
                         label = "Status",
-                        value = if (isValid) "✓ Valid" else "⚠ Misplaced"
+                        value = when (result) {
+                            "valid" -> "✓ Valid"
+                            "rejected" -> "✕ Rejected"
+                            "already_delivered" -> "✓ Already Delivered"
+                            "duplicate" -> "↻ Duplicate"
+                            else -> "⚠ Misplaced"
+                        }
                     )
                     if (!isValid && alertSent) {
                         Spacer(Modifier.height(10.dp))
