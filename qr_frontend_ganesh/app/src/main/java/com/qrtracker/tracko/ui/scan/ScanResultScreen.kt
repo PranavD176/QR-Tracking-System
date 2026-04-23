@@ -160,7 +160,7 @@ fun ScanResultScreen(
                             text = if (isValid)
                                 "Security validation successful"
                             else
-                                "Alert sent to $ownerName",
+                                "Alert sent to sender & receiver",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Medium
                             ),
@@ -200,7 +200,7 @@ fun ScanResultScreen(
                             )
                         }
                         StatusChip(
-                            status = if (isValid) "active" else "misplaced"
+                            status = if (isValid) "in_transit" else "misplaced"
                         )
                     }
 
@@ -214,8 +214,8 @@ fun ScanResultScreen(
                     )
                     Spacer(Modifier.height(16.dp))
 
-                    // Owner row
-                    ResultInfoRow(label = "Owner", value = ownerName)
+                    // Sender row
+                    ResultInfoRow(label = "Sender", value = ownerName)
                     Spacer(Modifier.height(10.dp))
                     ResultInfoRow(
                         label = "Status",
@@ -223,7 +223,7 @@ fun ScanResultScreen(
                     )
                     if (!isValid && alertSent) {
                         Spacer(Modifier.height(10.dp))
-                        ResultInfoRow(label = "Alert", value = "Sent to owner")
+                        ResultInfoRow(label = "Alert", value = "Sent to sender & receiver")
                     }
                     Spacer(Modifier.height(12.dp))
 

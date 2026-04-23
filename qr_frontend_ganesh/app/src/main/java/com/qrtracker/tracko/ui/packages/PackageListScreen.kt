@@ -41,22 +41,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
+import com.qrtracker.tracko.viewmodel.AlertViewModel
 import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.PackageListState
+import androidx.compose.ui.platform.LocalLifecycleOwner
 
 // ── Mock data class — kept for UI, now populated from API ────────────────────
 data class PackageItem(
     val packageId   : String,
     val description : String,
     val trackingId  : String = "",
+    val shortId     : String = "",
     val status      : String,
     val createdAt   : String,
     val progress    : Float = 0f,
+    val checkpointCount: Int = 0,       // total route checkpoints
     val lastCheckpoint: String = "",
+    val source: String = "",
+    val destination: String = "",
     val icon        : ImageVector = Icons.Outlined.Laptop
 )
 
@@ -78,14 +86,17 @@ data class PackageListUiState(
 @Composable
 fun PackageListScreen(
     navController: NavController,
-    startWithAll: Boolean = false
+    startWithAll: Boolean = false,
+    alertViewModel: AlertViewModel,
 ) {
 
     var uiState           by remember { mutableStateOf(PackageListUiState(showAll = startWithAll)) }
     val context           = LocalContext.current
+    val lifecycleOwner    = LocalLifecycleOwner.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
     val packageViewModel  = remember { PackageViewModel(tokenManager) }
     val pkgListState by packageViewModel.packageListState.collectAsState()
+    val unreadCount by alertViewModel.unreadCount.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // ── Load packages from API on screen entry ────────────────────────────
@@ -93,6 +104,20 @@ fun PackageListScreen(
         val name = tokenManager.getFullName() ?: "User"
         uiState = uiState.copy(userName = name)
         packageViewModel.fetchPackages()
+        alertViewModel.fetchAlerts("sent")
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                alertViewModel.fetchAlerts("sent")
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // ── Observe package list state ──────────────────────────────────────
@@ -103,22 +128,39 @@ fun PackageListScreen(
             }
             is PackageListState.Success -> {
                 val items = state.packages.map { pkg ->
+                    val fullId = pkg.qr_payload ?: pkg.package_id
+                    val displayId = if (fullId.length > 16) fullId.take(8) + "..." + fullId.takeLast(4) else fullId
                     PackageItem(
                         packageId = pkg.package_id,
                         description = pkg.description,
-                        trackingId = pkg.qr_payload ?: pkg.package_id.take(12),
+                        trackingId = fullId,
+                        shortId = displayId,
                         status = pkg.status,
                         createdAt = pkg.created_at ?: "",
+                        // Dynamic progress based on actual scanned checkpoints:
+                        // Route has: sender → checkpoint_1 → ... → checkpoint_n → receiver
+                        // Total segments = checkpoints + 2 (sender + receiver)
+                        // Progress = (scanned_checkpoints + 1) / (total_checkpoints + 2)
+                        // +1 because sender already has the package
                         progress = when (pkg.status) {
-                            "completed" -> 1f
-                            "misplaced" -> 0.45f
-                            else -> 0.6f
+                            "delivered" -> 1.0f
+                            "pending_acceptance" -> 0.05f
+                            "rejected" -> 0f
+                            else -> {
+                                val totalCheckpoints = pkg.route_checkpoints?.size ?: 0
+                                val scanned = pkg.scanned_checkpoint_count
+                                if (totalCheckpoints == 0) 0.5f
+                                else ((scanned + 1).toFloat() / (totalCheckpoints + 2).toFloat()).coerceIn(0.05f, 0.95f)
+                            }
                         },
-                        lastCheckpoint = pkg.description
+                        checkpointCount = pkg.route_checkpoints?.size ?: 0,
+                        lastCheckpoint = pkg.description,
+                        source = pkg.sender_name ?: "Unknown",
+                        destination = pkg.receiver_name ?: "Unknown"
                     )
                 }
-                val activeCount = items.count { it.status == "active" }
-                val completedCount = items.count { it.status == "completed" }
+                val activeCount = items.count { it.status == "in_transit" }
+                val completedCount = items.count { it.status == "delivered" }
                 uiState = uiState.copy(
                     packages = items,
                     inTransit = activeCount,
@@ -137,7 +179,7 @@ fun PackageListScreen(
     val displayedPackages = remember(uiState.packages, uiState.searchQuery, uiState.showAll) {
         uiState.packages
             .filter {
-                if (uiState.showAll) true else it.status.equals("active", ignoreCase = true)
+                if (uiState.showAll) true else it.status.equals("in_transit", ignoreCase = true)
             }
             .filter {
                 val query = uiState.searchQuery.trim()
@@ -186,6 +228,17 @@ fun PackageListScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Surface,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Routes.CREATE_PACKAGE) { launchSingleTop = true } },
+                containerColor = CoralPrimary,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Create Parcel")
+            }
+        },
         bottomBar = {
             BottomNavBar(
                 items = listOf(
@@ -277,19 +330,27 @@ fun PackageListScreen(
                             )
                         }
                     }
-                    IconButton(
-                        onClick = { navController.navigate(Routes.ALERTS) { launchSingleTop = true } },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceContainer)
+                    BadgedBox(
+                        badge = {
+                            if (unreadCount > 0) {
+                                Badge { Text(if (unreadCount > 99) "99+" else unreadCount.toString()) }
+                            }
+                        }
                     ) {
-                        Icon(
-                            Icons.Outlined.Notifications,
-                            contentDescription = "Notifications",
-                            tint = OnSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        IconButton(
+                            onClick = { navController.navigate(Routes.ALERTS) { launchSingleTop = true } },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(SurfaceContainer)
+                        ) {
+                            Icon(
+                                Icons.Outlined.Notifications,
+                                contentDescription = "Notifications",
+                                tint = OnSurface,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -428,7 +489,7 @@ private fun PackageCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isCompleted = pkg.status == "completed"
+    val isCompleted = pkg.status == "delivered"
     val isMisplaced = pkg.status == "misplaced"
 
     Box(
@@ -472,9 +533,11 @@ private fun PackageCard(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "ID: ${pkg.trackingId}",
+                        text = "ID: ${pkg.shortId}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = OnSurfaceVariant
+                        color = OnSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Spacer(Modifier.width(12.dp))
@@ -525,6 +588,28 @@ private fun PackageCard(
                         color = if (isMisplaced) StatusRedText else OnSurface
                     )
                 }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "From: ${pkg.source}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "To: ${pkg.destination}",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = OnSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }

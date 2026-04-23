@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
-    data class Success(val userId: String, val role: String) : AuthState()
+    data class Success(val userId: String) : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -37,17 +37,17 @@ class AuthViewModel(
                 if (response.isSuccessful && body != null) {
                     if (body.success && body.data != null) {
                         val authData = body.data
-                        // Save token and role locally for future API calls
+                        // Save token locally for future API calls
                         tokenManager.saveToken(authData.token)
-                        tokenManager.saveRole(authData.role)
                         tokenManager.saveUserId(authData.user_id)
                         authData.full_name?.let { tokenManager.saveFullName(it) }
                         authData.email?.let { tokenManager.saveEmail(it) }
+                        authData.role?.let { tokenManager.saveRole(it) }
 
                         // Send FCM token to backend
                         sendFcmToken()
 
-                        _authState.value = AuthState.Success(authData.user_id, authData.role)
+                        _authState.value = AuthState.Success(authData.user_id)
                     } else {
                         _authState.value = AuthState.Error(body.error ?: "Login failed")
                     }
@@ -60,12 +60,12 @@ class AuthViewModel(
         }
     }
 
-    fun register(email: String, password: String, fullName: String, role: String) {
+    fun register(email: String, password: String, fullName: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
                 val response = apiService.register(
-                    RegisterRequest(fullName, email, password, role)
+                    RegisterRequest(fullName, email, password)
                 )
                 if (response.isSuccessful) {
                     login(email, password)
@@ -81,12 +81,17 @@ class AuthViewModel(
     private fun sendFcmToken() {
         viewModelScope.launch {
             try {
-                val fcmToken = tokenManager.getFcmToken() ?: return@launch
+                val fcmToken = tokenManager.getFcmToken()
+                if (fcmToken.isNullOrBlank()) return@launch
                 apiService.registerDeviceToken(DeviceTokenRequest(fcmToken))
             } catch (e: Exception) {
                 // Background task failed
             }
         }
+    }
+
+    fun syncFcmTokenIfAvailable() {
+        sendFcmToken()
     }
 
     fun logout() {
@@ -98,4 +103,3 @@ class AuthViewModel(
         _authState.value = AuthState.Idle
     }
 }
-

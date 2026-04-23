@@ -84,7 +84,7 @@ fun ScanScreen(navController: NavController) {
                     Routes.scanResult(
                         result      = resp.result.lowercase(),
                         packageDesc = resp.package_description,
-                        ownerName   = resp.owner_name,
+                        senderName  = resp.sender_name,
                         alertSent   = resp.alert_sent
                     )
                 )

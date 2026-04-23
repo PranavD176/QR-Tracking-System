@@ -28,20 +28,27 @@ sealed class ScanHistoryState {
     data class Error(val message: String) : ScanHistoryState()
 }
 
-// Represents state for admin fetching users
-sealed class AdminUsersState {
-    object Idle : AdminUsersState()
-    object Loading : AdminUsersState()
-    data class Success(val users: List<UserResponse>) : AdminUsersState()
-    data class Error(val message: String) : AdminUsersState()
+// Represents state for fetching users (any logged-in user can call)
+sealed class UsersState {
+    object Idle : UsersState()
+    object Loading : UsersState()
+    data class Success(val users: List<UserResponse>) : UsersState()
+    data class Error(val message: String) : UsersState()
 }
 
 // Represents every possible state for creating a package
 sealed class CreatePackageState {
     object Idle : CreatePackageState()
     object Loading : CreatePackageState()
-    data class Success(val qrPayload: String) : CreatePackageState()
+    data class Success(val packageId: String, val qrPayload: String) : CreatePackageState()
     data class Error(val message: String) : CreatePackageState()
+}
+
+sealed class UpdateCheckpointsState {
+    object Idle : UpdateCheckpointsState()
+    object Loading : UpdateCheckpointsState()
+    object Success : UpdateCheckpointsState()
+    data class Error(val message: String) : UpdateCheckpointsState()
 }
 
 class PackageViewModel(
@@ -65,15 +72,16 @@ class PackageViewModel(
     private val _createPackageState = MutableStateFlow<CreatePackageState>(CreatePackageState.Idle)
     val createPackageState: StateFlow<CreatePackageState> = _createPackageState
 
-    // ─── ADMIN USERS STATE ───────────────────────────────────────────
+    // ─── USERS STATE ─────────────────────────────────────────────────
 
-    private val _adminUsersState = MutableStateFlow<AdminUsersState>(AdminUsersState.Idle)
-    val adminUsersState: StateFlow<AdminUsersState> = _adminUsersState
+    private val _usersState = MutableStateFlow<UsersState>(UsersState.Idle)
+    val usersState: StateFlow<UsersState> = _usersState
+
+    private val _updateCheckpointsState = MutableStateFlow<UpdateCheckpointsState>(UpdateCheckpointsState.Idle)
+    val updateCheckpointsState: StateFlow<UpdateCheckpointsState> = _updateCheckpointsState
 
     // ─── FETCH PACKAGES ──────────────────────────────────────────────
 
-    // Called when Home Dashboard screen loads
-    // Fetches all packages owned by the logged-in user
     fun fetchPackages(status: String? = null) {
         viewModelScope.launch {
             _packageListState.value = PackageListState.Loading
@@ -86,7 +94,6 @@ class PackageViewModel(
                     _packageListState.value = PackageListState.Success(packages)
 
                 } else {
-                    // Check if token expired — 401 means re-login needed
                     if (response.code() == 401) {
                         _packageListState.value = PackageListState.Error("Session expired. Please login again.")
                     } else {
@@ -103,7 +110,6 @@ class PackageViewModel(
 
     // ─── FETCH SCAN HISTORY ──────────────────────────────────────────
 
-    // Called when user taps on a specific package to see its scan history
     fun fetchScanHistory(packageId: String) {
         viewModelScope.launch {
             _scanHistoryState.value = ScanHistoryState.Loading
@@ -130,52 +136,51 @@ class PackageViewModel(
         }
     }
 
-    // ─── FETCH ADMIN USERS ───────────────────────────────────────────
+    // ─── FETCH USERS ─────────────────────────────────────────────────
 
-    fun fetchAdminUsers() {
+    fun fetchUsers(search: String? = null) {
         viewModelScope.launch {
-            _adminUsersState.value = AdminUsersState.Loading
+            _usersState.value = UsersState.Loading
 
             try {
-                val response = apiService.getAdminUsers()
+                val response = apiService.getUsers(search = search)
 
                 if (response.isSuccessful && response.body()?.success == true) {
                     val users = response.body()!!.data ?: emptyList()
-                    _adminUsersState.value = AdminUsersState.Success(users)
+                    _usersState.value = UsersState.Success(users)
                 } else {
                     if (response.code() == 401) {
-                        _adminUsersState.value = AdminUsersState.Error("Session expired.")
+                        _usersState.value = UsersState.Error("Session expired.")
                     } else {
                         val errorMsg = response.body()?.error ?: "Failed to fetch users"
-                        _adminUsersState.value = AdminUsersState.Error(errorMsg)
+                        _usersState.value = UsersState.Error(errorMsg)
                     }
                 }
             } catch (e: Exception) {
-                _adminUsersState.value = AdminUsersState.Error("Network error: ${e.message}")
+                _usersState.value = UsersState.Error("Network error: ${e.message}")
             }
         }
     }
 
     // ─── CREATE PACKAGE ──────────────────────────────────────────────
 
-    // Called when user submits the Create Package form
-    // Returns qr_payload which Member 1 uses to generate the QR image
     fun createPackage(
         description: String,
-        destinationUserId: String? = null,
-        destinationAddress: String? = null
+        receiverId: String,
+        routeCheckpoints: List<String>? = null
     ) {
         viewModelScope.launch {
             _createPackageState.value = CreatePackageState.Loading
 
             try {
                 val response = apiService.createPackage(
-                    CreatePackageRequest(description, destinationUserId, destinationAddress)
+                    CreatePackageRequest(description, receiverId, routeCheckpoints)
                 )
 
                 if (response.isSuccessful && response.body()?.success == true) {
+                    val packageId = response.body()!!.data?.package_id ?: ""
                     val qrPayload = response.body()!!.data?.qr_payload ?: ""
-                    _createPackageState.value = CreatePackageState.Success(qrPayload)
+                    _createPackageState.value = CreatePackageState.Success(packageId, qrPayload)
 
                 } else {
                     if (response.code() == 401) {
@@ -192,6 +197,57 @@ class PackageViewModel(
         }
     }
 
+    // ─── ACCEPT/REJECT PACKAGE ───────────────────────────────────────
+
+    fun acceptPackage(packageId: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.acceptPackage(packageId)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    fetchPackages() // Refresh list
+                }
+            } catch (e: Exception) {
+                // handle error
+            }
+        }
+    }
+
+    fun rejectPackage(packageId: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.rejectPackage(packageId)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    fetchPackages() // Refresh list
+                }
+            } catch (e: Exception) {
+                // handle error
+            }
+        }
+    }
+
+    fun updateCheckpoints(packageId: String, checkpoints: List<String>) {
+        viewModelScope.launch {
+            _updateCheckpointsState.value = UpdateCheckpointsState.Loading
+            try {
+                val cleanCheckpoints = checkpoints.map { it.trim() }.filter { it.isNotBlank() }
+                val response = apiService.updateCheckpoints(
+                    packageId = packageId,
+                    checkpoints = mapOf("route_checkpoints" to cleanCheckpoints)
+                )
+                if (response.isSuccessful && response.body()?.success == true) {
+                    _updateCheckpointsState.value = UpdateCheckpointsState.Success
+                    fetchPackages()
+                    fetchScanHistory(packageId)
+                } else {
+                    val errorMsg = response.body()?.error ?: "Failed to update route checkpoints"
+                    _updateCheckpointsState.value = UpdateCheckpointsState.Error(errorMsg)
+                }
+            } catch (e: Exception) {
+                _updateCheckpointsState.value = UpdateCheckpointsState.Error("Network error: ${e.message}")
+            }
+        }
+    }
+
     // ─── RESET STATES ────────────────────────────────────────────────
 
     fun resetCreatePackageState() {
@@ -200,5 +256,9 @@ class PackageViewModel(
 
     fun resetScanHistoryState() {
         _scanHistoryState.value = ScanHistoryState.Idle
+    }
+
+    fun resetUpdateCheckpointsState() {
+        _updateCheckpointsState.value = UpdateCheckpointsState.Idle
     }
 }

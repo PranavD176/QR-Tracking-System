@@ -1,10 +1,10 @@
 package com.qrtracker.tracko.network.models
 
 data class ScanResponse(
-    val result: String,                 // "Valid" or "Misplaced"
+    val result: String,                 // "valid" or "misplaced"
     val package_description: String,
-    val owner_name: String,
+    val sender_name: String?,
     val alert_sent: Boolean,
-    val scanned_by: String?             // Only present if misplaced
+    val scanned_by: String?,            // Only present if misplaced
+    val status: String? = null          // Package status after scan
 )
-

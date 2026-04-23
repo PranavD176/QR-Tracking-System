@@ -132,16 +132,16 @@ fun AppAlertsScreen(navController: NavController) {
                             )
                         }
                         Spacer(Modifier.width(8.dp))
-                        // Admin Avatar
+                        // User Avatar
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(SurfaceContainerHighest)
-                                .clickable { navController.navigate(Routes.ADMIN_PROFILE) { launchSingleTop = true } },
+                                .clickable { navController.navigate(Routes.USER_PROFILE) { launchSingleTop = true } },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("A", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold), color = OnSurfaceVariant)
+                            Text("U", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold), color = OnSurfaceVariant)
                         }
                     }
                 }

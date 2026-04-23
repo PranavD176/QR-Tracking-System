@@ -86,12 +86,7 @@ fun RegisterScreen(navController: NavController) {
     LaunchedEffect(authState) {
         when (val state = authState) {
             is AuthState.Success -> {
-                val route = when (state.role) {
-                    "admin" -> Routes.ADMIN_CHECKPOINT
-                    "checkpoint" -> Routes.STAFF_HOME
-                    else -> Routes.HOME
-                }
-                navController.navigate(route) {
+                navController.navigate(Routes.HOME) {
                     popUpTo(Routes.LOGIN) { inclusive = true }
                 }
                 authViewModel.resetState()
@@ -388,8 +383,7 @@ fun RegisterScreen(navController: NavController) {
                                 authViewModel.register(
                                     uiState.email.trim(),
                                     uiState.password,
-                                    uiState.fullName.trim(),
-                                    "user" // default role for self-registration
+                                    uiState.fullName.trim()
                                 )
                             }
                         }

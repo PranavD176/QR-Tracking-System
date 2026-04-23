@@ -1,5 +1,6 @@
 package com.qrtracker.tracko.ui.alerts
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -27,8 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.AlertViewModel
+import com.qrtracker.tracko.viewmodel.AcknowledgeState
 import com.qrtracker.tracko.viewmodel.AlertListState
 import androidx.compose.ui.platform.LocalContext
 
@@ -46,11 +47,13 @@ data class UserAlert(
 )
 
 @Composable
-fun AlertFeedScreen(navController: NavController) {
+fun AlertFeedScreen(
+    navController: NavController,
+    alertViewModel: AlertViewModel,
+) {
     val context = LocalContext.current
-    val tokenManager = remember { TokenManager(context.applicationContext) }
-    val alertViewModel = remember { AlertViewModel(tokenManager) }
     val alertListState by alertViewModel.alertListState.collectAsState()
+    val acknowledgeState by alertViewModel.acknowledgeState.collectAsState()
 
     var selectedFilter by remember { mutableStateOf("All") }
     val filters = listOf("All", "Parcel", "Delivery", "System")
@@ -65,16 +68,42 @@ fun AlertFeedScreen(navController: NavController) {
     LaunchedEffect(alertListState) {
         if (alertListState is AlertListState.Success) {
             alerts = (alertListState as AlertListState.Success).alerts.map { a ->
+                val (title, alertType) = when (a.alert_type) {
+                    "acceptance_request" -> "New Package 📦" to UserAlertType.PARCEL_ARRIVED
+                    "misplaced" -> "Misplaced Alert ⚠️" to UserAlertType.SECURITY
+                    "handoff" -> "Package Handoff 🚚" to UserAlertType.OUT_FOR_DELIVERY
+                    else -> "Package Alert" to UserAlertType.PARCEL_ARRIVED
+                }
                 UserAlert(
                     id = a.alert_id,
-                    title = "Misplaced Alert",
+                    title = title,
                     description = "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}",
-                    type = UserAlertType.PARCEL_ARRIVED,
+                    type = alertType,
                     timeAgo = a.created_at.takeLast(8),
                     statusLabel = a.status.uppercase(),
                     isUnread = a.status == "sent"
                 )
             }
+        }
+    }
+
+    LaunchedEffect(acknowledgeState) {
+        when (val state = acknowledgeState) {
+            is AcknowledgeState.SuccessBulk -> {
+                val message = if (state.updated > 0) {
+                    "Marked ${state.updated} alerts as read"
+                } else {
+                    "No unread alerts"
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                alertViewModel.resetAcknowledgeState()
+            }
+            is AcknowledgeState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                alertViewModel.fetchAlerts(null)
+                alertViewModel.resetAcknowledgeState()
+            }
+            else -> Unit
         }
     }
 
@@ -132,7 +161,14 @@ fun AlertFeedScreen(navController: NavController) {
                         "Mark all as read",
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = GradientStart,
-                        modifier = Modifier.clickable { alerts = alerts.map { it.copy(isUnread = false) } }
+                        modifier = Modifier.clickable {
+                            if (alerts.any { it.isUnread }) {
+                                alerts = alerts.map { it.copy(isUnread = false) }
+                                alertViewModel.acknowledgeAllAlerts()
+                            } else {
+                                Toast.makeText(context, "No unread alerts", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                 }
             }

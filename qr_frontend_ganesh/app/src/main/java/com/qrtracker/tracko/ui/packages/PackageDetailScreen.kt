@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,8 +13,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QrCode2
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
@@ -27,11 +31,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
+import com.qrtracker.tracko.utils.QRCodeGenerator
 import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.PackageListState
 import com.qrtracker.tracko.viewmodel.ScanHistoryState
+import com.qrtracker.tracko.viewmodel.UpdateCheckpointsState
+import com.qrtracker.tracko.viewmodel.UsersState
 import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 @Composable
 fun PackageDetailScreen(
@@ -47,9 +55,22 @@ fun PackageDetailScreen(
 
     // Package detail state from API
     var pkgDescription by remember { mutableStateOf("Loading...") }
-    var pkgTrackingId by remember { mutableStateOf(packageId.take(12)) }
-    var pkgStatus by remember { mutableStateOf("active") }
+    var pkgTrackingId by remember { mutableStateOf(if (packageId.length > 16) packageId.take(8) + "..." + packageId.takeLast(4) else packageId) }
+    var pkgStatus by remember { mutableStateOf("in_transit") }
+    var pkgReceiverId by remember { mutableStateOf("") }
+    var pkgReceiverName by remember { mutableStateOf("Unknown") }
+    var pkgSenderId by remember { mutableStateOf("") }
+    var pkgSenderName by remember { mutableStateOf("Unknown") }
+    var routeCheckpoints by remember { mutableStateOf<List<String>>(emptyList()) }
+    var routeCheckpointNames by remember { mutableStateOf<List<String>>(emptyList()) }
+    var scannedCheckpointCount by remember { mutableStateOf(0) }
     var pkgCreatedAt by remember { mutableStateOf("") }
+    var showRouteEditor by remember { mutableStateOf(false) }
+    // Checkpoint editor state — list of selected user IDs
+    var selectedCheckpointIds by remember { mutableStateOf<List<String>>(emptyList()) }
+    val updateCheckpointsState by packageViewModel.updateCheckpointsState.collectAsState()
+    val usersState by packageViewModel.usersState.collectAsState()
+    var userSearchQuery by remember { mutableStateOf("") }
 
     // Scan history from API
     var scanEntries by remember { mutableStateOf<List<MockScanEntry>>(emptyList()) }
@@ -67,8 +88,18 @@ fun PackageDetailScreen(
                 .firstOrNull { it.package_id == packageId }
             if (pkg != null) {
                 pkgDescription = pkg.description
-                pkgTrackingId = pkg.qr_payload ?: pkg.package_id.take(12)
+                pkgTrackingId = run {
+                    val fullId = pkg.qr_payload ?: pkg.package_id
+                    if (fullId.length > 16) fullId.take(8) + "..." + fullId.takeLast(4) else fullId
+                }
                 pkgStatus = pkg.status
+                pkgReceiverId = pkg.receiver_id ?: ""
+                pkgReceiverName = pkg.receiver_name ?: "Unknown"
+                pkgSenderId = pkg.sender_id ?: ""
+                pkgSenderName = pkg.sender_name ?: "Unknown"
+                routeCheckpoints = pkg.route_checkpoints ?: emptyList()
+                routeCheckpointNames = pkg.route_checkpoint_names ?: emptyList()
+                scannedCheckpointCount = pkg.scanned_checkpoint_count
                 pkgCreatedAt = pkg.created_at ?: ""
             }
         }
@@ -85,6 +116,22 @@ fun PackageDetailScreen(
                     timestamp = s.scanned_at
                 )
             }
+        }
+    }
+
+    LaunchedEffect(updateCheckpointsState) {
+        when (val state = updateCheckpointsState) {
+            is UpdateCheckpointsState.Success -> {
+                showRouteEditor = false
+                packageViewModel.fetchPackages()
+                packageViewModel.resetUpdateCheckpointsState()
+                Toast.makeText(context, "Route checkpoints updated", Toast.LENGTH_SHORT).show()
+            }
+            is UpdateCheckpointsState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                packageViewModel.resetUpdateCheckpointsState()
+            }
+            else -> Unit
         }
     }
 
@@ -182,6 +229,71 @@ fun PackageDetailScreen(
             Spacer(Modifier.height(24.dp))
 
             // ══════════════════════════════════════════════════════════════════
+            //  Pending Acceptance Actions
+            // ══════════════════════════════════════════════════════════════════
+            if (pkgStatus == "pending_acceptance" && pkgReceiverId == tokenManager.getUserId()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CoralPrimary.copy(alpha = 0.1f))
+                        .border(1.dp, CoralPrimary.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Outlined.HelpOutline,
+                        contentDescription = null,
+                        tint = CoralPrimary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = "Accept this parcel?",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = OnSurface
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "You need to accept this parcel before the sender can start tracking it.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = OnSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = { packageViewModel.rejectPackage(packageId) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SurfaceContainerHigh,
+                                contentColor = StatusRedText
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Reject")
+                        }
+                        Button(
+                            onClick = { packageViewModel.acceptPackage(packageId) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = CoralPrimary,
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Accept")
+                        }
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+
+            // ══════════════════════════════════════════════════════════════════
             //  Bento Grid — Info Cards
             // ══════════════════════════════════════════════════════════════════
             Column(modifier = Modifier.padding(horizontal = 24.dp)) {
@@ -204,11 +316,13 @@ fun PackageDetailScreen(
                         ) {
                             Text(
                                 text = pkgTrackingId,
-                                style = MaterialTheme.typography.headlineSmall.copy(
+                                style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp
                                 ),
-                                color = OnSurface
+                                color = OnSurface,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )
                             IconButton(
                                 onClick = { /* TODO: Copy to clipboard */ },
@@ -222,6 +336,43 @@ fun PackageDetailScreen(
                                     contentDescription = "Copy",
                                     tint = OnSurfaceVariant,
                                     modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(SurfaceContainerLowest)
+                        .padding(20.dp)
+                ) {
+                    Column {
+                        EditorialLabel(text = "Route")
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "Receiver: $pkgReceiverName",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = OnSurface
+                        )
+                        if (routeCheckpointNames.isEmpty() && routeCheckpoints.isEmpty()) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = "No intermediate checkpoints configured.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = OnSurfaceVariant
+                            )
+                        } else {
+                            Spacer(Modifier.height(8.dp))
+                            val displayList = routeCheckpointNames.ifEmpty { routeCheckpoints }
+                            displayList.forEachIndexed { index, checkpoint ->
+                                Text(
+                                    text = "${index + 1}. $checkpoint",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = OnSurfaceVariant
                                 )
                             }
                         }
@@ -275,17 +426,77 @@ fun PackageDetailScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "QR_TRACKING:$packageId",
+                            text = "QR_TRACKING:${if (packageId.length > 16) packageId.take(8) + "..." else packageId}",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.Medium
                             ),
-                            color = OnSurfaceVariant
+                            color = OnSurfaceVariant,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                val content = pkgTrackingId.ifBlank { packageId }
+                                val bitmap = QRCodeGenerator.generate(content)
+                                if (bitmap != null) {
+                                    val saved = QRCodeGenerator.saveToGallery(context, bitmap, "qr_$packageId")
+                                    Toast.makeText(
+                                        context,
+                                        if (saved) "QR saved to gallery" else "Failed to save QR",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(context, "Unable to generate QR", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Download QR")
+                        }
                     }
                 }
             }
 
             Spacer(Modifier.height(28.dp))
+
+            if (routeCheckpoints.isNotEmpty()) {
+                val validScanCount = scanEntries.count { it.result == "valid" }
+                val covered = validScanCount.coerceAtMost(routeCheckpoints.size)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(SurfaceContainerLowest)
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Route Covered: $covered/${routeCheckpoints.size}",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = OnSurface
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            if (pkgSenderId == tokenManager.getUserId()) {
+                Button(
+                    onClick = {
+                        selectedCheckpointIds = routeCheckpoints
+                        userSearchQuery = ""
+                        packageViewModel.fetchUsers()
+                        showRouteEditor = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Edit Remaining Route")
+                }
+                Spacer(Modifier.height(16.dp))
+            }
 
             // ══════════════════════════════════════════════════════════════════
             //  Movement Pulse Timeline
@@ -371,6 +582,172 @@ fun PackageDetailScreen(
 
             Spacer(Modifier.height(100.dp)) // Bottom nav clearance
         }
+    }
+
+    // ── Route Editor Dialog with User Picker ─────────────────────────────────
+    if (showRouteEditor) {
+        val allUsers = (usersState as? UsersState.Success)?.users ?: emptyList()
+        val filteredUsers = remember(userSearchQuery, allUsers) {
+            if (userSearchQuery.isBlank()) allUsers
+            else allUsers.filter {
+                it.full_name.contains(userSearchQuery, ignoreCase = true) ||
+                it.email.contains(userSearchQuery, ignoreCase = true)
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { showRouteEditor = false },
+            title = { Text("Edit Route Checkpoints") },
+            text = {
+                Column {
+                    Text(
+                        text = "Select users who will handle this parcel en route to $pkgReceiverName.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = OnSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+
+                    // ── Selected chips ────────────────────────────────────────
+                    if (selectedCheckpointIds.isNotEmpty()) {
+                        Text(
+                            "Selected (${selectedCheckpointIds.size})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = OnSurfaceVariant
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            selectedCheckpointIds.forEach { uid ->
+                                val user = allUsers.firstOrNull { it.user_id == uid }
+                                val label = user?.full_name ?: uid
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(CoralPrimary.copy(alpha = 0.12f))
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        label,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                        color = CoralPrimary
+                                    )
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Remove",
+                                        tint = CoralPrimary,
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .clickable {
+                                                selectedCheckpointIds = selectedCheckpointIds.filter { it != uid }
+                                            }
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(color = SurfaceContainerHighest)
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    // ── User search field ─────────────────────────────────────
+                    OutlinedTextField(
+                        value = userSearchQuery,
+                        onValueChange = {
+                            userSearchQuery = it
+                            packageViewModel.fetchUsers(it.ifBlank { null })
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Search users…") },
+                        leadingIcon = { Icon(Icons.Outlined.Search, null, modifier = Modifier.size(18.dp)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
+
+                    // ── User list ─────────────────────────────────────────────
+                    when {
+                        usersState is UsersState.Loading -> {
+                            Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = CoralPrimary)
+                            }
+                        }
+                        filteredUsers.isEmpty() -> {
+                            Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+                                Text("No users found", style = MaterialTheme.typography.bodySmall, color = OnSurfaceVariant)
+                            }
+                        }
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 200.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                items(filteredUsers) { user ->
+                                    val isSelected = user.user_id in selectedCheckpointIds
+                                    val isReceiver = user.user_id == pkgReceiverId
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(
+                                                if (isSelected) CoralPrimary.copy(alpha = 0.1f)
+                                                else SurfaceContainerLow
+                                            )
+                                            .clickable(enabled = !isReceiver) {
+                                                selectedCheckpointIds = if (isSelected) {
+                                                    selectedCheckpointIds.filter { it != user.user_id }
+                                                } else {
+                                                    selectedCheckpointIds + user.user_id
+                                                }
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                user.full_name,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                                color = if (isReceiver) OnSurfaceVariant else OnSurface
+                                            )
+                                            Text(
+                                                user.email,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = OnSurfaceVariant
+                                            )
+                                        }
+                                        if (isReceiver) {
+                                            Text(
+                                                "Receiver",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = OnSurfaceVariant
+                                            )
+                                        } else if (isSelected) {
+                                            Icon(Icons.Default.Check, null, tint = CoralPrimary, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (selectedCheckpointIds.isEmpty()) {
+                            Toast.makeText(context, "Select at least one checkpoint user", Toast.LENGTH_SHORT).show()
+                        } else {
+                            packageViewModel.updateCheckpoints(packageId, selectedCheckpointIds)
+                        }
+                    }
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRouteEditor = false }) { Text("Cancel") }
+            }
+        )
     }
 }
 
