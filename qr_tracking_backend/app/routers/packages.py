@@ -318,23 +318,36 @@ def reject_package(
         
     package.status = "rejected"
     
-    # Resolve alerts
+    # Resolve acceptance alerts
     from app.models.alerts import Alert
     alerts = db.query(Alert).filter_by(package_id=package_id, alert_type="acceptance_request").all()
     for a in alerts:
         a.status = "acknowledged"
+    
+    # Create rejection alert for sender
+    receiver_user = db.query(User).filter_by(user_id=user["uid"]).first()
+    rejection_alert = Alert(
+        package_id=package_id,
+        recipient_id=package.sender_id,
+        scanned_by_id=user["uid"],
+        alert_type="rejected",
+        details=f"{receiver_user.full_name if receiver_user else 'Receiver'} rejected your parcel '{package.description}'"
+    )
+    db.add(rejection_alert)
         
     db.commit()
     
-    # Notify sender
+    # Notify sender via push
     sender = db.query(User).filter_by(user_id=package.sender_id).first()
     if sender and sender.fcm_token:
-        receiver_user = db.query(User).filter_by(user_id=user["uid"]).first()
-        send_push_notification(
-            sender.fcm_token,
-            "Parcel Rejected ❌",
-            f"{receiver_user.full_name} rejected your parcel."
-        )
+        try:
+            send_push_notification(
+                sender.fcm_token,
+                "Parcel Rejected ❌",
+                f"{receiver_user.full_name if receiver_user else 'Receiver'} rejected your parcel '{package.description}'."
+            )
+        except Exception as e:
+            print(f"Error sending rejection push: {e}")
                 
     return {"success": True, "data": _serialize_package(package, db), "error": None}
 

@@ -27,6 +27,34 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
         if not package:
             return {"success": False, "data": None, "error": "Package not found"}
 
+        # Block scanning packages that are already delivered or rejected
+        if package.status == "delivered":
+            return {
+                "success": True,
+                "data": {
+                    "result": "already_delivered",
+                    "package_description": package.description or "",
+                    "sender_name": "",
+                    "alert_sent": False,
+                    "scanned_by": None,
+                    "status": package.status,
+                },
+                "error": None
+            }
+        if package.status == "rejected":
+            return {
+                "success": True,
+                "data": {
+                    "result": "rejected",
+                    "package_description": package.description or "",
+                    "sender_name": "",
+                    "alert_sent": False,
+                    "scanned_by": None,
+                    "status": package.status,
+                },
+                "error": None
+            }
+
         # Build authorized set: sender + receiver + all checkpoint user_ids
         authorized_ids = set()
         authorized_ids.add(package.sender_id)
@@ -41,7 +69,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         intended_result = "valid" if is_authorized else "misplaced"
 
-        # Prevent duplicate scans (same scanner, same result, same location, within 30 seconds)
+        # Prevent duplicate scans: same scanner + same package within 30 seconds = always duplicate
         from datetime import datetime, timedelta
         last_scan = db.query(ScanHistory).filter(
             ScanHistory.package_id == package.package_id,
@@ -52,7 +80,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
         is_duplicate = False
         if last_scan:
             time_diff = datetime.utcnow() - last_scan.scanned_at if last_scan.scanned_at else timedelta(seconds=999)
-            if time_diff.total_seconds() < 30 and last_scan.result == intended_result:
+            if time_diff.total_seconds() < 30:
                 is_duplicate = True
 
         result = "duplicate" if is_duplicate else intended_result
