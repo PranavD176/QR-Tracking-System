@@ -40,9 +40,9 @@ dist/
 *.log
 
 # ======================
-# Google Cloud
+# Google Cloud / Firebase
 # ======================
-
 qr_tracking_backend/qr-based-tracking--system-6da0041c1786.json
+qr_tracking_backend/firebase.json
 *.json
 qr_frontend_ganesh/app/google-services.json
