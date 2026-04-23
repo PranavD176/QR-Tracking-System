@@ -2,12 +2,15 @@
 scan.py — P2P Scan Router
 
 Authorization: sender ∪ receiver ∪ route_checkpoints
+Sequence enforcement: scans must follow the route chain order
 Valid scan → update current_holder, notify next person
 Scanner == receiver → mark delivered, notify sender
 Misplaced → alert both sender AND receiver
+Out of sequence → alert sender AND receiver
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 from app.dependencies import get_current_user, get_db
 from app.models.package import Package
 from app.models.scan import ScanHistory
@@ -61,16 +64,54 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
         if package.receiver_id:
             authorized_ids.add(package.receiver_id)
         if package.route_checkpoints:
-            authorized_ids.update(package.route_checkpoints)  # now just a list of user_ids
+            authorized_ids.update(package.route_checkpoints)
 
         is_authorized = user["uid"] in authorized_ids
         is_sender = package.sender_id == user["uid"]
         is_receiver = package.receiver_id == user["uid"]
 
-        intended_result = "valid" if is_authorized else "misplaced"
+        # ── Sequence enforcement ──────────────────────────────────────
+        # Build the expected chain order
+        chain = [package.sender_id]
+        if package.route_checkpoints:
+            chain.extend(package.route_checkpoints)
+        if package.receiver_id:
+            chain.append(package.receiver_id)
 
-        # Prevent duplicate scans: same scanner + same package within 30 seconds = always duplicate
-        from datetime import datetime, timedelta
+        is_out_of_sequence = False
+        if is_authorized and not is_sender and len(chain) > 2:
+            # Find valid scans for this package (who has already scanned)
+            valid_scans = db.query(ScanHistory).filter(
+                ScanHistory.package_id == package.package_id,
+                ScanHistory.result == "valid"
+            ).all()
+            scanned_user_ids = set(s.scanner_id for s in valid_scans)
+
+            # Determine expected next scanner(s):
+            # The next expected person is the first one in the chain (after sender)
+            # who hasn't scanned yet
+            scanner_chain_idx = None
+            if user["uid"] in chain:
+                scanner_chain_idx = chain.index(user["uid"])
+
+            if scanner_chain_idx is not None and scanner_chain_idx > 0:
+                # Check all people BEFORE this scanner in the chain
+                # (excluding sender who creates the package)
+                for i in range(1, scanner_chain_idx):
+                    if chain[i] not in scanned_user_ids:
+                        # Someone before this scanner hasn't scanned yet
+                        is_out_of_sequence = True
+                        break
+
+        # Determine final intended result
+        if not is_authorized:
+            intended_result = "misplaced"
+        elif is_out_of_sequence:
+            intended_result = "out_of_sequence"
+        else:
+            intended_result = "valid"
+
+        # Prevent duplicate scans: same scanner + same package within 30 seconds
         last_scan = db.query(ScanHistory).filter(
             ScanHistory.package_id == package.package_id,
             ScanHistory.scanner_id == user["uid"],
@@ -95,13 +136,11 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         alert_sent = False
 
-        if is_authorized and result != "duplicate":
-            # ── Valid scan ─────────────────────────────────────────────
-            # Update current holder
+        if result == "valid":
+            # ── Valid scan (in sequence) ──────────────────────────────
             package.current_holder_id = user["uid"]
 
             if is_receiver:
-                # Receiver scanned → mark delivered, notify sender
                 package.status = "delivered"
                 sender = db.query(User).filter_by(user_id=package.sender_id).first()
                 if sender and sender.fcm_token:
@@ -114,13 +153,39 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
                     except Exception as e:
                         print(f"Error sending push: {e}")
             else:
-                # Checkpoint or sender scan → notify next in chain
                 _notify_next_in_chain(package, user["uid"], db)
 
-        elif not is_authorized and result != "duplicate":
-            # ── Misplaced scan ─────────────────────────────────────────
-            # Alert sender AND receiver, but deduplicate so the same user
-            # doesn't receive two identical alerts (e.g. solo testing).
+        elif result == "out_of_sequence":
+            # ── Out of sequence scan ──────────────────────────────────
+            scanner = db.query(User).filter_by(user_id=user["uid"]).first()
+            scanner_name = scanner.full_name if scanner else "Unknown"
+
+            unique_recipients = set(filter(None, [package.sender_id, package.receiver_id]))
+            for recipient_id in unique_recipients:
+                alert = Alert(
+                    package_id=package.package_id,
+                    recipient_id=recipient_id,
+                    scanned_by_id=user["uid"],
+                    alert_type="out_of_sequence",
+                    details=f"{scanner_name} scanned out of sequence at {data.location_description}"
+                )
+                db.add(alert)
+
+                recipient = db.query(User).filter_by(user_id=recipient_id).first()
+                if recipient and recipient.fcm_token:
+                    try:
+                        send_push_notification(
+                            recipient.fcm_token,
+                            "Sequence Breach ⚠️",
+                            f"'{package.description}' was scanned out of order by {scanner_name} at {data.location_description}"
+                        )
+                    except Exception as e:
+                        print(f"Error sending push: {e}")
+
+            alert_sent = True
+
+        elif result == "misplaced":
+            # ── Misplaced scan ────────────────────────────────────────
             unique_recipients = set(filter(None, [package.sender_id, package.receiver_id]))
             for recipient_id in unique_recipients:
                 alert = Alert(
@@ -193,4 +258,4 @@ def _notify_next_in_chain(package: Package, scanner_uid: str, db: Session):
                     f"Package '{package.description}' is heading to you next!"
                 )
     except (ValueError, IndexError):
-        pass  # scanner not in chain or no next person
+        pass  # scanner not in chain or no next person
