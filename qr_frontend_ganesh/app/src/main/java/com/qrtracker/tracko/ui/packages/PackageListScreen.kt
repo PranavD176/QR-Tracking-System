@@ -137,15 +137,21 @@ fun PackageListScreen(
                         shortId = displayId,
                         status = pkg.status,
                         createdAt = pkg.created_at ?: "",
-                        // Progress is driven by parcel lifecycle status:
-                        // pending_acceptance→5%, in_transit→50%, delivered→100%,
-                        // rejected→0%, misplaced→40% (shown in red via isError flag)
+                        // Dynamic progress based on actual scanned checkpoints:
+                        // Route has: sender → checkpoint_1 → ... → checkpoint_n → receiver
+                        // Total segments = checkpoints + 2 (sender + receiver)
+                        // Progress = (scanned_checkpoints + 1) / (total_checkpoints + 2)
+                        // +1 because sender already has the package
                         progress = when (pkg.status) {
-                            "delivered"          -> 1.0f
-                            "in_transit"         -> 0.5f
+                            "delivered" -> 1.0f
                             "pending_acceptance" -> 0.05f
-                            "misplaced"          -> 0.4f
-                            else                 -> 0f
+                            "rejected" -> 0f
+                            else -> {
+                                val totalCheckpoints = pkg.route_checkpoints?.size ?: 0
+                                val scanned = pkg.scanned_checkpoint_count
+                                if (totalCheckpoints == 0) 0.5f
+                                else ((scanned + 1).toFloat() / (totalCheckpoints + 2).toFloat()).coerceIn(0.05f, 0.95f)
+                            }
                         },
                         checkpointCount = pkg.route_checkpoints?.size ?: 0,
                         lastCheckpoint = pkg.description,

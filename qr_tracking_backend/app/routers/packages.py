@@ -22,6 +22,8 @@ def _serialize_package(pkg: Package, db: Session = None) -> dict:
     sender_name = None
     receiver_name = None
     current_holder_name = None
+    route_checkpoint_names = []
+    scanned_checkpoint_count = 0
 
     if db:
         sender = db.query(User).filter_by(user_id=pkg.sender_id).first()
@@ -31,6 +33,23 @@ def _serialize_package(pkg: Package, db: Session = None) -> dict:
         if pkg.current_holder_id:
             holder = db.query(User).filter_by(user_id=pkg.current_holder_id).first()
             current_holder_name = holder.full_name if holder else None
+
+        # Resolve checkpoint user IDs to names
+        if pkg.route_checkpoints:
+            for cp_uid in pkg.route_checkpoints:
+                cp_user = db.query(User).filter_by(user_id=cp_uid).first()
+                route_checkpoint_names.append(cp_user.full_name if cp_user else cp_uid)
+
+        # Count how many checkpoints have been scanned (valid result)
+        if pkg.route_checkpoints:
+            scanned_ids = set()
+            scans = db.query(ScanHistory).filter_by(
+                package_id=pkg.package_id
+            ).filter(ScanHistory.result == "valid").all()
+            for scan in scans:
+                if scan.scanner_id in pkg.route_checkpoints:
+                    scanned_ids.add(scan.scanner_id)
+            scanned_checkpoint_count = len(scanned_ids)
 
     return {
         "package_id": pkg.package_id,
@@ -43,6 +62,8 @@ def _serialize_package(pkg: Package, db: Session = None) -> dict:
         "current_holder_id": pkg.current_holder_id,
         "current_holder_name": current_holder_name,
         "route_checkpoints": pkg.route_checkpoints,
+        "route_checkpoint_names": route_checkpoint_names,
+        "scanned_checkpoint_count": scanned_checkpoint_count,
         "qr_payload": f"QR_TRACKING:{pkg.package_id}",
         "created_at": pkg.created_at.isoformat() if pkg.created_at else None,
     }
