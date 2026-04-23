@@ -86,30 +86,32 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         elif not is_authorized and result != "duplicate":
             # ── Misplaced scan ─────────────────────────────────────────
-            # Alert BOTH sender AND receiver
-            for recipient_id in [package.sender_id, package.receiver_id]:
-                if recipient_id:
-                    alert = Alert(
-                        package_id=package.package_id,
-                        recipient_id=recipient_id,
-                        scanned_by_id=user["uid"],
-                        alert_type="misplaced",
-                        details=data.location_description
-                    )
-                    db.add(alert)
+            # Alert sender AND receiver, but deduplicate so the same user
+            # doesn't receive two identical alerts (e.g. solo testing).
+            unique_recipients = set(filter(None, [package.sender_id, package.receiver_id]))
+            for recipient_id in unique_recipients:
+                alert = Alert(
+                    package_id=package.package_id,
+                    recipient_id=recipient_id,
+                    scanned_by_id=user["uid"],
+                    alert_type="misplaced",
+                    details=data.location_description
+                )
+                db.add(alert)
 
-                    recipient = db.query(User).filter_by(user_id=recipient_id).first()
-                    if recipient and recipient.fcm_token:
-                        try:
-                            send_push_notification(
-                                recipient.fcm_token,
-                                "Package Alert 🚨",
-                                f"Your package was scanned by an unauthorized person at {data.location_description}"
-                            )
-                        except Exception as e:
-                            print(f"Error sending push notification: {e}")
+                recipient = db.query(User).filter_by(user_id=recipient_id).first()
+                if recipient and recipient.fcm_token:
+                    try:
+                        send_push_notification(
+                            recipient.fcm_token,
+                            "Package Alert 🚨",
+                            f"Your package was scanned by an unauthorized person at {data.location_description}"
+                        )
+                    except Exception as e:
+                        print(f"Error sending push notification: {e}")
 
             alert_sent = True
+
 
         db.commit()
 

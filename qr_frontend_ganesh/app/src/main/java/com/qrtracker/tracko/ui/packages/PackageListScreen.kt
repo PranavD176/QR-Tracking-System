@@ -61,6 +61,7 @@ data class PackageItem(
     val status      : String,
     val createdAt   : String,
     val progress    : Float = 0f,
+    val checkpointCount: Int = 0,       // total route checkpoints
     val lastCheckpoint: String = "",
     val source: String = "",
     val destination: String = "",
@@ -136,11 +137,17 @@ fun PackageListScreen(
                         shortId = displayId,
                         status = pkg.status,
                         createdAt = pkg.created_at ?: "",
+                        // Progress is driven by parcel lifecycle status:
+                        // pending_acceptance→5%, in_transit→50%, delivered→100%,
+                        // rejected→0%, misplaced→40% (shown in red via isError flag)
                         progress = when (pkg.status) {
-                            "delivered" -> 1f
-                            "misplaced" -> 0.45f
-                            else -> 0.6f
+                            "delivered"          -> 1.0f
+                            "in_transit"         -> 0.5f
+                            "pending_acceptance" -> 0.05f
+                            "misplaced"          -> 0.4f
+                            else                 -> 0f
                         },
+                        checkpointCount = pkg.route_checkpoints?.size ?: 0,
                         lastCheckpoint = pkg.description,
                         source = pkg.sender_name ?: "Unknown",
                         destination = pkg.receiver_name ?: "Unknown"

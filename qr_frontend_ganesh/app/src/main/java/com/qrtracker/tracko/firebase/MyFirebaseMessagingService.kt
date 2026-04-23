@@ -40,25 +40,27 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     // This function fires when a push notification arrives on this device.
-    // The backend sends this when a package is misplaced.
+    // The backend sends this when a package is misplaced or a parcel event occurs.
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // When app is in background and notification payload exists, Android will
-        // usually display it automatically. Skip local rendering to avoid duplicates.
-        if (remoteMessage.notification != null && !isAppInForeground()) {
-            return
-        }
-
-        // Extract the notification title and body sent by the backend
-        // We look in 'data' first (since our backend now sends data payloads to guarantee delivery),
-        // and fallback to 'notification' if present.
+        // Extract the notification title and body sent by the backend.
+        // We always prefer the 'data' payload (guaranteed delivery even in Doze mode),
+        // falling back to the 'notification' block if data keys are absent.
         val title = remoteMessage.data["title"] ?: remoteMessage.notification?.title ?: "Package Alert"
-        val body = remoteMessage.data["body"] ?: remoteMessage.notification?.body ?: "Your package was scanned."
+        val body  = remoteMessage.data["body"]  ?: remoteMessage.notification?.body  ?: "Your package was scanned."
         val eventId = remoteMessage.data["event_id"]
 
-        // Build and display the notification to the user
-        showNotification(title, body, eventId)
+        // When the app is in the BACKGROUND, Android's FCM SDK automatically shows
+        // the 'notification' block as a system tray notification — so we only need to
+        // call showNotification() ourselves when the app is in the FOREGROUND (otherwise
+        // the user would see two notifications).
+        //
+        // If the message is data-only (no notification block), we show it ourselves in all states.
+        val isDataOnly = remoteMessage.notification == null
+        if (isDataOnly || isAppInForeground()) {
+            showNotification(title, body, eventId)
+        }
     }
 
     // Builds and shows the actual notification the user sees on their screen
