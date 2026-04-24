@@ -41,6 +41,8 @@ import com.qrtracker.tracko.viewmodel.UpdateCheckpointsState
 import com.qrtracker.tracko.viewmodel.UsersState
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import android.content.ClipData
+import android.content.ClipboardManager
 
 @Composable
 fun PackageDetailScreen(
@@ -326,7 +328,14 @@ fun PackageDetailScreen(
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )
                             IconButton(
-                                onClick = { /* TODO: Copy to clipboard */ },
+                                onClick = {
+                                    val trackingValue = pkgQrPayload.ifBlank { "QR_TRACKING:$packageId" }
+                                    val clipboard = context.getSystemService(ClipboardManager::class.java)
+                                    clipboard?.setPrimaryClip(
+                                        ClipData.newPlainText("Tracking Number", trackingValue)
+                                    )
+                                    Toast.makeText(context, "Tracking number copied", Toast.LENGTH_SHORT).show()
+                                },
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(RoundedCornerShape(10.dp))
