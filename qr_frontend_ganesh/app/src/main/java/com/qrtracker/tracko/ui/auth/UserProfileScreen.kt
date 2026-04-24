@@ -57,12 +57,14 @@ fun UserProfileScreen(navController: NavController) {
     val email = tokenManager.getEmail() ?: "—"
     val userId = tokenManager.getUserId() ?: "—"
     val role = tokenManager.getRole() ?: "user"
+    val contactNo = tokenManager.getContactNo() ?: "—"
     val initial = fullName.firstOrNull()?.toString() ?: "U"
 
     val userDetails = linkedMapOf(
         "Name" to fullName,
         "User ID" to userId,
         "Email" to email,
+        "Contact No" to contactNo,
         "Role" to role.replaceFirstChar { it.uppercase() },
         "Account Status" to "Active"
     )

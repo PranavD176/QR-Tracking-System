@@ -85,6 +85,16 @@ class TokenManager(private val context: Context) {
         return prefs.getString(KEY_ROLE, null)
     }
 
+    // ─── CONTACT NO ────────────────────────────────────────────────
+
+    fun saveContactNo(contactNo: String) {
+        prefs.edit().putString(KEY_CONTACT_NO, contactNo).apply()
+    }
+
+    fun getContactNo(): String? {
+        return prefs.getString(KEY_CONTACT_NO, null)
+    }
+
     // ─── FCM TOKEN ───────────────────────────────────────────────────
     // FCM token is stored in regular (non-encrypted) prefs
     // because it's not sensitive — it's just a device identifier
@@ -118,6 +128,7 @@ class TokenManager(private val context: Context) {
         private const val KEY_FULL_NAME = "full_name"
         private const val KEY_EMAIL = "user_email"
         private const val KEY_ROLE = "user_role"
+        private const val KEY_CONTACT_NO = "user_contact"
         private const val KEY_FCM_TOKEN = "fcm_token"
     }
 }

@@ -41,6 +41,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         full_name=user.full_name,
         hashed_password=hashed,
+        contact_no=user.contact_no,
     )
     db.add(new_user)
     db.commit()
@@ -52,6 +53,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
             "user_id": new_user.user_id,
             "email": new_user.email,
             "full_name": new_user.full_name,
+            "contact_no": new_user.contact_no,
         },
         "error": None,
     }
@@ -85,6 +87,7 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
             "user_id": user.user_id,
             "email": user.email,
             "full_name": user.full_name,
+            "contact_no": user.contact_no,
         },
         "error": None,
     }
@@ -155,6 +158,7 @@ def get_all_users(
             "user_id": u.user_id,
             "email": u.email,
             "full_name": u.full_name,
+            "contact_no": u.contact_no,
         }
         for u in users
         if u.user_id != current_user["uid"]  # exclude self

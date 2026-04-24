@@ -43,6 +43,7 @@ class AuthViewModel(
                         authData.full_name?.let { tokenManager.saveFullName(it) }
                         authData.email?.let { tokenManager.saveEmail(it) }
                         authData.role?.let { tokenManager.saveRole(it) }
+                        authData.contact_no?.let { tokenManager.saveContactNo(it) }
 
                         // Send FCM token to backend
                         sendFcmToken()
@@ -60,12 +61,12 @@ class AuthViewModel(
         }
     }
 
-    fun register(email: String, password: String, fullName: String) {
+    fun register(email: String, password: String, fullName: String, contactNo: String? = null) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
                 val response = apiService.register(
-                    RegisterRequest(fullName, email, password)
+                    RegisterRequest(fullName, email, password, contactNo)
                 )
                 if (response.isSuccessful) {
                     login(email, password)

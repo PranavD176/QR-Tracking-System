@@ -159,6 +159,9 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
             # ── Out of sequence scan ──────────────────────────────────
             scanner = db.query(User).filter_by(user_id=user["uid"]).first()
             scanner_name = scanner.full_name if scanner else "Unknown"
+            scanner_contact = scanner.contact_no if scanner else None
+
+            contact_info = f" (Contact: {scanner_contact})" if scanner_contact else ""
 
             unique_recipients = set(filter(None, [package.sender_id, package.receiver_id]))
             for recipient_id in unique_recipients:
@@ -167,7 +170,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
                     recipient_id=recipient_id,
                     scanned_by_id=user["uid"],
                     alert_type="out_of_sequence",
-                    details=f"{scanner_name} scanned out of sequence at {data.location_description}"
+                    details=f"{scanner_name} scanned out of sequence at {data.location_description}{contact_info}"
                 )
                 db.add(alert)
 
@@ -177,7 +180,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
                         send_push_notification(
                             recipient.fcm_token,
                             "Sequence Breach ⚠️",
-                            f"'{package.description}' was scanned out of order by {scanner_name} at {data.location_description}"
+                            f"'{package.description}' was scanned out of order by {scanner_name}{contact_info} at {data.location_description}"
                         )
                     except Exception as e:
                         print(f"Error sending push: {e}")
@@ -186,6 +189,12 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
 
         elif result == "misplaced":
             # ── Misplaced scan ────────────────────────────────────────
+            scanner = db.query(User).filter_by(user_id=user["uid"]).first()
+            scanner_name = scanner.full_name if scanner else "Unknown"
+            scanner_contact = scanner.contact_no if scanner else None
+
+            contact_info = f" (Contact: {scanner_contact})" if scanner_contact else ""
+
             unique_recipients = set(filter(None, [package.sender_id, package.receiver_id]))
             for recipient_id in unique_recipients:
                 alert = Alert(
@@ -193,7 +202,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
                     recipient_id=recipient_id,
                     scanned_by_id=user["uid"],
                     alert_type="misplaced",
-                    details=data.location_description
+                    details=f"{scanner_name}{contact_info} scanned at {data.location_description}"
                 )
                 db.add(alert)
 
@@ -203,7 +212,7 @@ def scan(data: ScanRequest, user=Depends(get_current_user), db: Session = Depend
                         send_push_notification(
                             recipient.fcm_token,
                             "Package Alert 🚨",
-                            f"Your package was scanned by an unauthorized person at {data.location_description}"
+                            f"Your package was scanned by {scanner_name}{contact_info} at {data.location_description}"
                         )
                     except Exception as e:
                         print(f"Error sending push notification: {e}")

@@ -5,6 +5,7 @@ data class AlertResponse(
     val package_id: String,
     val package_description: String,
     val scanned_by_name: String,
+    val scanned_by_contact: String? = null,
     val alert_type: String = "misplaced",
     val location: String,
     val status: String,

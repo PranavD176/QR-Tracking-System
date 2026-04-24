@@ -13,5 +13,6 @@ data class AuthData(
     val user_id: String,
     val email: String? = null,
     val full_name: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val contact_no: String? = null
 )

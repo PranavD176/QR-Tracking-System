@@ -12,4 +12,5 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
+    contact_no = Column(String, nullable=True)
     fcm_token = Column(Text, nullable=True)

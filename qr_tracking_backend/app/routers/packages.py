@@ -212,6 +212,7 @@ def get_package_scans(package_id: str, user=Depends(get_current_user), db: Sessi
         enriched_scans.append({
             "scan_id": scan.scan_id,
             "scanner_name": scanner.full_name if scanner else "Unknown",
+            "scanner_contact": scanner.contact_no if scanner else None,
             "result": scan.result,
             "location_description": scan.location_description,
             "scanned_at": scan.scanned_at.isoformat() if scan.scanned_at else None,

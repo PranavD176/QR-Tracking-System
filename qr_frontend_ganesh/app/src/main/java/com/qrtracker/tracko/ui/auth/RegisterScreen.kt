@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -48,6 +49,7 @@ import androidx.compose.ui.platform.LocalContext
 data class RegisterUiState(
     val fullName            : String  = "",
     val email               : String  = "",
+    val contactNo           : String  = "",
     val password            : String  = "",
     val confirmPassword     : String  = "",
     val isPasswordVisible   : Boolean = false,
@@ -239,6 +241,23 @@ fun RegisterScreen(navController: NavController) {
                 )
                 Spacer(Modifier.height(16.dp))
 
+                // ── Contact Number ───────────────────────────────────────────
+                EditorialTextField(
+                    value = uiState.contactNo,
+                    onValueChange = { uiState = uiState.copy(contactNo = it.filter { c -> c.isDigit() }) },
+                    label = "Contact Number",
+                    placeholder = "9876543210",
+                    leadingIcon = Icons.Outlined.Phone,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Phone,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    )
+                )
+                Spacer(Modifier.height(16.dp))
+
                 // ── Password ─────────────────────────────────────────────────
                 EditorialTextField(
                     value = uiState.password,
@@ -367,6 +386,10 @@ fun RegisterScreen(navController: NavController) {
                             !android.util.Patterns.EMAIL_ADDRESS
                                 .matcher(uiState.email).matches() ->
                                 uiState = uiState.copy(error = "Enter a valid email address")
+                            uiState.contactNo.isBlank() ->
+                                uiState = uiState.copy(error = "Contact number is required")
+                            uiState.contactNo.length != 10 ->
+                                uiState = uiState.copy(error = "Enter a valid 10-digit contact number")
                             uiState.password.length < 8 ->
                                 uiState = uiState.copy(error = "Password must be at least 8 characters")
                             !uiState.password.any { it.isUpperCase() } ->
@@ -383,7 +406,8 @@ fun RegisterScreen(navController: NavController) {
                                 authViewModel.register(
                                     uiState.email.trim(),
                                     uiState.password,
-                                    uiState.fullName.trim()
+                                    uiState.fullName.trim(),
+                                    uiState.contactNo.trim()
                                 )
                             }
                         }

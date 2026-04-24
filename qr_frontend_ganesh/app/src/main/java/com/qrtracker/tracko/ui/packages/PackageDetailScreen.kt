@@ -117,6 +117,7 @@ fun PackageDetailScreen(
                 MockScanEntry(
                     location = s.location_description,
                     scannerName = s.scanner_name,
+                    scannerContact = s.scanner_contact,
                     result = s.result.lowercase(),
                     timestamp = s.scanned_at
                 )
@@ -572,7 +573,7 @@ fun PackageDetailScreen(
                                 }
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    text = "by ${scan.scannerName}",
+                                    text = "by ${scan.scannerName}" + (scan.scannerContact?.let { " ($it)" } ?: ""),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = OnSurfaceVariant
                                 )
@@ -766,6 +767,7 @@ fun PackageDetailScreen(
 private data class MockScanEntry(
     val location: String,
     val scannerName: String,
+    val scannerContact: String?,
     val result: String,
     val timestamp: String
 )

@@ -46,7 +46,8 @@ data class UserAlert(
     val type: UserAlertType,
     val timeAgo: String,
     val statusLabel: String,
-    val isUnread: Boolean = false
+    val isUnread: Boolean = false,
+    val contactNo: String? = null
 )
 
 @Composable
@@ -79,9 +80,13 @@ fun AlertFeedScreen(
                     "handoff" -> "Package Handoff 🚚" to UserAlertType.OUT_FOR_DELIVERY
                     else -> "Package Alert" to UserAlertType.PARCEL_ARRIVED
                 }
+                val contactInfo = if ((a.alert_type == "misplaced" || a.alert_type == "out_of_sequence") && !a.scanned_by_contact.isNullOrBlank()) {
+                    "\nContact: ${a.scanned_by_contact}"
+                } else ""
                 val description = when (a.alert_type) {
                     "rejected" -> a.location.ifBlank { "Package \"${a.package_description}\" was rejected" }
-                    "out_of_sequence" -> a.location.ifBlank { "Package \"${a.package_description}\" scanned out of sequence" }
+                    "out_of_sequence" -> (a.location.ifBlank { "Package \"${a.package_description}\" scanned out of sequence" }) + contactInfo
+                    "misplaced" -> "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}" + contactInfo
                     else -> "Package \"${a.package_description}\" scanned by ${a.scanned_by_name} at ${a.location}"
                 }
                 UserAlert(
@@ -89,9 +94,10 @@ fun AlertFeedScreen(
                     title = title,
                     description = description,
                     type = alertType,
-                    timeAgo = a.created_at.takeLast(8),
+                    timeAgo = formatAlertDate(a.created_at),
                     statusLabel = a.status.uppercase(),
-                    isUnread = a.status == "sent"
+                    isUnread = a.status == "sent",
+                    contactNo = a.scanned_by_contact
                 )
             }
         }
@@ -167,11 +173,23 @@ fun AlertFeedScreen(
                             color = GradientStart
                         )
                     }
-                    Text(
-                        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date()),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = GradientStart
-                    )
+                    TextButton(
+                        onClick = { alertViewModel.acknowledgeAllAlerts() },
+                        enabled = alerts.isNotEmpty()
+                    ) {
+                        Icon(
+                            Icons.Default.DoneAll,
+                            contentDescription = null,
+                            tint = if (alerts.isNotEmpty()) GradientStart else OnSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "Mark as Read",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = if (alerts.isNotEmpty()) GradientStart else OnSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -253,3 +271,34 @@ private fun UserAlertCard(alert: UserAlert) {
     }
 }
 
+/**
+ * Parses an ISO-8601 date string and formats it as "MMM dd, hh:mm a"
+ * e.g. "Apr 24, 11:27 AM". Falls back to the raw string on parse errors.
+ */
+private fun formatAlertDate(isoDate: String): String {
+    return try {
+        // Handle ISO format like "2026-04-24T01:27:48.410000+00:00" or "2026-04-24T01:27:48.410000"
+        val inputFormats = listOf(
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault()),
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault()),
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        )
+        // Strip timezone offset for simpler parsing
+        val cleanDate = isoDate.replace(Regex("[+-]\\d{2}:\\d{2}$"), "")
+
+        var parsed: Date? = null
+        for (fmt in inputFormats) {
+            try {
+                parsed = fmt.parse(cleanDate)
+                if (parsed != null) break
+            } catch (_: Exception) { }
+        }
+        if (parsed != null) {
+            SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault()).format(parsed)
+        } else {
+            isoDate
+        }
+    } catch (e: Exception) {
+        isoDate
+    }
+}
