@@ -68,6 +68,8 @@ fun ScanScreen(navController: NavController) {
 
     var uiState           by remember { mutableStateOf(ScanUiState()) }
     var lastScanTime      by remember { mutableLongStateOf(0L) }
+    var showManualEntry   by remember { mutableStateOf(false) }
+    var manualIdInput     by remember { mutableStateOf("") }
     val cameraPermission  = rememberPermissionState(Manifest.permission.CAMERA)
     val context           = LocalContext.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
@@ -114,6 +116,62 @@ fun ScanScreen(navController: NavController) {
         snackbarHost   = { SnackbarHost(snackbarHostState) },
         containerColor = Color.Black
     ) { padding ->
+        if (showManualEntry) {
+            AlertDialog(
+                onDismissRequest = { showManualEntry = false },
+                title = { Text("Capture Manual ID") },
+                text = {
+                    Column {
+                        Text(
+                            text = "Paste QR payload (QR_TRACKING:...) or package ID",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = OnSurfaceVariant
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = manualIdInput,
+                            onValueChange = { manualIdInput = it },
+                            singleLine = true,
+                            placeholder = { Text("QR_TRACKING:...") },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val rawInput = manualIdInput.trim()
+                            val packageId = QRParser.extractPackageId(rawInput) ?: rawInput
+                            when {
+                                uiState.locationInput.isBlank() ->
+                                    uiState = uiState.copy(error = "Enter location before scanning")
+                                rawInput.isBlank() ->
+                                    uiState = uiState.copy(error = "Enter package ID")
+                                uiState.isProcessing -> Unit
+                                else -> {
+                                    uiState = uiState.copy(isProcessing = true)
+                                    scanViewModel.submitScan(packageId, uiState.locationInput)
+                                    showManualEntry = false
+                                    manualIdInput = ""
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Submit")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showManualEntry = false
+                            manualIdInput = ""
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
 
         when {
 
@@ -274,7 +332,7 @@ fun ScanScreen(navController: NavController) {
                         GradientButton(
                             text = "Capture Manual ID",
                             icon = Icons.Outlined.ArrowForward,
-                            onClick = { /* TODO: Manual entry */ }
+                            onClick = { showManualEntry = true }
                         )
 
                         Spacer(Modifier.height(12.dp))

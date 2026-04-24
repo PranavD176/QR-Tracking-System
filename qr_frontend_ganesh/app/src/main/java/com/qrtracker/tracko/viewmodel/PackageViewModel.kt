@@ -79,11 +79,26 @@ class PackageViewModel(
 
     private val _updateCheckpointsState = MutableStateFlow<UpdateCheckpointsState>(UpdateCheckpointsState.Idle)
     val updateCheckpointsState: StateFlow<UpdateCheckpointsState> = _updateCheckpointsState
+    private var packageCacheAtMs: Long = 0L
+    private var usersCacheAtMs: Long = 0L
+
+    companion object {
+        private const val CACHE_TTL_MS = 30_000L
+    }
 
     // ─── FETCH PACKAGES ──────────────────────────────────────────────
 
-    fun fetchPackages(status: String? = null) {
+    fun fetchPackages(status: String? = null, forceRefresh: Boolean = false) {
         viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            if (!forceRefresh &&
+                status == null &&
+                _packageListState.value is PackageListState.Success &&
+                now - packageCacheAtMs < CACHE_TTL_MS
+            ) {
+                return@launch
+            }
+
             _packageListState.value = PackageListState.Loading
 
             try {
@@ -92,6 +107,9 @@ class PackageViewModel(
                 if (response.isSuccessful && response.body()?.success == true) {
                     val packages = response.body()!!.data ?: emptyList()
                     _packageListState.value = PackageListState.Success(packages)
+                    if (status == null) {
+                        packageCacheAtMs = System.currentTimeMillis()
+                    }
 
                 } else {
                     if (response.code() == 401) {
@@ -138,8 +156,17 @@ class PackageViewModel(
 
     // ─── FETCH USERS ─────────────────────────────────────────────────
 
-    fun fetchUsers(search: String? = null) {
+    fun fetchUsers(search: String? = null, forceRefresh: Boolean = false) {
         viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            if (!forceRefresh &&
+                search.isNullOrBlank() &&
+                _usersState.value is UsersState.Success &&
+                now - usersCacheAtMs < CACHE_TTL_MS
+            ) {
+                return@launch
+            }
+
             _usersState.value = UsersState.Loading
 
             try {
@@ -148,6 +175,9 @@ class PackageViewModel(
                 if (response.isSuccessful && response.body()?.success == true) {
                     val users = response.body()!!.data ?: emptyList()
                     _usersState.value = UsersState.Success(users)
+                    if (search.isNullOrBlank()) {
+                        usersCacheAtMs = System.currentTimeMillis()
+                    }
                 } else {
                     if (response.code() == 401) {
                         _usersState.value = UsersState.Error("Session expired.")
@@ -204,7 +234,7 @@ class PackageViewModel(
             try {
                 val response = apiService.acceptPackage(packageId)
                 if (response.isSuccessful && response.body()?.success == true) {
-                    fetchPackages() // Refresh list
+                    fetchPackages(forceRefresh = true) // Refresh list
                 }
             } catch (e: Exception) {
                 // handle error
@@ -217,7 +247,7 @@ class PackageViewModel(
             try {
                 val response = apiService.rejectPackage(packageId)
                 if (response.isSuccessful && response.body()?.success == true) {
-                    fetchPackages() // Refresh list
+                    fetchPackages(forceRefresh = true) // Refresh list
                 }
             } catch (e: Exception) {
                 // handle error
@@ -236,7 +266,7 @@ class PackageViewModel(
                 )
                 if (response.isSuccessful && response.body()?.success == true) {
                     _updateCheckpointsState.value = UpdateCheckpointsState.Success
-                    fetchPackages()
+                    fetchPackages(forceRefresh = true)
                     fetchScanHistory(packageId)
                 } else {
                     val errorMsg = response.body()?.error ?: "Failed to update route checkpoints"

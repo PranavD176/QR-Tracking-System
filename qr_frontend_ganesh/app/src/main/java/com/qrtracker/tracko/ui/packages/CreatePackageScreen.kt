@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
+import com.qrtracker.tracko.ui.navigation.navigateWithState
 import com.qrtracker.tracko.ui.theme.*
-import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.PackageViewModel
 import com.qrtracker.tracko.viewmodel.CreatePackageState
 import com.qrtracker.tracko.viewmodel.UsersState
@@ -63,11 +63,12 @@ data class IntermediateUser(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePackageScreen(navController: NavController) {
+fun CreatePackageScreen(
+    navController: NavController,
+    packageViewModel: PackageViewModel
+) {
     var uiState           by remember { mutableStateOf(CreatePackageUiState()) }
     val context           = LocalContext.current
-    val tokenManager      = remember { TokenManager(context.applicationContext) }
-    val packageViewModel  = remember { PackageViewModel(tokenManager) }
     val createState by packageViewModel.createPackageState.collectAsState()
     val usersState by packageViewModel.usersState.collectAsState()
     val focusManager      = LocalFocusManager.current
@@ -166,7 +167,7 @@ fun CreatePackageScreen(navController: NavController) {
                 ),
                 currentRoute = Routes.CREATE_PACKAGE,
                 onItemClick = { route ->
-                    navController.navigate(route) { launchSingleTop = true }
+                    navController.navigateWithState(route)
                 }
             )
         }

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
+import com.qrtracker.tracko.ui.navigation.navigateWithState
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.QRCodeGenerator
 import com.qrtracker.tracko.utils.TokenManager
@@ -44,12 +45,12 @@ import android.widget.Toast
 @Composable
 fun PackageDetailScreen(
     navController: NavController,
-    packageId: String
+    packageId: String,
+    packageViewModel: PackageViewModel
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context.applicationContext) }
-    val packageViewModel = remember { PackageViewModel(tokenManager) }
     val pkgListState by packageViewModel.packageListState.collectAsState()
     val scanHistoryState by packageViewModel.scanHistoryState.collectAsState()
 
@@ -178,9 +179,7 @@ fun PackageDetailScreen(
                 ),
                 currentRoute = Routes.PACKAGE_LIST,
                 onItemClick = { route ->
-                    navController.navigate(route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigateWithState(route)
                 }
             )
         }

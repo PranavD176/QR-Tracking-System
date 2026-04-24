@@ -42,11 +42,26 @@ class AlertViewModel(
 
     private val _unreadCount = MutableStateFlow(0)
     val unreadCount: StateFlow<Int> = _unreadCount
+    private var lastFetchStatus: String? = null
+    private var lastFetchAtMs: Long = 0L
+
+    companion object {
+        private const val CACHE_TTL_MS = 20_000L
+    }
 
     // ─── FETCH MY ALERTS ─────────────────────────────────────────────
 
-    fun fetchAlerts(status: String? = "sent") {
+    fun fetchAlerts(status: String? = "sent", forceRefresh: Boolean = false) {
         viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            if (!forceRefresh &&
+                _alertListState.value is AlertListState.Success &&
+                lastFetchStatus == status &&
+                now - lastFetchAtMs < CACHE_TTL_MS
+            ) {
+                return@launch
+            }
+
             _alertListState.value = AlertListState.Loading
 
             try {
@@ -56,6 +71,8 @@ class AlertViewModel(
                     val alerts = response.body()!!.data ?: emptyList()
                     _alertListState.value = AlertListState.Success(alerts)
                     _unreadCount.value = alerts.count { it.status.equals("sent", ignoreCase = true) }
+                    lastFetchStatus = status
+                    lastFetchAtMs = System.currentTimeMillis()
 
                 } else {
                     val errorMsg = response.body()?.error ?: "Failed to fetch alerts"
@@ -81,7 +98,7 @@ class AlertViewModel(
 
                 if (response.isSuccessful && response.body()?.success == true) {
                     _acknowledgeState.value = AcknowledgeState.SuccessSingle(alertId)
-                    fetchAlerts(null)
+                    fetchAlerts(null, forceRefresh = true)
 
                 } else {
                     val errorMsg = response.body()?.error ?: "Failed to acknowledge alert"
@@ -105,7 +122,7 @@ class AlertViewModel(
                     val updated = response.body()?.data?.updated ?: 0
                     _acknowledgeState.value = AcknowledgeState.SuccessBulk(updated)
                     _unreadCount.value = 0
-                    fetchAlerts(null)
+                    fetchAlerts(null, forceRefresh = true)
                 } else {
                     val errorMsg = response.body()?.error ?: "Failed to mark alerts as read"
                     _acknowledgeState.value = AcknowledgeState.Error(errorMsg)

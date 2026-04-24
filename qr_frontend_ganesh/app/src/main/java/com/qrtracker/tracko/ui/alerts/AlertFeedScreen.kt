@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
+import com.qrtracker.tracko.ui.navigation.navigateWithState
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.viewmodel.AlertViewModel
 import com.qrtracker.tracko.viewmodel.AcknowledgeState
@@ -137,7 +138,7 @@ fun AlertFeedScreen(
                 currentRoute = Routes.ALERTS,
                 onItemClick = { route ->
                     if (route != Routes.ALERTS) {
-                        navController.navigate(route) { launchSingleTop = true }
+                        navController.navigateWithState(route)
                     }
                 }
             )

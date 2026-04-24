@@ -23,6 +23,7 @@ import com.qrtracker.tracko.ui.scan.ScanResultScreen
 import com.qrtracker.tracko.ui.scan.ScanScreen
 import com.qrtracker.tracko.utils.TokenManager
 import com.qrtracker.tracko.viewmodel.AlertViewModel
+import com.qrtracker.tracko.viewmodel.PackageViewModel
 
 @Composable
 fun NavGraph(
@@ -33,6 +34,7 @@ fun NavGraph(
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context.applicationContext) }
     val alertViewModel = remember { AlertViewModel(tokenManager) }
+    val packageViewModel = remember { PackageViewModel(tokenManager) }
 
     NavHost(
         navController    = navController,
@@ -59,6 +61,7 @@ fun NavGraph(
                 navController = navController,
                 startWithAll = false,
                 alertViewModel = alertViewModel,
+                packageViewModel = packageViewModel,
             )
         }
 
@@ -68,6 +71,7 @@ fun NavGraph(
                 navController = navController,
                 startWithAll = true,
                 alertViewModel = alertViewModel,
+                packageViewModel = packageViewModel,
             )
         }
 
@@ -80,13 +84,17 @@ fun NavGraph(
             val packageId = backStackEntry.arguments?.getString("packageId") ?: ""
             PackageDetailScreen(
                 navController = navController,
-                packageId     = packageId
+                packageId     = packageId,
+                packageViewModel = packageViewModel
             )
         }
 
         // ── Create Package (any user) ────────────────────────────────────────
         composable(Routes.CREATE_PACKAGE) {
-            CreatePackageScreen(navController = navController)
+            CreatePackageScreen(
+                navController = navController,
+                packageViewModel = packageViewModel
+            )
         }
 
         // ── Scanner ───────────────────────────────────────────────────────────

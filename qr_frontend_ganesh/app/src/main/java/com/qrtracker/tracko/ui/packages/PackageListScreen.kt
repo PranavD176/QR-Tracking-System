@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.qrtracker.tracko.ui.navigation.navigateWithState
 import com.qrtracker.tracko.ui.navigation.Routes
 import com.qrtracker.tracko.ui.theme.*
 import com.qrtracker.tracko.utils.TokenManager
@@ -88,13 +89,13 @@ fun PackageListScreen(
     navController: NavController,
     startWithAll: Boolean = false,
     alertViewModel: AlertViewModel,
+    packageViewModel: PackageViewModel,
 ) {
 
     var uiState           by remember { mutableStateOf(PackageListUiState(showAll = startWithAll)) }
     val context           = LocalContext.current
     val lifecycleOwner    = LocalLifecycleOwner.current
     val tokenManager      = remember { TokenManager(context.applicationContext) }
-    val packageViewModel  = remember { PackageViewModel(tokenManager) }
     val pkgListState by packageViewModel.packageListState.collectAsState()
     val unreadCount by alertViewModel.unreadCount.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -265,9 +266,7 @@ fun PackageListScreen(
                             // Already on this screen
                         }
                         else -> {
-                            navController.navigate(route) {
-                                launchSingleTop = true
-                            }
+                            navController.navigateWithState(route)
                         }
                     }
                 }
@@ -338,7 +337,7 @@ fun PackageListScreen(
                         }
                     ) {
                         IconButton(
-                            onClick = { navController.navigate(Routes.ALERTS) { launchSingleTop = true } },
+                            onClick = { navController.navigateWithState(Routes.ALERTS) },
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.qrtracker.tracko.ui.navigation.Routes
+import com.qrtracker.tracko.ui.navigation.navigateWithState
 import com.qrtracker.tracko.ui.theme.*
 
 @Composable
@@ -89,9 +90,7 @@ fun ScanResultScreen(
                 ),
                 currentRoute = Routes.SCANNER,
                 onItemClick = { route ->
-                    navController.navigate(route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigateWithState(route)
                 }
             )
         }
