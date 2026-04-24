@@ -6,6 +6,7 @@ import com.qrtracker.tracko.network.RetrofitClient
 import com.qrtracker.tracko.network.models.CreatePackageRequest
 import com.qrtracker.tracko.network.models.PackageResponse
 import com.qrtracker.tracko.network.models.ScanHistoryResponse
+import com.qrtracker.tracko.network.models.UpdateCheckpointsRequest
 import com.qrtracker.tracko.network.models.UserResponse
 import com.qrtracker.tracko.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -262,7 +263,7 @@ class PackageViewModel(
                 val cleanCheckpoints = checkpoints.map { it.trim() }.filter { it.isNotBlank() }
                 val response = apiService.updateCheckpoints(
                     packageId = packageId,
-                    checkpoints = mapOf("route_checkpoints" to cleanCheckpoints)
+                    request = UpdateCheckpointsRequest(route_checkpoints = cleanCheckpoints)
                 )
                 if (response.isSuccessful && response.body()?.success == true) {
                     _updateCheckpointsState.value = UpdateCheckpointsState.Success

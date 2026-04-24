@@ -70,7 +70,7 @@ interface ApiService {
     @PUT("packages/{package_id}/checkpoints")
     suspend fun updateCheckpoints(
         @Path("package_id") packageId: String,
-        @Body checkpoints: Map<String, List<String>>
+        @Body request: UpdateCheckpointsRequest
     ): Response<ApiResponse<PackageResponse>>
 
     // ─── SCAN ENDPOINT ───────────────────────────────────────────────

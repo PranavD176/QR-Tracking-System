@@ -33,6 +33,8 @@ import com.qrtracker.tracko.viewmodel.AlertViewModel
 import com.qrtracker.tracko.viewmodel.AcknowledgeState
 import com.qrtracker.tracko.viewmodel.AlertListState
 import androidx.compose.ui.platform.LocalContext
+import java.text.SimpleDateFormat
+import java.util.*
 
 // ── User Alert Data ──────────────────────────────────────────────────────────
 enum class UserAlertType { PARCEL_ARRIVED, DELIVERY_DELAYED, OUT_FOR_DELIVERY, DELIVERED, SECURITY }
@@ -166,17 +168,9 @@ fun AlertFeedScreen(
                         )
                     }
                     Text(
-                        "Mark all as read",
+                        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date()),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = GradientStart,
-                        modifier = Modifier.clickable {
-                            if (alerts.any { it.isUnread }) {
-                                alerts = alerts.map { it.copy(isUnread = false) }
-                                alertViewModel.acknowledgeAllAlerts()
-                            } else {
-                                Toast.makeText(context, "No unread alerts", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        color = GradientStart
                     )
                 }
             }
